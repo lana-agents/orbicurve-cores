@@ -1,3 +1,4 @@
 import OrbicurveCores.ArithTraces
 import OrbicurveCores.Fricke
 import OrbicurveCores.Markov
+import OrbicurveCores.Takeuchi
