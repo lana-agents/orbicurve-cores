@@ -1,1 +1,3 @@
-import OrbicurveCores.Basic
+import OrbicurveCores.ArithTraces
+import OrbicurveCores.Fricke
+import OrbicurveCores.Markov
