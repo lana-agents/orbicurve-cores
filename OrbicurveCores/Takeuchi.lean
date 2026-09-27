@@ -31,9 +31,9 @@ tori of [CanLift] Prop. 2.7 and [EstIUT] Prop. 2.1.
 * Descent on `x² + y² + z² ∈ ℕ` reaches a reduced triple, which is classified by
   `OrbicurveCores.Markov.reduced_classification`.
 
-The nondegeneracy hypothesis `tr A ≠ 0` excludes the finite (quaternion) group with trace triple
-`(0, 0, 0)`. It holds for every `(1;∞)`-group, and it also follows from arithmeticity, but we
-assume it here.
+The degenerate trace triple `(0, 0, 0)` on the Fricke surface belongs to a quotient of the
+quaternion group of order 8 (every element has order dividing 4). It is excluded because an
+arithmetic group contains elements of infinite order (`IsArithmeticSL.exists_pow_four_ne_one`).
 -/
 
 open Matrix Matrix.SpecialLinearGroup Subgroup
@@ -223,17 +223,104 @@ theorem exists_takeuchiSq {Γ : Subgroup SL(2, ℝ)} (hint : ∀ γ ∈ Γ, ∃ 
     · exact ⟨z, y, x, hr.swap.cycle.cycle, takeuchiSq_of_sorted hZ hY hX
         (by linear_combination hrel) hz hyz hxy (by linarith)⟩
 
+lemma sq_eq_neg_one_of_tr_eq_zero {A : SL(2, ℝ)} (h : tr A = 0) : A * A = -1 := by
+  ext1
+  rw [Matrix.SpecialLinearGroup.coe_mul, sq_eq, h, zero_smul, zero_sub,
+    Matrix.SpecialLinearGroup.coe_neg, Matrix.SpecialLinearGroup.coe_one]
+
+/-- If `tr A = tr B = tr AB = 0`, every element of `⟨A, B⟩` has order dividing `4`
+(`⟨A, B⟩` is a quotient of the quaternion group). -/
+lemma pow_four_eq_one_of_tr_zero {A B : SL(2, ℝ)} (hA : tr A = 0) (hB : tr B = 0)
+    (hAB : tr (A * B) = 0) {γ : SL(2, ℝ)} (hγ : γ ∈ Subgroup.closure {A, B}) : γ ^ 4 = 1 := by
+  have hAA := sq_eq_neg_one_of_tr_eq_zero hA
+  have hBB := sq_eq_neg_one_of_tr_eq_zero hB
+  have hABAB := sq_eq_neg_one_of_tr_eq_zero hAB
+  have h1 : A⁻¹ = -A := by
+    rw [inv_eq_of_mul_eq_one_right]; rw [mul_neg, hAA, neg_neg]
+  have h2 : B⁻¹ = -B := by
+    rw [inv_eq_of_mul_eq_one_right]; rw [mul_neg, hBB, neg_neg]
+  have hBA : B * A = -(A * B) := by
+    have h3 : B * A * B = A := by
+      have : A * (B * A * B) = -1 := by simpa [mul_assoc] using hABAB
+      calc B * A * B = A⁻¹ * (A * (B * A * B)) := by group
+        _ = A := by rw [this, h1]; simp
+    calc B * A = B * A * B * B⁻¹ := by group
+      _ = -(A * B) := by rw [h3, h2, mul_neg]
+  have hBAX : ∀ X : SL(2, ℝ), B * (A * X) = -(A * (B * X)) := by
+    intro X; rw [← mul_assoc, hBA, neg_mul, mul_assoc]
+  have hAAX : ∀ X : SL(2, ℝ), A * (A * X) = -X := by
+    intro X; rw [← mul_assoc, hAA, neg_one_mul]
+  have hBBX : ∀ X : SL(2, ℝ), B * (B * X) = -X := by
+    intro X; rw [← mul_assoc, hBB, neg_one_mul]
+  let Q : Set SL(2, ℝ) := {1, -1, A, -A, B, -B, A * B, -(A * B)}
+  have hQ : ∀ x ∈ Q, x ^ 4 = 1 := by
+    intro x hx
+    simp only [Q, Set.mem_insert_iff, Set.mem_singleton_iff] at hx
+    rcases hx with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+      simp [pow_succ, mul_assoc, hBAX, hAA, hBB]
+  apply hQ
+  induction hγ using Subgroup.closure_induction with
+  | mem x hx =>
+    simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hx
+    rcases hx with rfl | rfl <;> simp [Q]
+  | one => simp [Q]
+  | mul x y _ _ hx hy =>
+    simp only [Q, Set.mem_insert_iff, Set.mem_singleton_iff] at hx hy ⊢
+    rcases hx with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+    rcases hy with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+      simp [mul_assoc, hAAX, hBAX, hAA, hBB, hBA]
+  | inv x _ hx =>
+    simp only [Q, Set.mem_insert_iff, Set.mem_singleton_iff] at hx ⊢
+    rcases hx with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+      simp [h1, h2, hBA]
+
+/-- An arithmetic subgroup of `SL(2, ℝ)` contains an element of infinite order (a conjugate of a
+power of `T = [[1, 1], [0, 1]]`), in particular one with `γ⁴ ≠ 1`. -/
+lemma IsArithmeticSL.exists_pow_four_ne_one {Γ : Subgroup SL(2, ℝ)} (hΓ : IsArithmeticSL Γ) :
+    ∃ γ ∈ Γ, γ ^ 4 ≠ 1 := by
+  obtain ⟨g, hΓ'⟩ := hΓ
+  obtain ⟨n, hn, -, hmem⟩ := exists_pow_mem_of_relIndex_ne_zero hΓ'.is_commensurable.1
+    (⟨ModularGroup.T, rfl⟩ : mapGL ℝ ModularGroup.T ∈ 𝒮ℒ)
+  have h := (Subgroup.mem_inf.mp hmem).1
+  rw [mem_pointwise_smul_iff_inv_smul_mem] at h
+  simp only [← ConjAct.toConjAct_inv, ConjAct.toConjAct_smul, inv_inv] at h
+  obtain ⟨γ, hγ, hγeq⟩ := Subgroup.mem_map.mp h
+  refine ⟨γ, hγ, fun h4 ↦ ?_⟩
+  have e : g⁻¹ * (mapGL ℝ ModularGroup.T) ^ (4 * n) * g = 1 := by
+    have : toGL (γ ^ 4) = 1 := by rw [h4, map_one]
+    have hc : ∀ (x : GL (Fin 2) ℝ) (k : ℕ), (g⁻¹ * x * g) ^ k = g⁻¹ * x ^ k * g := by
+      intro x k
+      simpa using conj_pow (a := g⁻¹) (b := x) (i := k)
+    rw [map_pow, hγeq, hc, ← pow_mul, mul_comm n 4] at this
+    exact this
+  have e2 : (mapGL ℝ ModularGroup.T) ^ (4 * n) = 1 := by
+    have := congrArg (fun x ↦ g * x * g⁻¹) e
+    simpa [mul_assoc] using this
+  have e3 := congrArg (fun x : GL (Fin 2) ℝ ↦ (x : Matrix (Fin 2) (Fin 2) ℝ) 0 1) e2
+  rw [← map_pow] at e3
+  simp only [mapGL_T_pow, Units.val_one] at e3
+  simp at e3
+  lia
+
 /-- **Takeuchi's theorem for `(1;∞)`-groups (necessity).** Let `A, B ∈ SL(2, ℝ)` with
-parabolic commutator, `tr [A, B] = -2`, and `tr A ≠ 0`. If `⟨A, B⟩` is arithmetic (conjugate to a
+parabolic commutator, `tr [A, B] = -2`. If `⟨A, B⟩` is arithmetic (conjugate to a
 group commensurable with `SL(2, ℤ)`), then `⟨A, B⟩ = ⟨A', B'⟩` for a Nielsen-equivalent pair whose
 squared trace triple is `(9,9,9)`, `(8,8,16)`, `(5,20,25)` or `(6,12,18)`. -/
 theorem takeuchi_one_infty {A B : SL(2, ℝ)} (hcomm : tr (A * B * A⁻¹ * B⁻¹) = -2)
-    (hA : tr A ≠ 0) (harith : IsArithmeticSL (Subgroup.closure {A, B})) :
+    (harith : IsArithmeticSL (Subgroup.closure {A, B})) :
     ∃ A' B' : SL(2, ℝ), Subgroup.closure {A', B'} = Subgroup.closure {A, B} ∧
       TakeuchiSq (tr A') (tr B') (tr (A' * B')) := by
   have hint : ∀ γ ∈ Subgroup.closure {A, B}, ∃ m : ℤ, tr γ ^ 2 = m :=
     fun γ hγ ↦ harith.sq_tr_int hγ
   have hrel := (tr_commutator_eq_neg_two_iff A B).mp hcomm
+  -- the degenerate triple `(0, 0, 0)` gives a quotient of the quaternion group, not arithmetic
+  have hA : tr A ≠ 0 := by
+    intro h0
+    rw [h0] at hrel
+    have hy : tr B = 0 := by nlinarith [sq_nonneg (tr B), sq_nonneg (tr (A * B))]
+    have hz : tr (A * B) = 0 := by nlinarith [sq_nonneg (tr B), sq_nonneg (tr (A * B))]
+    obtain ⟨γ, hγ, h4⟩ := harith.exists_pow_four_ne_one
+    exact h4 (pow_four_eq_one_of_tr_zero h0 hy hz hγ)
   have hr : Realizes (Subgroup.closure {A, B}) (tr A) (tr B) (tr (A * B)) :=
     ⟨A, B, rfl, rfl, rfl, rfl⟩
   obtain ⟨N, hN⟩ := exists_nat_ge (tr A ^ 2 + tr B ^ 2 + tr (A * B) ^ 2)
