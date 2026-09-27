@@ -8,15 +8,33 @@ Formalise Proposition 2.7 of Mochizuki, *The Absolute Anabelian Geometry of Cano
 
 > If the once-punctured elliptic curve associated to `E_F` fails to admit an "`F`-core", then there are only four possibilities for the `j`-invariant of `E_F`.
 
-## Open question on dependencies
+## Status (branch `wp-canlift27`)
 
-As filed, the tracker has this project depending on the initial-Θ-data issue that introduces `ℓ`-torsion orbicurves, the `K`-core and the distinguished cusp — which lives in `iut`. That direction is suspect: the mathematical content here is a standalone anabelian result and should not need Θ-data.
+See `Blueprint.md` for the full plan, sources and status table. In short:
 
-The likely resolution is that only the **`K`-core / orbicurve definitions** are needed, in which case those should be factored out into a repository that both this project and `iut` can depend on. Resolve this before building much on top of the current dependency direction.
+* **Statement.** `OrbicurveCores.CanLift27` (`Statement.lean`) states [EstIUT] Prop. 2.1 = [CanLift]
+  Prop. 2.7 over any field of characteristic 0. It uses a stack-free notion of core: finitely many
+  étale self-correspondences of `E_{k̄} ∖ {0}`. The four exceptional values
+  `{0, 1728, 2¹⁴·31³/5³, 2²·73³/3⁴}` are `OrbicurveCores.exceptionalJ` (`JValues.lean`, checked
+  against Sijsling's models). This statement is **not proved**.
+* **Proved (no `sorry`, standard axioms only)**, at the level of Fuchsian groups:
+  * Takeuchi's classification of arithmetic `(1;∞)`-groups, necessity half
+    (`takeuchi_one_infty`, `takeuchi_one_infty_conj`): Fricke identities, trace integrality in
+    arithmetic groups, Nielsen descent, the Diophantine lemma, and Fricke rigidity up to
+    `GL(2,ℝ)`-conjugacy;
+  * arithmetic groups admit no core (`IsArithmeticSL.not_admitsCore`);
+  * the group-level CanLift 2.7 (`canLift27_group`, `canLift27_group_conj`), **conditional on**
+    `MargulisOneInfty` (Margulis' commensurator theorem for once-punctured torus groups, stated
+    but not proved).
+* **Missing** (research-scale): Margulis' theorem (M1, M2), uniformisation of `E ∖ 0` (U1), the
+  algebraic ↔ analytic comparison of cores (U2), identification of the four uniformised curves
+  (S1), and sharpness of the four groups (A8).
 
-## Related repositories
+## Dependencies
 
-Currently depends on core/orbicurve definitions that live in `iut`; see the note above.
+No Lake dependencies beyond Mathlib. The core notion is defined locally. It should be reconciled
+with the genuine `HasCore` of `lana-agents/pi1` (branch `wp-orbicurve-pi1`) once that exists; see
+`Blueprint.md` §4. No Θ-data or `iut` dependency is needed.
 
 ## Layout
 
