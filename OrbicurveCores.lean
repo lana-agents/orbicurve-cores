@@ -1,5 +1,7 @@
 import OrbicurveCores.ArithTraces
 import OrbicurveCores.Core
 import OrbicurveCores.Fricke
+import OrbicurveCores.JValues
 import OrbicurveCores.Markov
+import OrbicurveCores.Statement
 import OrbicurveCores.Takeuchi
