@@ -135,7 +135,8 @@ to one of Takeuchi's four triples. -/
 theorem exists_takeuchiSq {Γ : Subgroup SL(2, ℝ)} (hint : ∀ γ ∈ Γ, ∃ m : ℤ, tr γ ^ 2 = m)
     (N : ℕ) : ∀ x y z : ℝ, Realizes Γ x y z → x ^ 2 + y ^ 2 + z ^ 2 = x * y * z →
       x ^ 2 + y ^ 2 + z ^ 2 ≤ N → 0 < x ^ 2 + y ^ 2 + z ^ 2 →
-      ∃ x' y' z', Realizes Γ x' y' z' ∧ TakeuchiSq x' y' z' := by
+      ∃ x' y' z', Realizes Γ x' y' z' ∧ x' ^ 2 + y' ^ 2 + z' ^ 2 = x' * y' * z' ∧
+        TakeuchiSq x' y' z' := by
   induction N with
   | zero =>
     intro x y z _ _ hN hpos
@@ -167,7 +168,8 @@ theorem exists_takeuchiSq {Γ : Subgroup SL(2, ℝ)} (hint : ∀ γ ∈ Γ, ∃ 
     have descend : ∀ a b c : ℝ, Realizes Γ a b c →
         a ^ 2 + b ^ 2 + c ^ 2 = a * b * c → a ^ 2 + b ^ 2 + c ^ 2 = x ^ 2 + y ^ 2 + z ^ 2 →
         a ^ 2 * b ^ 2 < 2 * (a * b * c) →
-        ∃ x' y' z', Realizes Γ x' y' z' ∧ TakeuchiSq x' y' z' := by
+        ∃ x' y' z', Realizes Γ x' y' z' ∧ x' ^ 2 + y' ^ 2 + z' ^ 2 = x' * y' * z' ∧
+        TakeuchiSq x' y' z' := by
       intro a b c habc hrel' hsum hlt
       have hr' := habc.flip
       obtain ⟨⟨X', hX'⟩, ⟨Y', hY'⟩, ⟨Z', hZ'⟩⟩ := hr'.sq_int hint
@@ -208,19 +210,25 @@ theorem exists_takeuchiSq {Γ : Subgroup SL(2, ℝ)} (hint : ∀ γ ∈ Γ, ∃ 
     rcases le_total (x ^ 2) (y ^ 2) with hxy | hxy <;>
     rcases le_total (y ^ 2) (z ^ 2) with hyz | hyz <;>
     rcases le_total (x ^ 2) (z ^ 2) with hxz | hxz
-    · exact ⟨x, y, z, hr, takeuchiSq_of_sorted hX hY hZ hrel hx hxy hyz h1⟩
-    · exact ⟨x, y, z, hr, takeuchiSq_of_sorted hX hY hZ hrel hx hxy hyz h1⟩
-    · exact ⟨x, z, y, hr.swap.cycle, takeuchiSq_of_sorted hX hZ hY (by linear_combination hrel)
+    · exact ⟨x, y, z, hr, hrel, takeuchiSq_of_sorted hX hY hZ hrel hx hxy hyz h1⟩
+    · exact ⟨x, y, z, hr, hrel, takeuchiSq_of_sorted hX hY hZ hrel hx hxy hyz h1⟩
+    · exact ⟨x, z, y, hr.swap.cycle, by linear_combination hrel,
+        takeuchiSq_of_sorted hX hZ hY (by linear_combination hrel)
         hx hxz hyz (by linarith)⟩
-    · exact ⟨z, x, y, hr.cycle.cycle, takeuchiSq_of_sorted hZ hX hY
+    · exact ⟨z, x, y, hr.cycle.cycle, by linear_combination hrel,
+        takeuchiSq_of_sorted hZ hX hY
         (by linear_combination hrel) hz hxz hxy (by linarith)⟩
-    · exact ⟨y, x, z, hr.swap, takeuchiSq_of_sorted hY hX hZ (by linear_combination hrel)
+    · exact ⟨y, x, z, hr.swap, by linear_combination hrel,
+        takeuchiSq_of_sorted hY hX hZ (by linear_combination hrel)
         hy hxy hxz (by linarith)⟩
-    · exact ⟨y, z, x, hr.cycle, takeuchiSq_of_sorted hY hZ hX (by linear_combination hrel)
+    · exact ⟨y, z, x, hr.cycle, by linear_combination hrel,
+        takeuchiSq_of_sorted hY hZ hX (by linear_combination hrel)
         hy hyz hxz (by linarith)⟩
-    · exact ⟨z, y, x, hr.swap.cycle.cycle, takeuchiSq_of_sorted hZ hY hX
+    · exact ⟨z, y, x, hr.swap.cycle.cycle, by linear_combination hrel,
+        takeuchiSq_of_sorted hZ hY hX
         (by linear_combination hrel) hz hyz hxy (by linarith)⟩
-    · exact ⟨z, y, x, hr.swap.cycle.cycle, takeuchiSq_of_sorted hZ hY hX
+    · exact ⟨z, y, x, hr.swap.cycle.cycle, by linear_combination hrel,
+        takeuchiSq_of_sorted hZ hY hX
         (by linear_combination hrel) hz hyz hxy (by linarith)⟩
 
 lemma sq_eq_neg_one_of_tr_eq_zero {A : SL(2, ℝ)} (h : tr A = 0) : A * A = -1 := by
@@ -303,13 +311,14 @@ lemma IsArithmeticSL.exists_pow_four_ne_one {Γ : Subgroup SL(2, ℝ)} (hΓ : Is
   lia
 
 /-- **Takeuchi's theorem for `(1;∞)`-groups (necessity).** Let `A, B ∈ SL(2, ℝ)` with
-parabolic commutator, `tr [A, B] = -2`. If `⟨A, B⟩` is arithmetic (conjugate to a
-group commensurable with `SL(2, ℤ)`), then `⟨A, B⟩ = ⟨A', B'⟩` for a Nielsen-equivalent pair whose
-squared trace triple is `(9,9,9)`, `(8,8,16)`, `(5,20,25)` or `(6,12,18)`. -/
+parabolic commutator, `tr [A, B] = -2`. If `⟨A, B⟩` is arithmetic (conjugate to a group
+commensurable with `SL(2, ℤ)`), then `⟨A, B⟩ = ⟨A', B'⟩` for a Nielsen-equivalent pair (again
+with `tr [A', B'] = -2`) whose squared trace triple is `(9,9,9)`, `(8,8,16)`, `(5,20,25)` or
+`(6,12,18)`. -/
 theorem takeuchi_one_infty {A B : SL(2, ℝ)} (hcomm : tr (A * B * A⁻¹ * B⁻¹) = -2)
     (harith : IsArithmeticSL (Subgroup.closure {A, B})) :
     ∃ A' B' : SL(2, ℝ), Subgroup.closure {A', B'} = Subgroup.closure {A, B} ∧
-      TakeuchiSq (tr A') (tr B') (tr (A' * B')) := by
+      tr (A' * B' * A'⁻¹ * B'⁻¹) = -2 ∧ TakeuchiSq (tr A') (tr B') (tr (A' * B')) := by
   have hint : ∀ γ ∈ Subgroup.closure {A, B}, ∃ m : ℤ, tr γ ^ 2 = m :=
     fun γ hγ ↦ harith.sq_tr_int hγ
   have hrel := (tr_commutator_eq_neg_two_iff A B).mp hcomm
@@ -325,8 +334,8 @@ theorem takeuchi_one_infty {A B : SL(2, ℝ)} (hcomm : tr (A * B * A⁻¹ * B⁻
     ⟨A, B, rfl, rfl, rfl, rfl⟩
   obtain ⟨N, hN⟩ := exists_nat_ge (tr A ^ 2 + tr B ^ 2 + tr (A * B) ^ 2)
   have hpos : 0 < tr A ^ 2 + tr B ^ 2 + tr (A * B) ^ 2 := by positivity
-  obtain ⟨x, y, z, ⟨A', B', hcl, rfl, rfl, rfl⟩, hT⟩ :=
+  obtain ⟨x, y, z, ⟨A', B', hcl, rfl, rfl, rfl⟩, hrel', hT⟩ :=
     exists_takeuchiSq hint N _ _ _ hr hrel hN hpos
-  exact ⟨A', B', hcl, hT⟩
+  exact ⟨A', B', hcl, (tr_commutator_eq_neg_two_iff A' B').mpr hrel', hT⟩
 
 end OrbicurveCores

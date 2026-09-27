@@ -1,6 +1,8 @@
 import OrbicurveCores.ArithTraces
 import OrbicurveCores.Core
+import OrbicurveCores.FourGroups
 import OrbicurveCores.Fricke
+import OrbicurveCores.FrickeRigidity
 import OrbicurveCores.JValues
 import OrbicurveCores.Markov
 import OrbicurveCores.Statement

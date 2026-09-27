@@ -230,7 +230,7 @@ theorem canLift27_group (hM : MargulisOneInfty) {A B : SL(2, ℝ)}
     (hcomm : tr (A * B * A⁻¹ * B⁻¹) = -2) (hA : tr A ≠ 0)
     (hno : ¬ AdmitsCore (Subgroup.closure {A, B})) :
     ∃ A' B' : SL(2, ℝ), Subgroup.closure {A', B'} = Subgroup.closure {A, B} ∧
-      TakeuchiSq (tr A') (tr B') (tr (A' * B')) :=
+      tr (A' * B' * A'⁻¹ * B'⁻¹) = -2 ∧ TakeuchiSq (tr A') (tr B') (tr (A' * B')) :=
   takeuchi_one_infty hcomm (hM A B hcomm hA hno)
 
 end OrbicurveCores
