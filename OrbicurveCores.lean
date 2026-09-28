@@ -8,6 +8,9 @@ import OrbicurveCores.Fuchsian.Commensurator
 import OrbicurveCores.Fuchsian.Covolume
 import OrbicurveCores.Fuchsian.DenseCriterion
 import OrbicurveCores.Fuchsian.DenseSubgroup
+import OrbicurveCores.Fuchsian.FordCover
+import OrbicurveCores.Fuchsian.OneInftyLattice
+import OrbicurveCores.GroupMain
 import OrbicurveCores.JValues
 import OrbicurveCores.Markov
 import OrbicurveCores.Reconcile
