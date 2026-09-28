@@ -26,16 +26,20 @@ See `Blueprint.md` for the full plan, sources and status table. In short:
   * sharpness: the four explicit groups are arithmetic (certified coset enumeration), so Takeuchi's
     theorem holds as an iff (`isArithmeticSL_iff_isTakeuchiConj`);
   * the group-level CanLift 2.7, `not_admitsCore_iff_isTakeuchiConj`: a `(1;∞)`-group has no core
-    iff it is one of the four (`GroupMain.lean`, `canLift27_group_iff`). The direction `→` is
-    **conditional on** `MargulisDenseOneInfty` (Margulis' commensurator theorem in its standard
-    form: dense commensurator ⇒ arithmetic, for once-punctured torus groups);
+    iff it is one of the four, **unconditionally** (`GroupCanLift.lean`,
+    `canLift27_group_unconditional`);
+  * Margulis' commensurator theorem for once-punctured torus groups (`M2.margulisDenseOneInfty`),
+    via commensurator superrigidity into `PGL₂(ℂ)` and `PGL₂(ℚ_p)` (`M2/`): Moore double
+    ergodicity, the Furstenberg boundary map, the reduction to point maps, the extension to a
+    continuous homomorphism, and unipotent rigidity;
   * once-punctured torus groups are free, discrete lattices (`oneInftyFiniteCovolume`,
     `oneInfty_discrete`), and infinite index in the commensurator forces a dense commensurator
     (M1, `commensurator_dense`).
-* **Missing** (research-scale): Margulis' theorem (M2, in progress under `OrbicurveCores/M2/`),
-  uniformisation of `E ∖ 0` (U1), the
-  algebraic ↔ analytic comparison of cores (U2), identification of the four uniformised curves
-  (S1).
+* **Missing**:
+  * uniformisation of `E ∖ 0` (U1): proved separately in `lana-agents/oka`
+    (`wp-uniformization`);
+  * the algebraic ↔ analytic comparison of cores (U2);
+  * identification of the four uniformised curves (S1).
 
 ## Dependencies
 
