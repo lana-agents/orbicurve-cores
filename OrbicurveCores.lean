@@ -70,6 +70,7 @@ import OrbicurveCores.U2.EtalePoints
 import OrbicurveCores.U2.HemiUnique
 import OrbicurveCores.U2.Noether
 import OrbicurveCores.U2.R3
+import OrbicurveCores.U2.Realize
 import OrbicurveCores.U2.S1
 import OrbicurveCores.U2.Statement
 import OrbicurveCores.Uniformization
