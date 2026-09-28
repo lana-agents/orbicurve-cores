@@ -36,6 +36,7 @@ import OrbicurveCores.M2.Superrigidity
 import OrbicurveCores.M2.ThreePoint
 import OrbicurveCores.M2.TraceField
 import OrbicurveCores.M2.TripleNull
+import OrbicurveCores.M2.Unipotent
 import OrbicurveCores.Markov
 import OrbicurveCores.Reconcile
 import OrbicurveCores.RiemannHurwitz
