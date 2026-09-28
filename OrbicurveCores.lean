@@ -45,10 +45,15 @@ import OrbicurveCores.M2.Unipotent
 import OrbicurveCores.Markov
 import OrbicurveCores.Reconcile
 import OrbicurveCores.RiemannHurwitz
+import OrbicurveCores.S1.Arith
+import OrbicurveCores.S1.Belyi
 import OrbicurveCores.S1.Certificates
 import OrbicurveCores.S1.Defs
 import OrbicurveCores.S1.EllOrb
+import OrbicurveCores.S1.JOrb
+import OrbicurveCores.S1.LatticeUnif
 import OrbicurveCores.S1.LocalForm
+import OrbicurveCores.S1.Mobius
 import OrbicurveCores.S1.OrbLift
 import OrbicurveCores.S1.Rational
 import OrbicurveCores.S1.Rigidity
