@@ -1,6 +1,7 @@
 import OrbicurveCores.ArithTraces
 import OrbicurveCores.Classification
 import OrbicurveCores.Core
+import OrbicurveCores.ForMathlib.ComplexEmbedding
 import OrbicurveCores.ForMathlib.ProjectiveLine
 import OrbicurveCores.ForMathlib.TailConvex
 import OrbicurveCores.FourGroups
