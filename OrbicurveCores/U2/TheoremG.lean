@@ -183,6 +183,7 @@ variable {B : Type*} [CommRing B] [Algebra ℂ B]
   [FaithfulSMul (AffOrbicurve.punctured E).A B]
 
 set_option maxHeartbeats 1000000 in
+-- assembling the analytic hypotheses of `FEt.exists_mobius` is slow
 /-- **Theorem G, analytic form.** For a finite étale cover `B` of `E ∖ {0}` with non-exceptional
 `j`, every `ℂ`-automorphism of `B` fixes the `x`-coordinate. -/
 theorem fixes_xP (hj : ∀ c ∈ AffOrbicurve.excJ, E.j ≠ (c : ℂ))
@@ -234,7 +235,8 @@ theorem fixes_xP (hj : ∀ c ∈ AffOrbicurve.excJ, E.j ≠ (c : ℂ))
   have hgrowth : ∀ a, FEt.PolyBdd (fun τ ↦ (π τ).1) fun τ ↦ ‖ι₀ a τ‖ := fun a ↦
     FEt.polyBdd_coordFun h.mem (e a)
   have hpoly : ∀ g : ℍ → ℂ, Unif.HolH g →
-      (∀ γ ∈ Subgroup.closure {Generators.A (unifOf (Generators.Lt t)), Generators.B (unifOf (Generators.Lt t))},
+      (∀ γ ∈ Subgroup.closure
+          {Generators.A (unifOf (Generators.Lt t)), Generators.B (unifOf (Generators.Lt t))},
         ∀ τ, g (γ • τ) = g τ) →
       FEt.PolyBdd (fun τ ↦ (π τ).1) (fun τ ↦ ‖g τ‖) → ∃ a, ∀ τ, ι₀ a τ = g τ := by
     intro g hg hinv hb

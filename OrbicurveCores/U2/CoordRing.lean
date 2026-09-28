@@ -51,7 +51,9 @@ theorem DP_ne_zero : DP E ≠ 0 := fun h ↦ by
 theorem isUnit_of_sq_dvd_DP {g : ℂ[X]} (h : g ^ 2 ∣ DP E) : IsUnit g := by
   by_contra hg
   have hD0 : DP E ≠ 0 := DP_ne_zero E
-  have hg0 : g ≠ 0 := by rintro rfl; simp at h; exact hD0 h
+  have hg0 : g ≠ 0 := by
+    rintro rfl
+    exact hD0 (by simpa using h)
   have hdeg : g.degree ≠ 0 := fun hd ↦ hg (isUnit_iff_degree_eq_zero.mpr hd)
   obtain ⟨r, hr⟩ := IsAlgClosed.exists_root g hdeg
   obtain ⟨h₁, hh₁⟩ := dvd_iff_isRoot.mpr hr
@@ -247,7 +249,8 @@ theorem mem_range_of_isIntegral {z : Lf} (hzi : IsIntegral ℂ[X] z) :
   have hdvd3 : N ^ 2 ∣ DP E * q' ^ 2 := by
     have h1 : N ^ 2 ∣ (2 * p' - q' * aP E) ^ 2 := pow_dvd_pow_of_dvd hdvd1 2
     have h2 : N ^ 2 ∣ 4 * (p' ^ 2 - p' * q' * aP E - q' ^ 2 * bP E) := dvd_mul_of_dvd_right hdvd2 _
-    have : DP E * q' ^ 2 = (2 * p' - q' * aP E) ^ 2 - 4 * (p' ^ 2 - p' * q' * aP E - q' ^ 2 * bP E) := by
+    have : DP E * q' ^ 2 =
+        (2 * p' - q' * aP E) ^ 2 - 4 * (p' ^ 2 - p' * q' * aP E - q' ^ 2 * bP E) := by
       have h4 : (C 4 : ℂ[X]) = 4 := map_ofNat C 4
       rw [DP, h4]; ring
     rw [this]; exact dvd_sub h1 h2

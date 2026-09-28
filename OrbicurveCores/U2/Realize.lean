@@ -40,7 +40,8 @@ theorem transcendental_tΩ : Transcendental ℂ tΩ := by
 
 /-- `k[t] → coordRing ⊥` is bijective. -/
 theorem bijective_algebraMap_bot :
-    Function.Bijective (algebraMap (A₀ ℂ tΩ) (coordRing ℂ tΩ (⊥ : IntermediateField (K₀ ℂ tΩ) Ωt))) := by
+    Function.Bijective
+      (algebraMap (A₀ ℂ tΩ) (coordRing ℂ tΩ (⊥ : IntermediateField (K₀ ℂ tΩ) Ωt))) := by
   refine ⟨fun a b h ↦ Subtype.ext (congrArg (fun c : coordRing ℂ tΩ
     (⊥ : IntermediateField (K₀ ℂ tΩ) Ωt) ↦ ((c : (⊥ : IntermediateField (K₀ ℂ tΩ) Ωt)) : Ωt)) h),
     fun b ↦ ?_⟩

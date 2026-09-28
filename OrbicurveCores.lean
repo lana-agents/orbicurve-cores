@@ -65,6 +65,7 @@ import OrbicurveCores.S1.Transport
 import OrbicurveCores.Sharpness
 import OrbicurveCores.SharpnessData
 import OrbicurveCores.Takeuchi
+import OrbicurveCores.U2.Assembly
 import OrbicurveCores.U2.CoordRing
 import OrbicurveCores.U2.CoreMap
 import OrbicurveCores.U2.EtalePoints

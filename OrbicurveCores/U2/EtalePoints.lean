@@ -158,7 +158,8 @@ section Separate
 variable {B : Type*} [CommRing B] [Algebra ℂ B]
 
 /-- One step of separation: adding a generic multiple of a separator keeps the old separations. -/
-theorem exists_separate_step {ι : Type*} [DecidableEq ι] (f : ι → B →ₐ[ℂ] ℂ) (T : Finset (ι × ι)) {b s : B}
+theorem exists_separate_step {ι : Type*} [DecidableEq ι] (f : ι → B →ₐ[ℂ] ℂ) (T : Finset (ι × ι))
+    {b s : B}
     (hb : ∀ p ∈ T, f p.1 b ≠ f p.2 b) {i j : ι} (hs : f i s ≠ f j s) :
     ∃ c : ℂ, ∀ p ∈ insert (i, j) T, f p.1 (b + c • s) ≠ f p.2 (b + c • s) := by
   classical
@@ -229,7 +230,8 @@ theorem mem_map_of_forall_mem [IsDedekindDomain B] [FaithfulSMul A B] {p : Ideal
     refine Finset.prod_congr rfl fun q hq ↦ ?_
     have hprime : q.IsPrime := Ideal.isPrime_of_prime (UniqueFactorizationMonoid.prime_of_factor q
       (Multiset.mem_toFinset.mp hq))
-    have hle : J ≤ q := Ideal.le_of_dvd (UniqueFactorizationMonoid.dvd_of_mem_factors (Multiset.mem_toFinset.mp hq))
+    have hle : J ≤ q := Ideal.le_of_dvd
+      (UniqueFactorizationMonoid.dvd_of_mem_factors (Multiset.mem_toFinset.mp hq))
     have hqne : q ≠ ⊥ := ne_bot_of_le_ne_bot hJ hle
     haveI hqmax : q.IsMaximal := hprime.isMaximal hqne
     haveI : q.LiesOver p := ⟨(Ideal.IsMaximal.eq_of_le inferInstance (Ideal.comap_ne_top _
@@ -239,7 +241,8 @@ theorem mem_map_of_forall_mem [IsDedekindDomain B] [FaithfulSMul A B] {p : Ideal
     rw [← hc, pow_one]
   rw [hprod, Ideal.prod_eq_iInf_of_pairwise_isCoprime ?_]
   · refine Submodule.mem_iInf _ |>.mpr fun q ↦ Submodule.mem_iInf _ |>.mpr fun hq ↦ ?_
-    have hle : J ≤ q := Ideal.le_of_dvd (UniqueFactorizationMonoid.dvd_of_mem_factors (Multiset.mem_toFinset.mp hq))
+    have hle : J ≤ q := Ideal.le_of_dvd
+      (UniqueFactorizationMonoid.dvd_of_mem_factors (Multiset.mem_toFinset.mp hq))
     have hprime : q.IsPrime := Ideal.isPrime_of_prime (UniqueFactorizationMonoid.prime_of_factor q
       (Multiset.mem_toFinset.mp hq))
     have hqne : q ≠ ⊥ := ne_bot_of_le_ne_bot hJ hle

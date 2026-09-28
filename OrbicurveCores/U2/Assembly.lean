@@ -13,7 +13,11 @@ import OrbicurveCores.U2.HemiUnique
   factors via a finite étale `Z → Y` is finite étale.
 * ramification of polynomial maps `A¹ → A¹` (`ramificationIdx_aeval`) and of the double cover
   `E ∖ {0} → A¹` (`ramificationIdx_punctured`);
-* `canLift27C_of_s1`: [CanLift] Prop. 2.7 over `ℂ`.
+* `canLift27C`: [CanLift] Prop. 2.7 over `ℂ`: the map `x : E ∖ {0} → A¹` (`toHemi`) is
+  terminal in `\overline{Loc}(E ∖ {0})`. Existence: Theorem G (`theoremG`) descends `x` to `Y`,
+  and `Hom.descend` makes it finite étale. Uniqueness: a second map `Y → hemi E` gives a
+  polynomial `p` with `x = p(u)` étale for the hemi-elliptic multiplicities, so `p = X`
+  (`hemi_poly_unique`).
 -/
 
 open Polynomial Ideal AffOrbicurve
@@ -108,7 +112,8 @@ theorem sub_C_ne_zero_of_natDegree_pos {p : ℂ[X]} (hp : 0 < p.natDegree) (c : 
 /-- **Ramification of a polynomial map `A¹ → A¹`**: `e(w) = ord_w (p - p(w))`. -/
 theorem ramificationIdx_aeval {p : ℂ[X]} (hp : 0 < p.natDegree) (w : ℂ) :
     (letI := (aeval (R := ℂ) p).toRingHom.toAlgebra;
-      (span {X - C w} : Ideal ℂ[X]).ramificationIdx ℂ[X]) = Uniformization.RatFuncPoly.ramIdx p w := by
+      (span {X - C w} : Ideal ℂ[X]).ramificationIdx ℂ[X]) =
+        Uniformization.RatFuncPoly.ramIdx p w := by
   have hinj := aeval_injective_of_natDegree_pos hp
   haveI : (span {X - C w} : Ideal ℂ[X]).IsPrime :=
     (Ideal.span_singleton_prime (X_sub_C_ne_zero w)).mpr (prime_X_sub_C w)
@@ -217,11 +222,180 @@ theorem card_ptOver (c : ℂ) :
   · refine ⟨⟨(Uniformization.FEt.ptAlg E y.2).comp e.symm.toAlgHom, fun a ↦ ?_⟩, Subtype.ext ?_⟩
     · change Uniformization.FEt.ptAlg E y.2 ((puncturedRingEquiv E).symm (algebraMap ℂ[X] _ a)) = _
       rw [AlgEquiv.commutes]
-      change Uniformization.FEt.ptAlg E y.2 (WeierstrassCurve.Affine.CoordinateRing.mk E.toAffine (C a)) = _
+      change Uniformization.FEt.ptAlg E y.2
+        (WeierstrassCurve.Affine.CoordinateRing.mk E.toAffine (C a)) = _
       rw [Uniformization.FEt.ptAlg_mk, evalEval_C, coe_aeval_eq_eval]
     · change Uniformization.FEt.ptAlg E y.2 (e.symm (e (Uniformization.FEt.yA E))) = _
       rw [AlgEquiv.symm_apply_apply, Uniformization.FEt.ptAlg_mk, evalEval_X]
 
+/-- **Ramification of `E ∖ {0} → A¹`**: `e = 2` over `E₂`, `e = 1` elsewhere. -/
+theorem ramificationIdx_punctured (c : ℂ) {q : Ideal (puncturedRing E)}
+    (hq : q ∈ (RingHom.ker (aeval c : ℂ[X] →ₐ[ℂ] ℂ)).primesOver (puncturedRing E)) :
+    q.ramificationIdx ℂ[X] = Uniformization.RatFuncPoly.mult (E₂ E) c := by
+  classical
+  set χ : ℂ[X] →ₐ[ℂ] ℂ := aeval c
+  haveI : Fintype ((RingHom.ker χ).primesOver (puncturedRing E)) :=
+    (Algebra.QuasiFinite.finite_primesOver (RingHom.ker χ) (S := puncturedRing E)).fintype
+  have hsum := sum_ramificationIdx (B := puncturedRing E) χ
+  rw [finrank_puncturedRing] at hsum
+  have hcard : Fintype.card ((RingHom.ker χ).primesOver (puncturedRing E)) =
+      if c ∈ E₂ E then 1 else 2 := by
+    rw [← Nat.card_eq_fintype_card, ← Nat.card_congr (ptOverEquiv χ), card_ptOver]
+  have hpos : ∀ q' : (RingHom.ker χ).primesOver (puncturedRing E),
+      1 ≤ q'.1.ramificationIdx ℂ[X] := fun q' ↦ by
+    haveI := q'.2.1
+    exact Ideal.ramificationIdx_pos _ _
+  set q₀ : (RingHom.ker χ).primesOver (puncturedRing E) := ⟨q, hq⟩
+  rw [← Finset.add_sum_erase _ _ (Finset.mem_univ q₀)] at hsum
+  have hrest : (Finset.univ.erase q₀).card ≤
+      ∑ q' ∈ Finset.univ.erase q₀, q'.1.ramificationIdx ℂ[X] := by
+    rw [Finset.card_eq_sum_ones]
+    exact Finset.sum_le_sum fun q' _ ↦ hpos q'
+  rw [Finset.card_erase_of_mem (Finset.mem_univ _), Finset.card_univ, hcard] at hrest
+  have h0 := hpos q₀
+  change q₀.1.ramificationIdx ℂ[X] = _
+  simp only [Uniformization.RatFuncPoly.mult]
+  by_cases hc : c ∈ E₂ E
+  · have hempty : Finset.univ.erase q₀ = ∅ := by
+      rw [← Finset.card_eq_zero, Finset.card_erase_of_mem (Finset.mem_univ _), Finset.card_univ,
+        hcard, if_pos hc]
+    rw [hempty, Finset.sum_empty] at hsum
+    rw [if_pos hc]
+    omega
+  · rw [if_neg hc] at hrest ⊢
+    omega
+
+/-- The maximal ideals of `ℂ[X]` are the kernels of evaluations. -/
+theorem exists_eq_ker_aeval (v : Ideal ℂ[X]) [v.IsMaximal] :
+    ∃ c : ℂ, v = RingHom.ker (aeval c : ℂ[X] →ₐ[ℂ] ℂ) := by
+  obtain ⟨ψ, hψ⟩ := exists_point_of_isMaximal v
+  refine ⟨ψ X, ?_⟩
+  rw [← hψ]
+  congr 1
+  exact Polynomial.algHom_ext (by simp)
+
+theorem ker_aeval (c : ℂ) :
+    RingHom.ker (aeval c : ℂ[X] →ₐ[ℂ] ℂ) = span {X - C c} := by
+  rw [← ker_evalRingHom]
+  rfl
+
+/-- **The multiplicities of `hemi E`.** -/
+theorem hemi_mult (c : ℂ) :
+    (hemi E).mult (RingHom.ker (aeval c : ℂ[X] →ₐ[ℂ] ℂ)) =
+      Uniformization.RatFuncPoly.mult (E₂ E) c := by
+  classical
+  change (RingHom.ker (aeval c : ℂ[X] →ₐ[ℂ] ℂ)).ramificationIdxIn (puncturedRing E) = _
+  haveI : (RingHom.ker (aeval c : ℂ[X] →ₐ[ℂ] ℂ)).IsMaximal := ker_isMaximal _
+  obtain ⟨P, hP, hPl⟩ := Ideal.exists_maximal_ideal_liesOver_of_isIntegral (S := puncturedRing E)
+    (RingHom.ker (aeval c : ℂ[X] →ₐ[ℂ] ℂ))
+  have hex : ∃ P : Ideal (puncturedRing E), P.IsPrime ∧
+      P.LiesOver (RingHom.ker (aeval c : ℂ[X] →ₐ[ℂ] ℂ)) := ⟨P, hP.isPrime, hPl⟩
+  rw [Ideal.ramificationIdxIn, dif_pos hex]
+  exact ramificationIdx_punctured E c ⟨hex.choose_spec.1, hex.choose_spec.2⟩
+
 end Punctured
+
+section Final
+
+variable (E : WeierstrassCurve ℂ) [E.IsElliptic]
+
+theorem toHemi_etale_aux (w : Ideal (puncturedRing E)) (hw : w.IsMaximal) :
+    w.ramificationIdx ℂ[X] = (hemi E).mult (w.comap (algebraMap ℂ[X] (puncturedRing E))) := by
+  haveI := hw
+  have hv : (w.comap (algebraMap ℂ[X] (puncturedRing E))).IsMaximal :=
+    Ideal.isMaximal_comap_of_isIntegral_of_isMaximal (R := ℂ[X]) w
+  obtain ⟨c, hc⟩ := exists_eq_ker_aeval (w.comap (algebraMap ℂ[X] (puncturedRing E)))
+  have hlies : w ∈ (RingHom.ker (aeval c : ℂ[X] →ₐ[ℂ] ℂ)).primesOver (puncturedRing E) :=
+    ⟨hw.isPrime, ⟨hc.symm⟩⟩
+  exact (ramificationIdx_punctured E c hlies).trans
+    ((hemi_mult E c).symm.trans (congrArg (hemi E).mult hc.symm))
+
+/-- **The quotient map `E ∖ {0} → (E ∖ {0}) / {±1}`.** -/
+noncomputable def toHemi : Hom (punctured E) (hemi E) where
+  f := IsScalarTower.toAlgHom ℂ ℂ[X] (puncturedRing E)
+  injective := by
+    intro a b h
+    have h' : puncturedRingEquiv E (algebraMap ℂ[X] _ a) =
+        puncturedRingEquiv E (algebraMap ℂ[X] _ b) := by
+      rw [AlgEquiv.commutes, AlgEquiv.commutes]; exact h
+    exact FaithfulSMul.algebraMap_injective ℂ[X] E.toAffine.CoordinateRing
+      ((puncturedRingEquiv E).injective h')
+  isIntegral := fun x ↦ (Algebra.IsIntegral.of_finite ℂ[X] (puncturedRing E)).isIntegral x
+  etale w hw := by
+    change Ideal (puncturedRing E) at w
+    have halg : (IsScalarTower.toAlgHom ℂ ℂ[X] (puncturedRing E)).toRingHom.toAlgebra =
+        (inferInstance : Algebra ℂ[X] (puncturedRing E)) :=
+      Algebra.algebra_ext _ _ fun _ ↦ rfl
+    exact (mul_one _).trans ((congrArg (fun inst ↦
+      @Ideal.ramificationIdx (puncturedRing E) _ w ℂ[X] _ inst) halg).trans
+        (toHemi_etale_aux E w hw))
+
+@[simp] theorem toHemi_f_X : (toHemi E).f X = xP E := by
+  change algebraMap ℂ[X] (puncturedRing E) X = puncturedRingEquiv E (Uniformization.FEt.xA E)
+  rw [puncturedRingEquiv_xA]
+
+variable {E}
+
+theorem exc_zero (hj : ∀ c ∈ excJ, E.j ≠ (c : ℂ)) : E.j ≠ 0 := by
+  simpa using hj 0 (by simp [excJ])
+
+theorem exc_1728 (hj : ∀ c ∈ excJ, E.j ≠ (c : ℂ)) : E.j ≠ 1728 := by
+  simpa using hj 1728 (by simp [excJ])
+
+/-- **Uniqueness**: every map `Y → hemi E` sends `X` to the descended `x`. -/
+theorem hom_hemi_f_X (hj : ∀ c ∈ excJ, E.j ≠ (c : ℂ)) {Y Z : AffOrbicurve ℂ}
+    (φ : Hom Z (punctured E)) (ψ : Hom Z Y) (h : Hom Y (hemi E)) :
+    ψ.f (h.f X) = φ.f (xP E) := by
+  classical
+  set χ := ψ.comp h
+  obtain ⟨p, hp⟩ : ∃ p : ℂ[X], χ.f p = φ.f (xP E) := theoremG E hj φ χ
+  have hg : χ.f.comp (aeval p : ℂ[X] →ₐ[ℂ] ℂ[X]) = (φ.comp (toHemi E)).f := by
+    refine Polynomial.algHom_ext ?_
+    change χ.f (aeval (R := ℂ) p X) = φ.f ((toHemi E).f X)
+    rw [aeval_X, toHemi_f_X]
+    exact hp
+  set H := Hom.descend χ (φ.comp (toHemi E)) (aeval p) hg
+  have hdeg : 0 < p.natDegree := by
+    by_contra h0
+    push Not at h0
+    have hpC : p = C (p.coeff 0) := eq_C_of_natDegree_le_zero h0
+    have := H.injective (a₁ := X - C (p.coeff 0)) (a₂ := 0) (by
+      change aeval (R := ℂ) p (X - C (p.coeff 0)) = aeval (R := ℂ) p 0
+      rw [map_sub, aeval_X, aeval_C, map_zero, algebraMap_eq, ← hpC, sub_self])
+    exact X_sub_C_ne_zero _ this
+  have hcond : ∀ w : ℂ, Uniformization.RatFuncPoly.ramIdx p w *
+      Uniformization.RatFuncPoly.mult (E₂ E) w =
+        Uniformization.RatFuncPoly.mult (E₂ E) (p.eval w) := by
+    intro w
+    have h1 := H.etale (RingHom.ker (aeval w : ℂ[X] →ₐ[ℂ] ℂ)) (ker_isMaximal _)
+    rw [← hemi_mult E w, ← hemi_mult E (p.eval w), ← ramificationIdx_aeval hdeg w,
+      ← ker_aeval]
+    refine h1.trans ?_
+    congr 1
+    change (RingHom.ker (aeval w : ℂ[X] →ₐ[ℂ] ℂ)).comap (aeval (R := ℂ) p).toRingHom = _
+    rw [ker_aeval]
+    exact (comap_aeval_span p w).trans (ker_aeval _).symm
+  rcases hemi_poly_unique hdeg hcond with hX | h0 | h1728
+  · have : χ.f p = ψ.f (h.f X) := by rw [hX]; rfl
+    rw [← this, hp]
+  · exact absurd h0 (exc_zero hj)
+  · exact absurd h1728 (exc_1728 hj)
+
+/-- **[CanLift] Prop. 2.7 over `ℂ`.** -/
+theorem canLift27C : CanLift27C := by
+  intro E _ hj
+  refine ⟨⟨punctured E, ⟨Hom.id _⟩, ⟨toHemi E⟩⟩, fun Y hY ↦ ?_⟩
+  obtain ⟨Z, ⟨φ⟩, ⟨ψ⟩⟩ := hY
+  obtain ⟨y, hy⟩ := theoremG E hj φ ψ
+  have hg : ψ.f.comp (aeval y : ℂ[X] →ₐ[ℂ] Y.A) = (φ.comp (toHemi E)).f := by
+    refine Polynomial.algHom_ext ?_
+    change ψ.f (aeval (R := ℂ) y X) = φ.f ((toHemi E).f X)
+    rw [aeval_X, toHemi_f_X]
+    exact hy
+  refine ⟨⟨Hom.descend ψ (φ.comp (toHemi E)) (aeval y) hg⟩, ⟨fun h₁ h₂ ↦ Hom.ext ?_⟩⟩
+  refine Polynomial.algHom_ext (ψ.injective ?_)
+  exact (hom_hemi_f_X hj φ ψ h₁).trans (hom_hemi_f_X hj φ ψ h₂).symm
+
+end Final
 
 end OrbicurveCores.U2

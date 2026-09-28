@@ -93,6 +93,7 @@ theorem etale_punctured {Z : AffOrbicurve ℂ} (φ : Hom Z (punctured E)) (w : I
   mul_eq_one.mp (φ.etale w hw)
 
 set_option maxHeartbeats 4000000 in
+-- instance search on coordinate rings of intermediate fields is slow
 set_option synthInstance.maxHeartbeats 400000 in
 /-- **Theorem G.** For finite étale `φ : Z → E ∖ {0}` and `ψ : Z → Y` (non-exceptional `j`),
 `φ^* x ∈ ψ^* ℂ[Y]`. -/
@@ -110,7 +111,8 @@ theorem theoremG (hj : ∀ c ∈ excJ, E.j ≠ (c : ℂ)) {Y Z : AffOrbicurve �
   have hLM : L ≤ M := le_closure tΩ F L hLN
   have hMN : M ≤ N := closure_le tΩ F L
   have hFN : F ≤ N := hFL.trans hLN
-  haveI : FiniteDimensional (K₀ ℂ tΩ) M := Module.Finite.of_injective (IntermediateField.inclusion hMN).toLinearMap
+  haveI : FiniteDimensional (K₀ ℂ tΩ) M :=
+    Module.Finite.of_injective (IntermediateField.inclusion hMN).toLinearMap
     (IntermediateField.inclusion hMN).injective
   have ht := transcendental_tΩ
   set B := coordRing ℂ tΩ M

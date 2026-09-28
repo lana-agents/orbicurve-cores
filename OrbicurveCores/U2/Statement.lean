@@ -15,8 +15,8 @@ import OrbicurveCores.Reconcile
 * `S1NonExceptional`: the part of S1 used for it: a once-punctured elliptic curve over `ℂ` with
   non-exceptional `j` is not uniformised by one of Takeuchi's four groups.
 
-U2 proves `CanLift27C` from `S1NonExceptional` (`canLift27C_of_s1`, in progress;
-`S1NonExceptional` itself is `s1NonExceptional`, from S1). Passing from `ℂ` to arbitrary fields
+U2 proves `CanLift27C` (`OrbicurveCores.U2.canLift27C`, in `U2/Assembly.lean`) from
+`S1NonExceptional` (which is `s1NonExceptional`, from S1). Passing from `ℂ` to arbitrary fields
 of characteristic `0` (Lefschetz principle, descent) is separate.
 
 Ingredients already proved in `lana-agents/oka` (branch `wp-u2`):

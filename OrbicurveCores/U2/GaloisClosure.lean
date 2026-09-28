@@ -117,6 +117,7 @@ section Conj
 variable {N : IntermediateField (K₀ k t) Ω}
 
 set_option maxHeartbeats 1000000 in
+-- instance search on coordinate rings of intermediate fields is slow
 set_option synthInstance.maxHeartbeats 400000 in
 /-- Conjugating the inertia group. -/
 theorem card_inertia_inf_map_conj (σ : N ≃ₐ[K₀ k t] N) (H : Subgroup (N ≃ₐ[K₀ k t] N))
@@ -165,6 +166,7 @@ theorem isMaximal_smul (σ : N ≃ₐ[K₀ k t] N) (u : Ideal (coordRing k t N))
   exact Ideal.map_isMaximal_of_equiv (MulSemiringAction.toRingEquiv _ _ σ)
 
 set_option maxHeartbeats 2000000 in
+-- instance search on coordinate rings of intermediate fields is slow
 set_option synthInstance.maxHeartbeats 400000 in
 /-- **The Galois closure is unramified over `L`** when `L → F` is unramified relative to the
 multiplicities of `F`. -/
@@ -335,7 +337,8 @@ theorem toN_algebraMap (c : k) :
 /-- The restriction of `σ ∈ Gal(N/F)` to the coordinate ring of the Galois closure. -/
 noncomputable def restrictClosure (σ : N ≃ₐ[K₀ k t] N) (hσ : σ ∈ fixSub t N F) :
     coordRing k t (closure t F L (N := N)) →ₐ[k] coordRing k t (closure t F L (N := N)) where
-  toFun b := ⟨⟨((σ (toN t b) : N) : Ω), smul_mem_closure t hσ (y := toN t b) ((b : closure t F L (N := N))).2⟩,
+  toFun b := ⟨⟨((σ (toN t b) : N) : Ω),
+      smul_mem_closure t hσ (y := toN t b) ((b : closure t F L (N := N))).2⟩,
     mem_coordRing_of_isIntegral t _ (isIntegral_smul_toN t σ b)⟩
   map_one' := toN_injective t (by
     change σ (toN t 1) = toN t 1
