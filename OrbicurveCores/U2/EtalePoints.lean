@@ -82,53 +82,74 @@ theorem surjective_algebraMap_residueField (q : Ideal B) [q.IsMaximal] :
 
 variable [Module.Finite A B] [Module.Flat A B]
 
-omit [Algebra.FiniteType ℂ A] [IsDomain B] in
-/-- **Exactly `n` points over every point**, for an unramified extension. -/
-theorem card_points_over (het : ∀ w : Ideal B, w.IsMaximal → w.ramificationIdx A = 1)
-    (χ : A →ₐ[ℂ] ℂ) : Nat.card (PtOver B χ) = Module.finrank A B := by
+omit [IsDomain A] [Algebra.FiniteType ℂ A] [IsDomain B] [Algebra ℂ B] [Algebra.FiniteType ℂ B]
+  [IsScalarTower ℂ A B] [Module.Flat A B] in
+theorem isMaximal_of_mem_primesOver (χ : A →ₐ[ℂ] ℂ) {q : Ideal B}
+    (hq : q ∈ (RingHom.ker χ).primesOver B) : q.IsMaximal := by
+  haveI := ker_isMaximal χ
+  haveI := hq.1; haveI := hq.2
+  exact Ideal.IsMaximal.of_liesOver_isMaximal q (RingHom.ker χ)
+
+omit [Algebra.FiniteType ℂ A] [IsDomain B] [Module.Finite A B] [Module.Flat A B] in
+/-- Points of `B` over `χ` are the primes of `B` over `ker χ`. -/
+noncomputable def ptOverEquiv (χ : A →ₐ[ℂ] ℂ) : PtOver B χ ≃ (RingHom.ker χ).primesOver B := by
   classical
   set p := RingHom.ker χ
   haveI hp : p.IsMaximal := ker_isMaximal χ
-  haveI : Fintype (p.primesOver B) := (Algebra.QuasiFinite.finite_primesOver p).fintype
-  -- points ↔ primes over `p`
-  have hmax : ∀ q ∈ p.primesOver B, q.IsMaximal := fun q hq ↦ by
-    haveI := hq.1; haveI := hq.2
-    exact Ideal.IsMaximal.of_liesOver_isMaximal q p
   have hover : ∀ ψ : PtOver B χ, RingHom.ker ψ.1 ∈ p.primesOver B := fun ψ ↦ by
     haveI := ker_isMaximal ψ.1
     refine ⟨Ideal.IsMaximal.isPrime inferInstance, ⟨?_⟩⟩
     ext a
     simp [p, RingHom.mem_ker, Ideal.mem_comap, ψ.2]
-  have e : PtOver B χ ≃ p.primesOver B := by
-    refine Equiv.ofBijective (fun ψ ↦ ⟨RingHom.ker ψ.1, hover ψ⟩) ⟨fun ψ ψ' h ↦ ?_, fun q ↦ ?_⟩
-    · exact Subtype.ext (point_ext_of_ker (congrArg Subtype.val h))
-    · haveI := hmax q.1 q.2
-      obtain ⟨ψ, hψ⟩ := exists_point_of_isMaximal q.1
-      refine ⟨⟨ψ, fun a ↦ ?_⟩, Subtype.ext hψ⟩
-      have h1 : RingHom.ker (ψ.comp (IsScalarTower.toAlgHom ℂ A B)) = RingHom.ker χ := by
-        ext a
-        have hover' : p = q.1.under A := q.2.2.over
-        have hq : algebraMap A B a ∈ q.1 ↔ a ∈ p := by
-          exact Ideal.mem_comap.symm.trans (Ideal.ext_iff.mp hover' a).symm
-        have hk : ψ (algebraMap A B a) = 0 ↔ algebraMap A B a ∈ q.1 := by
-          rw [← hψ, RingHom.mem_ker]
-        simp only [RingHom.mem_ker, AlgHom.coe_comp, Function.comp_apply,
-          IsScalarTower.coe_toAlgHom']
-        rw [hk, hq]; rfl
-      exact congrFun (congrArg DFunLike.coe (point_ext_of_ker h1)) a
-  rw [Nat.card_congr e, Nat.card_eq_fintype_card, ← Ideal.sum_ramification_inertia_eq_finrank p B]
-  rw [Fintype.card_eq_sum_ones]
+  refine Equiv.ofBijective (fun ψ ↦ ⟨RingHom.ker ψ.1, hover ψ⟩) ⟨fun ψ ψ' h ↦ ?_, fun q ↦ ?_⟩
+  · exact Subtype.ext (point_ext_of_ker (congrArg Subtype.val h))
+  · haveI := isMaximal_of_mem_primesOver χ q.2
+    obtain ⟨ψ, hψ⟩ := exists_point_of_isMaximal q.1
+    refine ⟨⟨ψ, fun a ↦ ?_⟩, Subtype.ext hψ⟩
+    have h1 : RingHom.ker (ψ.comp (IsScalarTower.toAlgHom ℂ A B)) = RingHom.ker χ := by
+      ext a
+      have hover' : p = q.1.under A := q.2.2.over
+      have hq : algebraMap A B a ∈ q.1 ↔ a ∈ p := by
+        exact Ideal.mem_comap.symm.trans (Ideal.ext_iff.mp hover' a).symm
+      have hk : ψ (algebraMap A B a) = 0 ↔ algebraMap A B a ∈ q.1 := by
+        rw [← hψ, RingHom.mem_ker]
+      simp only [RingHom.mem_ker, AlgHom.coe_comp, Function.comp_apply,
+        IsScalarTower.coe_toAlgHom']
+      rw [hk, hq]; rfl
+    exact congrFun (congrArg DFunLike.coe (point_ext_of_ker h1)) a
+
+omit [Algebra.FiniteType ℂ A] [IsDomain B] in
+/-- **`Σ e = n`** over a point of `A` (all residue fields are `ℂ`). -/
+theorem sum_ramificationIdx (χ : A →ₐ[ℂ] ℂ) [Fintype ((RingHom.ker χ).primesOver B)] :
+    ∑ q : (RingHom.ker χ).primesOver B, q.1.ramificationIdx A = Module.finrank A B := by
+  classical
+  haveI hp : (RingHom.ker χ).IsMaximal := ker_isMaximal χ
+  rw [← Ideal.sum_ramification_inertia_eq_finrank (RingHom.ker χ) B]
   refine Finset.sum_congr rfl fun q _ ↦ ?_
-  haveI := hmax q.1 q.2
+  haveI := isMaximal_of_mem_primesOver χ q.2
   haveI := q.2.1
-  rw [het q.1 (hmax q.1 q.2), one_mul]
   -- inertia degree `1`
   letI := Localization.AtPrime.algebraOfLiesOver (q.1.under A) q.1
-  rw [Ideal.inertiaDeg_def, eq_comm, ← Subalgebra.bot_eq_top_iff_finrank_eq_one]
-  refine eq_top_iff.mpr fun z _ ↦ ?_
-  obtain ⟨c, rfl⟩ := surjective_algebraMap_residueField q.1 z
-  rw [IsScalarTower.algebraMap_apply ℂ (q.1.under A).ResidueField q.1.ResidueField]
-  exact Subalgebra.algebraMap_mem _ _
+  rw [Ideal.inertiaDeg_def]
+  have : Module.finrank (q.1.under A).ResidueField q.1.ResidueField = 1 := by
+    rw [← Subalgebra.bot_eq_top_iff_finrank_eq_one]
+    refine eq_top_iff.mpr fun z _ ↦ ?_
+    obtain ⟨c, rfl⟩ := surjective_algebraMap_residueField q.1 z
+    rw [IsScalarTower.algebraMap_apply ℂ (q.1.under A).ResidueField q.1.ResidueField]
+    exact Subalgebra.algebraMap_mem _ _
+  rw [this, mul_one]
+
+omit [Algebra.FiniteType ℂ A] [IsDomain B] in
+/-- **Exactly `n` points over every point**, for an unramified extension. -/
+theorem card_points_over (het : ∀ w : Ideal B, w.IsMaximal → w.ramificationIdx A = 1)
+    (χ : A →ₐ[ℂ] ℂ) : Nat.card (PtOver B χ) = Module.finrank A B := by
+  classical
+  haveI : Fintype ((RingHom.ker χ).primesOver B) :=
+    (Algebra.QuasiFinite.finite_primesOver (RingHom.ker χ) (S := B)).fintype
+  rw [Nat.card_congr (ptOverEquiv χ), Nat.card_eq_fintype_card, ← sum_ramificationIdx χ,
+    Fintype.card_eq_sum_ones]
+  refine Finset.sum_congr rfl fun q _ ↦ ?_
+  rw [het q.1 (isMaximal_of_mem_primesOver χ q.2)]
 
 end Count
 

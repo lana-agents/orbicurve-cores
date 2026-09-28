@@ -132,4 +132,96 @@ theorem ramificationIdx_aeval {p : ℂ[X]} (hp : 0 < p.natDegree) (w : ℂ) :
 
 end Poly
 
+section Quadratic
+
+/-- `s² = D` has one solution for `D = 0` and two otherwise. -/
+theorem card_sq_eq (D : ℂ) : Nat.card {s : ℂ // s ^ 2 = D} = if D = 0 then 1 else 2 := by
+  classical
+  obtain ⟨s₀, hs₀⟩ := IsAlgClosed.exists_pow_nat_eq D two_pos
+  have e : {s : ℂ // s ^ 2 = D} ≃ {s : ℂ // s ∈ ({s₀, -s₀} : Finset ℂ)} :=
+    Equiv.subtypeEquivRight fun s ↦ by
+      rw [← hs₀, sq_eq_sq_iff_eq_or_eq_neg]
+      simp
+  rw [Nat.card_congr e, Nat.card_eq_fintype_card, Fintype.card_coe]
+  by_cases hD : D = 0
+  · have : s₀ = 0 := by rw [hD] at hs₀; exact pow_eq_zero_iff (two_ne_zero) |>.mp hs₀
+    simp [hD, this]
+  · have h0 : s₀ ≠ 0 := by rintro rfl; apply hD; rw [← hs₀]; ring
+    have hne : s₀ ≠ -s₀ := fun h ↦ h0 (by linear_combination h / 2)
+    rw [Finset.card_pair hne, if_neg hD]
+
+/-- Points of `E` over `x = c`. -/
+theorem card_equation (E : WeierstrassCurve ℂ) [E.IsElliptic] (c : ℂ) :
+    Nat.card {y : ℂ // E.toAffine.Equation c y} = if c ∈ E₂ E then 1 else 2 := by
+  classical
+  set D := (tq E).eval c
+  have e : {y : ℂ // E.toAffine.Equation c y} ≃ {s : ℂ // s ^ 2 = D} := by
+    let f : ℂ ≃ ℂ := ⟨fun y ↦ 2 * y + (E.a₁ * c + E.a₃), fun s ↦ (s - (E.a₁ * c + E.a₃)) / 2,
+      fun y ↦ by ring, fun s ↦ by ring⟩
+    refine Equiv.subtypeEquiv f fun y ↦ ?_
+    rw [WeierstrassCurve.Affine.equation_iff]
+    simp only [f, Equiv.coe_fn_mk, D, tq_eval, WeierstrassCurve.b₂, WeierstrassCurve.b₄,
+      WeierstrassCurve.b₆]
+    constructor
+    · intro h; linear_combination 4 * h
+    · intro h; linear_combination h / 4
+  rw [Nat.card_congr e, card_sq_eq]
+  have hmem : c ∈ E₂ E ↔ D = 0 := by
+    simp [E₂, D, Multiset.mem_toFinset, mem_roots (tq_ne_zero (W := E))]
+  simp only [hmem]
+
+end Quadratic
+
+section Punctured
+
+variable (E : WeierstrassCurve ℂ) [E.IsElliptic]
+
+instance : Module.Free ℂ[X] (puncturedRing E) :=
+  Module.Free.of_equiv (puncturedRingEquiv E).toLinearEquiv
+
+instance : Module.Finite ℂ[X] (puncturedRing E) :=
+  Module.Finite.equiv (puncturedRingEquiv E).toLinearEquiv
+
+instance : Algebra.FiniteType ℂ (puncturedRing E) :=
+  (inferInstance : Algebra.FiniteType ℂ (punctured E).A)
+
+theorem finrank_puncturedRing : Module.finrank ℂ[X] (puncturedRing E) = 2 := by
+  rw [← (puncturedRingEquiv E).toLinearEquiv.finrank_eq,
+    Module.finrank_eq_card_basis (WeierstrassCurve.Affine.CoordinateRing.basis E.toAffine)]
+  simp
+
+theorem puncturedRingEquiv_xA :
+    puncturedRingEquiv E (Uniformization.FEt.xA E) = algebraMap ℂ[X] (puncturedRing E) X :=
+  (puncturedRingEquiv E).commutes X
+
+/-- **Points of `E ∖ {0}` over `x = c`.** -/
+theorem card_ptOver (c : ℂ) :
+    Nat.card (PtOver (puncturedRing E) (aeval c : ℂ[X] →ₐ[ℂ] ℂ)) = if c ∈ E₂ E then 1 else 2 := by
+  classical
+  rw [← card_equation E c]
+  set e := ((puncturedRingEquiv E).restrictScalars ℂ)
+  have hχx : ∀ ψ : PtOver (puncturedRing E) (aeval c : ℂ[X] →ₐ[ℂ] ℂ),
+      (ψ.1.comp e.toAlgHom) (Uniformization.FEt.xA E) = c := fun ψ ↦ by
+    change ψ.1 (puncturedRingEquiv E (Uniformization.FEt.xA E)) = c
+    rw [puncturedRingEquiv_xA, ψ.2, aeval_X]
+  let Φ : PtOver (puncturedRing E) (aeval c : ℂ[X] →ₐ[ℂ] ℂ) → {y : ℂ // E.toAffine.Equation c y} :=
+    fun ψ ↦ ⟨(ψ.1.comp e.toAlgHom) (Uniformization.FEt.yA E), by
+      have := Uniformization.FEt.equation_coord (ψ.1.comp e.toAlgHom)
+      rwa [hχx] at this⟩
+  refine Nat.card_congr (Equiv.ofBijective Φ ⟨fun ψ ψ' h ↦ ?_, fun y ↦ ?_⟩)
+  · have h1 : ψ.1.comp e.toAlgHom = ψ'.1.comp e.toAlgHom :=
+      Uniformization.FEt.algHom_ext_coord (by rw [hχx, hχx]) (congrArg Subtype.val h)
+    refine Subtype.ext (AlgHom.ext fun b ↦ ?_)
+    have := congrArg (fun χ : E.toAffine.CoordinateRing →ₐ[ℂ] ℂ ↦ χ (e.symm b)) h1
+    simpa using this
+  · refine ⟨⟨(Uniformization.FEt.ptAlg E y.2).comp e.symm.toAlgHom, fun a ↦ ?_⟩, Subtype.ext ?_⟩
+    · change Uniformization.FEt.ptAlg E y.2 ((puncturedRingEquiv E).symm (algebraMap ℂ[X] _ a)) = _
+      rw [AlgEquiv.commutes]
+      change Uniformization.FEt.ptAlg E y.2 (WeierstrassCurve.Affine.CoordinateRing.mk E.toAffine (C a)) = _
+      rw [Uniformization.FEt.ptAlg_mk, evalEval_C, coe_aeval_eq_eval]
+    · change Uniformization.FEt.ptAlg E y.2 (e.symm (e (Uniformization.FEt.yA E))) = _
+      rw [AlgEquiv.symm_apply_apply, Uniformization.FEt.ptAlg_mk, evalEval_X]
+
+end Punctured
+
 end OrbicurveCores.U2
