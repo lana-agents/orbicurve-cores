@@ -226,4 +226,5 @@ Total: roughly 50–110k lines, which is comparable to the whole `oka` repositor
   step of [CanLift] 2.7: the ramification types `(2,2,2,2), (2,3,6), (2,4,4), (3,3,3)` for
   `E → Z^crs`, together with arithmeticity of the triangle groups `(2,3,∞), (2,4,∞), (3,3,∞)`.
   At the group level this is: `Comm(Γ)` for non-arithmetic `Γ` is the `(0;2,2,2,∞)` group
-  `⟨Γ, ι⟩`.
+  `⟨Γ, ι⟩`. The numerical Riemann–Hurwitz enumeration is **[done]** (`RiemannHurwitz.lean`,
+  `riemannHurwitz_solutions`).
