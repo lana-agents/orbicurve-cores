@@ -48,6 +48,7 @@ import OrbicurveCores.RiemannHurwitz
 import OrbicurveCores.S1.Certificates
 import OrbicurveCores.S1.Defs
 import OrbicurveCores.S1.LocalForm
+import OrbicurveCores.S1.OrbLift
 import OrbicurveCores.S1.Rational
 import OrbicurveCores.Sharpness
 import OrbicurveCores.SharpnessData
