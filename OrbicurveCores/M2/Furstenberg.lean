@@ -348,4 +348,283 @@ lemma theta_neg (n : ℕ) (g : SL(2, ℝ)) : theta D α y₀ n (-g) = theta D α
 
 end Theta
 
+/-! ### Asymptotic `P`-invariance -/
+
+/-- Elements of `P = {± a_s n_u}`. -/
+def IsP (p : SL(2, ℝ)) : Prop :=
+  ∃ s₀ u₀ : ℝ, p = an s₀ 0 * an 0 u₀ ∨ p = -(an s₀ 0 * an 0 u₀)
+
+lemma isP_ptri {t : ℝ} (v : ℝ) (ht : t ≠ 0) : IsP (ptri t v ht) := by
+  rcases ht.lt_or_gt with h | h
+  · exact ⟨_, _, Or.inr (ptri_of_neg v h)⟩
+  · exact ⟨_, _, Or.inl (ptri_of_pos v h)⟩
+
+section Estimates
+
+variable {Γ : Subgroup SL(2, ℝ)} [Countable Γ] (D : FundSet Γ)
+  {Y : Type*} [TopologicalSpace Y] [MeasurableSpace Y] [BorelSpace Y]
+  (α : Γ →* (Y ≃ₜ Y)) (y₀ : Y) (f : Y →ᵇ ℝ)
+
+/-- The integral of `f` against `phiM z`. -/
+noncomputable def phiInt (z : ℍ) : ℝ := ∫ y, f y ∂(phiM Γ D.F α y₀ z)
+
+lemma measurable_phiInt : Measurable (phiInt D α y₀ f) :=
+  (f.continuous.measurable.stronglyMeasurable.integral_kernel (κ := phiK D α y₀)).measurable
+
+omit [Countable Γ] in
+lemma abs_phiInt_le (z : ℍ) : |phiInt D α y₀ f z| ≤ ‖f‖ := by
+  haveI := isProbabilityMeasure_phiM D.cover D.fin α y₀ z
+  exact f.norm_integral_le_norm _
+
+/-- The inner average `s ↦ ⨍_u phiInt (h (s, u))` over `u ∈ [-(n + 1), n + 1]`. -/
+noncomputable def avgU (n : ℕ) (h : ℝ × ℝ → ℍ) (s : ℝ) : ℝ :=
+  ∫ u, phiInt D α y₀ f (h (s, u)) ∂unif (-(n + 1)) (n + 1)
+
+lemma integral_theta_eq (n : ℕ) (g : SL(2, ℝ)) :
+    ∫ y, f y ∂(theta D α y₀ n g : Measure Y) =
+      ∫ s, avgU D α y₀ f n (orbitPt g) s ∂unif 0 (n + 1) := by
+  rw [integral_theta, box, integral_prod]
+  · rfl
+  · refine Integrable.of_bound ((measurable_phiInt D α y₀ f).comp
+      (measurable_orbitPt g)).aestronglyMeasurable ‖f‖ (ae_of_all _ fun q ↦ ?_)
+    exact abs_phiInt_le D α y₀ f _
+
+variable {D α y₀ f} in
+lemma measurable_avgU {h : ℝ × ℝ → ℍ} (hh : Measurable h) (n : ℕ) :
+    Measurable (avgU D α y₀ f n h) :=
+  (((measurable_phiInt D α y₀ f).comp hh).stronglyMeasurable.integral_prod_right').measurable
+
+omit [Countable Γ] in
+variable {D α y₀ f} in
+lemma abs_integral_unif_le {μ : Measure ℝ} [IsProbabilityMeasure μ] (h : ℝ → ℍ) :
+    |∫ u, phiInt D α y₀ f (h u) ∂μ| ≤ ‖f‖ := by
+  have := norm_integral_le_of_norm_le_const (μ := μ) (f := fun u ↦ phiInt D α y₀ f (h u))
+    (C := ‖f‖) (ae_of_all _ fun u ↦ abs_phiInt_le D α y₀ f _)
+  simpa using this
+
+omit [Countable Γ] in
+lemma abs_avgU_le (n : ℕ) (h : ℝ × ℝ → ℍ) (s : ℝ) : |avgU D α y₀ f n h s| ≤ ‖f‖ :=
+  abs_integral_unif_le _
+
+/-- Right translation by `a_{s₀}` moves the averages by `O(1 / n)`. -/
+lemma abs_integral_theta_mul_an_s_sub_le (n : ℕ) (g : SL(2, ℝ)) (s₀ : ℝ) :
+    |∫ y, f y ∂(theta D α y₀ n (g * an s₀ 0) : Measure Y) -
+      ∫ y, f y ∂(theta D α y₀ n g : Measure Y)| ≤ 2 * ‖f‖ * |s₀| / (n + 1) := by
+  have hG : Measurable (avgU D α y₀ f n (orbitPt g)) := measurable_avgU (measurable_orbitPt g) n
+  have h1 : ∫ y, f y ∂(theta D α y₀ n (g * an s₀ 0) : Measure Y) =
+      ∫ s, avgU D α y₀ f n (orbitPt g) (s + s₀) ∂unif 0 (n + 1) := by
+    rw [integral_theta_eq]
+    simp only [avgU, orbitPt, mul_assoc, an_mul_an_of_u_eq_zero]
+  rw [h1, integral_theta_eq]
+  have := abs_integral_unif_comp_add_sub_le (by positivity : (0 : ℝ) < n + 1) hG
+    (abs_avgU_le D α y₀ f n _) s₀
+  simpa using this
+
+/-- Right translation by `n_{u₀}` moves the averages by `O(1 / n)` (this uses `s ≥ 0` on the
+Følner set). -/
+lemma abs_integral_theta_mul_an_u_sub_le (n : ℕ) (g : SL(2, ℝ)) (u₀ : ℝ) :
+    |∫ y, f y ∂(theta D α y₀ n (g * an 0 u₀) : Measure Y) -
+      ∫ y, f y ∂(theta D α y₀ n g : Measure Y)| ≤ ‖f‖ * |u₀| / (n + 1) := by
+  have hcont : Continuous fun q : ℝ × ℝ ↦ orbitPt g (q.1, q.2 + u₀ * Real.exp (-q.1) ^ 2) :=
+    (continuous_orbitPt.comp (Continuous.prodMk_right g)).comp (by fun_prop)
+  have hH := measurable_avgU (D := D) (α := α) (y₀ := y₀) (f := f) hcont.measurable n
+  have hG := measurable_avgU (D := D) (α := α) (y₀ := y₀) (f := f) (measurable_orbitPt g) n
+  have h1 : ∫ y, f y ∂(theta D α y₀ n (g * an 0 u₀) : Measure Y) =
+      ∫ s, avgU D α y₀ f n (fun q ↦ orbitPt g (q.1, q.2 + u₀ * Real.exp (-q.1) ^ 2)) s
+        ∂unif 0 (n + 1) := by
+    rw [integral_theta_eq]
+    simp only [avgU, orbitPt, mul_assoc, an_mul_an_of_s_eq_zero]
+  have hint : ∀ {K : ℝ → ℝ}, Measurable K → (∀ s, |K s| ≤ ‖f‖) →
+      Integrable K (unif 0 (n + 1)) := fun hK hKb ↦
+    Integrable.of_bound hK.aestronglyMeasurable ‖f‖ (ae_of_all _ hKb)
+  rw [h1, integral_theta_eq, ← integral_sub (hint hH (abs_avgU_le D α y₀ f n _))
+    (hint hG (abs_avgU_le D α y₀ f n _))]
+  rw [← Real.norm_eq_abs]
+  refine (norm_integral_le_of_norm_le_const (μ := unif 0 (n + 1))
+    (C := ‖f‖ * |u₀| / (n + 1)) ?_).trans_eq ?_
+  swap
+  · rw [probReal_univ, mul_one]
+  filter_upwards [ae_unif_mem] with s hs
+  have hc : |u₀ * Real.exp (-s) ^ 2| ≤ |u₀| := by
+    rw [abs_mul, abs_pow, abs_of_pos (Real.exp_pos _)]
+    refine mul_le_of_le_one_right (abs_nonneg _) (pow_le_one₀ (Real.exp_pos _).le ?_)
+    exact Real.exp_le_one_iff.2 (by linarith [hs.1])
+  have := abs_integral_unif_comp_add_sub_le (by linarith : -((n : ℝ) + 1) < n + 1)
+    (h := fun u ↦ phiInt D α y₀ f (orbitPt g (s, u)))
+    ((measurable_phiInt D α y₀ f).comp ((measurable_orbitPt g).comp measurable_prodMk_left))
+    (fun u ↦ abs_phiInt_le D α y₀ f _) (u₀ * Real.exp (-s) ^ 2)
+  rw [Real.norm_eq_abs]
+  calc _ ≤ 2 * ‖f‖ * |u₀ * Real.exp (-s) ^ 2| / (n + 1 - -(n + 1)) := this
+    _ ≤ 2 * ‖f‖ * |u₀| / (n + 1 - -(n + 1)) := by gcongr; linarith
+    _ = ‖f‖ * |u₀| / (n + 1) := by field_simp; ring
+
+/-- Right translation by `p ∈ P` moves the averages by `O(1 / n)`, uniformly in `g`. -/
+lemma exists_abs_integral_theta_mul_sub_le {p : SL(2, ℝ)} (hp : IsP p) :
+    ∃ C, ∀ n g, |∫ y, f y ∂(theta D α y₀ n (g * p) : Measure Y) -
+      ∫ y, f y ∂(theta D α y₀ n g : Measure Y)| ≤ C / (n + 1) := by
+  obtain ⟨s₀, u₀, hp⟩ := hp
+  refine ⟨‖f‖ * |u₀| + 2 * ‖f‖ * |s₀|, fun n g ↦ ?_⟩
+  have key : |∫ y, f y ∂(theta D α y₀ n (g * (an s₀ 0 * an 0 u₀)) : Measure Y) -
+      ∫ y, f y ∂(theta D α y₀ n g : Measure Y)| ≤
+        (‖f‖ * |u₀| + 2 * ‖f‖ * |s₀|) / (n + 1) := by
+    rw [← mul_assoc, add_div]
+    refine (abs_sub_le _ (∫ y, f y ∂(theta D α y₀ n (g * an s₀ 0) : Measure Y)) _).trans
+      (add_le_add ?_ ?_)
+    · exact abs_integral_theta_mul_an_u_sub_le D α y₀ f n _ u₀
+    · exact abs_integral_theta_mul_an_s_sub_le D α y₀ f n g s₀
+  rcases hp with rfl | rfl
+  · exact key
+  · rwa [mul_neg, theta_neg]
+
+end Estimates
+
+/-! ### The limit and its descent to the boundary -/
+
+section Limit
+
+variable {Γ : Subgroup SL(2, ℝ)} [Countable Γ] (D : FundSet Γ)
+  {Y : Type*} [TopologicalSpace Y] [MeasurableSpace Y] [BorelSpace Y]
+  (α : Γ →* (Y ≃ₜ Y)) (y₀ : Y) (W : TailWeights)
+
+/-- The convergence set is right-`P`-invariant, with the same limit. -/
+lemma tendsto_comb_theta_mul_iff {p : SL(2, ℝ)} (hp : IsP p) (g : SL(2, ℝ))
+    (ν : ProbabilityMeasure Y) :
+    Tendsto (fun m ↦ W.comb m fun k ↦ theta D α y₀ k (g * p)) atTop (𝓝 ν) ↔
+      Tendsto (fun m ↦ W.comb m fun k ↦ theta D α y₀ k g) atTop (𝓝 ν) := by
+  simp only [ProbabilityMeasure.tendsto_iff_forall_integral_tendsto]
+  refine forall_congr' fun f ↦ ?_
+  obtain ⟨C, hC⟩ := exists_abs_integral_theta_mul_sub_le D α y₀ f hp
+  have hd : Tendsto (fun m ↦
+      ∫ y, f y ∂(W.comb m fun k ↦ theta D α y₀ k (g * p) : Measure Y) -
+        ∫ y, f y ∂(W.comb m fun k ↦ theta D α y₀ k g : Measure Y)) atTop (𝓝 0) := by
+    refine squeeze_zero_norm (fun m ↦ ?_) (a := fun m : ℕ ↦ C / ((m : ℝ) + 1)) ?_
+    · rw [Real.norm_eq_abs]
+      exact W.abs_integral_comb_sub_le m _ _ f fun k ↦ hC k g
+    · simpa [div_eq_mul_inv] using tendsto_one_div_add_atTop_nhds_zero_nat.const_mul C
+  constructor
+  · intro h
+    simpa using h.sub hd
+  · intro h
+    simpa using h.add hd
+
+lemma comb_theta_mul (γ₀ : Γ) (g : SL(2, ℝ)) (m : ℕ) :
+    (W.comb m fun k ↦ theta D α y₀ k ((γ₀ : SL(2, ℝ)) * g)) =
+      (W.comb m fun k ↦ theta D α y₀ k g).map (α γ₀).continuous.measurable.aemeasurable := by
+  rw [W.comb_map _ _ (α γ₀).continuous.measurable]
+  simp_rw [theta_mul]
+
+/-- The convergence set is left-`Γ`-invariant, with equivariant limit. -/
+lemma tendsto_comb_theta_mul {γ₀ : Γ} {g : SL(2, ℝ)} {ν : ProbabilityMeasure Y}
+    (h : Tendsto (fun m ↦ W.comb m fun k ↦ theta D α y₀ k g) atTop (𝓝 ν)) :
+    Tendsto (fun m ↦ W.comb m fun k ↦ theta D α y₀ k ((γ₀ : SL(2, ℝ)) * g)) atTop
+      (𝓝 (ν.map (α γ₀).continuous.measurable.aemeasurable)) := by
+  simp_rw [comb_theta_mul]
+  exact ((ProbabilityMeasure.continuous_map (α γ₀).continuous).tendsto ν).comp h
+
+lemma measurable_integral_theta_sec (n : ℕ) (f : Y →ᵇ ℝ) :
+    Measurable fun x ↦ ∫ y, f y ∂(theta D α y₀ n (sec x) : Measure Y) := by
+  have hs := continuous_sec
+  have hc : Continuous fun p : (ℝ × ℝ) × ℝ ↦ orbitPt (sec p.1.1) (p.1.2, p.2) :=
+    continuous_orbitPt.comp (f := fun p : (ℝ × ℝ) × ℝ ↦ (sec p.1.1, (p.1.2, p.2)))
+      (by fun_prop)
+  have h2 : Measurable fun p : ℝ × ℝ ↦ avgU D α y₀ f n (orbitPt (sec p.1)) p.2 :=
+    (StronglyMeasurable.integral_prod_right'
+      (f := fun p : (ℝ × ℝ) × ℝ ↦ phiInt D α y₀ f (orbitPt (sec p.1.1) (p.1.2, p.2)))
+      ((measurable_phiInt D α y₀ f).comp hc.measurable).stronglyMeasurable).measurable
+  have heq : (fun x ↦ ∫ y, f y ∂(theta D α y₀ n (sec x) : Measure Y)) =
+      fun x ↦ ∫ s, avgU D α y₀ f n (orbitPt (sec x)) s ∂unif 0 (n + 1) :=
+    funext fun x ↦ integral_theta_eq D α y₀ f n (sec x)
+  rw [heq]
+  exact (StronglyMeasurable.integral_prod_right'
+    (f := fun p : ℝ × ℝ ↦ avgU D α y₀ f n (orbitPt (sec p.1)) p.2)
+    h2.stronglyMeasurable).measurable
+
+end Limit
+
+lemma measurable_onePoint_elim {Z : Type*} [MeasurableSpace Z] {c : Z} {f : ℝ → Z}
+    (hf : Measurable f) : Measurable fun p : OnePoint ℝ ↦ p.elim c f := by
+  classical
+  intro B hB
+  have hemb : MeasurableEmbedding ((↑) : ℝ → OnePoint ℝ) :=
+    OnePoint.isOpenEmbedding_coe.measurableEmbedding
+  have : (fun p : OnePoint ℝ ↦ p.elim c f) ⁻¹' B =
+      (((↑) : ℝ → OnePoint ℝ) '' (f ⁻¹' B)) ∪ ({(∞ : OnePoint ℝ)} ∩ {_p | c ∈ B}) := by
+    ext p
+    induction p using OnePoint.rec with
+    | infty => simp
+    | coe x => simp
+  rw [this]
+  exact (hemb.measurableSet_image.2 (hf hB)).union
+    ((measurableSet_singleton _).inter (MeasurableSet.const _))
+
+/-- **Furstenberg boundary map.** A lattice `Γ ≤ SL(2, ℝ)` with a good fundamental set, acting on
+a nonempty compact metrizable space `Y`, admits a measurable map `ψ : OnePoint ℝ → Prob(Y)` which
+is `Γ`-equivariant almost everywhere. -/
+theorem GoodLattice.exists_boundaryMap {Γ : Subgroup SL(2, ℝ)} (h : GoodLattice Γ)
+    {Y : Type*} [TopologicalSpace Y] [CompactSpace Y] [TopologicalSpace.MetrizableSpace Y]
+    [MeasurableSpace Y] [BorelSpace Y] [Nonempty Y] (α : Γ →* (Y ≃ₜ Y)) :
+    ∃ ψ : OnePoint ℝ → ProbabilityMeasure Y, Measurable ψ ∧
+      ∀ γ : Γ, ∀ᵐ x ∂bdry, (ψ ((γ : SL(2, ℝ)) • x) : Measure Y) = (ψ x : Measure Y).map (α γ) := by
+  haveI : SecondCountableTopology Y := by
+    letI := TopologicalSpace.metrizableSpaceMetric Y
+    infer_instance
+  haveI : Countable Γ := by
+    haveI := h.discrete
+    exact TopologicalSpace.separableSpace_iff_countable.1 inferInstance
+  obtain ⟨F, hF, -, hcov, hfin⟩ := h.exists_fund
+  set D : FundSet Γ := ⟨F, hF, hcov, hfin⟩
+  set y₀ : Y := Classical.arbitrary Y
+  set ν₀ : ProbabilityMeasure Y := theta D α y₀ 0 1
+  have hmeas := measurable_integral_theta_sec D α y₀
+  obtain ⟨W, hW⟩ := exists_tailWeights_ae_tendsto (ProbabilityTheory.gaussianReal 0 1)
+    (fun n x ↦ theta D α y₀ n (sec x)) hmeas
+  set ψℝ := W.lim (fun n x ↦ theta D α y₀ n (sec x)) ν₀
+  refine ⟨fun p ↦ p.elim ν₀ ψℝ, measurable_onePoint_elim (measurable_lim W hmeas ν₀),
+    fun γ ↦ ?_⟩
+  have hemb : MeasurableEmbedding ((↑) : ℝ → OnePoint ℝ) :=
+    OnePoint.isOpenEmbedding_coe.measurableEmbedding
+  rw [bdry, hemb.ae_map_iff]
+  have hae : ∀ᵐ x ∂(volume : Measure ℝ), x ∈ W.convSet fun n x ↦ theta D α y₀ n (sec x) :=
+    (ProbabilityTheory.gaussianReal_absolutelyContinuous' 0 one_ne_zero).ae_le hW
+  have hdet : (γ : SL(2, ℝ)) 0 0 * (γ : SL(2, ℝ)) 1 1 - (γ : SL(2, ℝ)) 0 1 * (γ : SL(2, ℝ)) 1 0
+      = 1 := by
+    have := (γ : SL(2, ℝ)).det_coe
+    rwa [det_fin_two] at this
+  have hne : ∀ᵐ x ∂(volume : Measure ℝ), (γ : SL(2, ℝ)) 1 0 * x + (γ : SL(2, ℝ)) 1 1 ≠ 0 := by
+    by_cases hc : (γ : SL(2, ℝ)) 1 0 = 0
+    · refine ae_of_all _ fun x ↦ ?_
+      rw [hc, zero_mul, zero_add]
+      rintro h0
+      rw [h0, hc] at hdet
+      simp at hdet
+    · filter_upwards [Measure.ae_ne volume (-(γ : SL(2, ℝ)) 1 1 / (γ : SL(2, ℝ)) 1 0)]
+        with x hx h0
+      apply hx
+      field_simp
+      linarith
+  filter_upwards [hae, hne] with x hx ht
+  set t := (γ : SL(2, ℝ)) 1 0 * x + (γ : SL(2, ℝ)) 1 1
+  set y := ((γ : SL(2, ℝ)) 0 0 * x + (γ : SL(2, ℝ)) 0 1) / t
+  have hsmul : (γ : SL(2, ℝ)) • (x : OnePoint ℝ) = (y : OnePoint ℝ) := by
+    rw [sl_smul_bdry, OnePoint.smul_some_eq_ite]
+    simp [t, y, ht]
+  have h1 := tendsto_comb_theta_mul D α y₀ W (γ₀ := γ) (W.tendsto_lim ν₀ hx)
+  rw [mul_sec _ _ ht] at h1
+  have h2 := (tendsto_comb_theta_mul_iff D α y₀ W (isP_ptri _ ht) _ _).1 h1
+  have hy : y ∈ W.convSet fun n x ↦ theta D α y₀ n (sec x) := ⟨_, h2⟩
+  have h3 := tendsto_nhds_unique (W.tendsto_lim ν₀ hy) h2
+  rw [hsmul]
+  change (ψℝ y : Measure Y) = (ψℝ x : Measure Y).map (α γ)
+  have h4 : ψℝ y = (ψℝ x).map (α γ).continuous.measurable.aemeasurable := h3
+  rw [h4, ProbabilityMeasure.toMeasure_map]
+
+/-- `GoodLattice.exists_boundaryMap` with the boundary map packaged as a Markov kernel. -/
+theorem GoodLattice.exists_boundaryKernel {Γ : Subgroup SL(2, ℝ)} (h : GoodLattice Γ)
+    {Y : Type*} [TopologicalSpace Y] [CompactSpace Y] [TopologicalSpace.MetrizableSpace Y]
+    [MeasurableSpace Y] [BorelSpace Y] [Nonempty Y] (α : Γ →* (Y ≃ₜ Y)) :
+    ∃ κ : ProbabilityTheory.Kernel (OnePoint ℝ) Y, ProbabilityTheory.IsMarkovKernel κ ∧
+      ∀ γ : Γ, ∀ᵐ x ∂bdry, κ ((γ : SL(2, ℝ)) • x) = (κ x).map (α γ) := by
+  obtain ⟨ψ, hψ, heq⟩ := h.exists_boundaryMap α
+  exact ⟨⟨fun x ↦ ψ x, measurable_subtype_coe.comp hψ⟩, ⟨fun x ↦ (ψ x).2⟩, heq⟩
+
 end OrbicurveCores.M2
