@@ -258,4 +258,120 @@ theorem ramificationIdx_closure_eq_one (ht : Transcendental k t) (hFL : F ≤ L)
 
 end Ramification
 
+section Automorphisms
+
+variable {N : IntermediateField (K₀ k t) Ω} {F L : IntermediateField (K₀ k t) Ω}
+
+theorem conj_mem_coreSub {σ τ : N ≃ₐ[K₀ k t] N} (hσ : σ ∈ fixSub t N F)
+    (hτ : τ ∈ coreSub t F L) : σ⁻¹ * τ * σ ∈ coreSub t F L := by
+  rw [mem_coreSub] at hτ ⊢
+  intro ρ hρ
+  have := hτ (σ * ρ) ((fixSub t N F).mul_mem hσ hρ)
+  simpa [mul_assoc] using this
+
+theorem mem_closure_iff {y : Ω} (hy : y ∈ N) :
+    y ∈ closure t F L (N := N) ↔ ∀ τ ∈ coreSub t F L, τ ⟨y, hy⟩ = ⟨y, hy⟩ := by
+  constructor
+  · rintro ⟨z, hz, hzy⟩ τ hτ
+    rw [show (⟨y, hy⟩ : N) = z from Subtype.ext hzy.symm]
+    exact (IntermediateField.mem_fixedField_iff _ _).mp hz τ hτ
+  · intro h
+    exact ⟨⟨y, hy⟩, (IntermediateField.mem_fixedField_iff _ _).mpr h, rfl⟩
+
+/-- `Gal(N/F)` preserves the Galois closure. -/
+theorem smul_mem_closure {σ : N ≃ₐ[K₀ k t] N} (hσ : σ ∈ fixSub t N F) {y : N}
+    (hy : (y : Ω) ∈ closure t F L (N := N)) : ((σ y : N) : Ω) ∈ closure t F L (N := N) := by
+  rw [mem_closure_iff t (σ y).2]
+  rw [mem_closure_iff t y.2] at hy
+  intro τ hτ
+  have := hy (σ⁻¹ * τ * σ) (conj_mem_coreSub t hσ hτ)
+  have e : τ (σ y) = σ ((σ⁻¹ * τ * σ) y) := by simp [AlgEquiv.mul_apply]
+  change τ (σ y) = σ y
+  rw [e, show (σ⁻¹ * τ * σ) y = y from this]
+
+variable [FiniteDimensional (K₀ k t) N] [IsGalois (K₀ k t) N]
+
+/-- Elements of `N` fixed by `Gal(N/F)` lie in `F`. -/
+theorem mem_of_forall_fixSub (hFN : F ≤ N) {y : N} (hy : ∀ σ ∈ fixSub t N F, σ y = y) :
+    (y : Ω) ∈ F := by
+  have h1 : y ∈ IntermediateField.fixedField (fixSub t N F) :=
+    (IntermediateField.mem_fixedField_iff _ _).mpr hy
+  rw [fixSub_eq_fixingSubgroup t hFN, IsGalois.fixedField_fixingSubgroup] at h1
+  exact (IntermediateField.mem_restrict hFN y).mp h1
+
+end Automorphisms
+
+section Restrict
+
+variable {N : IntermediateField (K₀ k t) Ω} {F L : IntermediateField (K₀ k t) Ω}
+
+/-- The value in `N` of an element of the coordinate ring of the closure. -/
+def toN (b : coordRing k t (closure t F L (N := N))) : N :=
+  ⟨((b : closure t F L (N := N)) : Ω), closure_le t F L (b : closure t F L (N := N)).2⟩
+
+theorem isIntegral_smul_toN (σ : N ≃ₐ[K₀ k t] N) (b : coordRing k t (closure t F L (N := N))) :
+    IsIntegral (A₀ k t) ((σ (toN t b) : N) : Ω) := by
+  have h1 := isIntegral_of_mem_coordRing t b
+  haveI : IsScalarTower (A₀ k t) N Ω := IsScalarTower.of_algebraMap_eq fun _ => rfl
+  have h2 : IsIntegral (A₀ k t) (toN t b) :=
+    (isIntegral_algebraMap_iff (A := N) (B := Ω) (algebraMap N Ω).injective).mp h1
+  have h3 := h2.map ((σ : N →ₐ[K₀ k t] N).restrictScalars (A₀ k t))
+  exact (isIntegral_algebraMap_iff (A := N) (B := Ω) (algebraMap N Ω).injective).mpr h3
+
+theorem toN_injective : Function.Injective (toN t (F := F) (L := L) (N := N)) := by
+  intro a b h
+  exact Subtype.ext (Subtype.ext (congrArg (fun n : N ↦ (n : Ω)) h))
+
+theorem toN_one : toN t (1 : coordRing k t (closure t F L (N := N))) = 1 := rfl
+theorem toN_zero : toN t (0 : coordRing k t (closure t F L (N := N))) = 0 := rfl
+theorem toN_mul (a b : coordRing k t (closure t F L (N := N))) :
+    toN t (a * b) = toN t a * toN t b := rfl
+theorem toN_add (a b : coordRing k t (closure t F L (N := N))) :
+    toN t (a + b) = toN t a + toN t b := rfl
+theorem toN_algebraMap (c : k) :
+    toN t (algebraMap k (coordRing k t (closure t F L (N := N))) c) =
+      algebraMap (K₀ k t) N (algebraMap k (K₀ k t) c) := rfl
+
+/-- The restriction of `σ ∈ Gal(N/F)` to the coordinate ring of the Galois closure. -/
+noncomputable def restrictClosure (σ : N ≃ₐ[K₀ k t] N) (hσ : σ ∈ fixSub t N F) :
+    coordRing k t (closure t F L (N := N)) →ₐ[k] coordRing k t (closure t F L (N := N)) where
+  toFun b := ⟨⟨((σ (toN t b) : N) : Ω), smul_mem_closure t hσ (y := toN t b) ((b : closure t F L (N := N))).2⟩,
+    mem_coordRing_of_isIntegral t _ (isIntegral_smul_toN t σ b)⟩
+  map_one' := toN_injective t (by
+    change σ (toN t 1) = toN t 1
+    rw [toN_one, map_one])
+  map_mul' a b := toN_injective t (by
+    change σ (toN t (a * b)) = σ (toN t a) * σ (toN t b)
+    rw [toN_mul, map_mul])
+  map_zero' := toN_injective t (by
+    change σ (toN t 0) = toN t 0
+    rw [toN_zero, map_zero])
+  map_add' a b := toN_injective t (by
+    change σ (toN t (a + b)) = σ (toN t a) + σ (toN t b)
+    rw [toN_add, map_add])
+  commutes' c := toN_injective t (by
+    change σ (toN t (algebraMap k _ c)) = toN t (algebraMap k _ c)
+    rw [toN_algebraMap, AlgEquiv.commutes])
+
+theorem toN_restrictClosure (σ : N ≃ₐ[K₀ k t] N) (hσ : σ ∈ fixSub t N F)
+    (b : coordRing k t (closure t F L (N := N))) :
+    toN t (restrictClosure t σ hσ b) = σ (toN t b) := rfl
+
+/-- As an automorphism. -/
+noncomputable def restrictClosureEquiv (σ : N ≃ₐ[K₀ k t] N) (hσ : σ ∈ fixSub t N F) :
+    coordRing k t (closure t F L (N := N)) ≃ₐ[k] coordRing k t (closure t F L (N := N)) :=
+  AlgEquiv.ofAlgHom (restrictClosure t σ hσ) (restrictClosure t σ⁻¹ ((fixSub t N F).inv_mem hσ))
+    (AlgHom.ext fun b ↦ toN_injective t (by
+      simp only [AlgHom.coe_comp, Function.comp_apply, toN_restrictClosure, AlgHom.coe_id, id]
+      exact σ.apply_symm_apply _))
+    (AlgHom.ext fun b ↦ toN_injective t (by
+      simp only [AlgHom.coe_comp, Function.comp_apply, toN_restrictClosure, AlgHom.coe_id, id]
+      exact σ.symm_apply_apply _))
+
+theorem toN_restrictClosureEquiv (σ : N ≃ₐ[K₀ k t] N) (hσ : σ ∈ fixSub t N F)
+    (b : coordRing k t (closure t F L (N := N))) :
+    toN t (restrictClosureEquiv t σ hσ b) = σ (toN t b) := rfl
+
+end Restrict
+
 end OrbicurveCores.U2
