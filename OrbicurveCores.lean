@@ -16,6 +16,7 @@ import OrbicurveCores.JValues
 import OrbicurveCores.M2.GoodLattice
 import OrbicurveCores.M2.HopfContinuity
 import OrbicurveCores.M2.HopfCoords
+import OrbicurveCores.M2.HopfFinite
 import OrbicurveCores.M2.Setup
 import OrbicurveCores.M2.TraceField
 import OrbicurveCores.Markov
