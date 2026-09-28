@@ -45,6 +45,7 @@ import OrbicurveCores.M2.Unipotent
 import OrbicurveCores.Markov
 import OrbicurveCores.Reconcile
 import OrbicurveCores.RiemannHurwitz
+import OrbicurveCores.S1.Defs
 import OrbicurveCores.Sharpness
 import OrbicurveCores.SharpnessData
 import OrbicurveCores.Takeuchi

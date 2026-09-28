@@ -289,6 +289,58 @@ about 10–15k lines.
 **Already available.** Discreteness, finite covolume, the explicit fundamental sets, M1, C7.1, and
 the finish (`takeuchi_one_infty`, sharpness).
 
+### 2.3c Blueprint for S1 (which curves the Takeuchi groups uniformise)
+
+**Target.** `S1NonExceptional` (branch `wp-u2`): if `Uniformizes W A B` (U1's data, `Uniformization.lean`)
+and `IsTakeuchiConj A B`, then `j(W) ∈ excJ`. The route uses certificates checkable in Lean
+(polynomial identities over `ℚ`) plus analytic lemmas. It uses no Magma and no modular-form
+identities.
+
+**Certificates** (found with `sympy`/`numpy`; `scripts/` will hold them). For each case, `C : y² = f(x)`
+over `ℚ` and a rational function `G = N/D ∈ ℚ(x)` with `D | f^k` (poles exactly at the
+`2`-torsion and at `O`), `N = c·H³`, `N − 1728·D = c·K²`, with `H, K` squarefree and coprime to
+`f`, and `N'D − ND' = R·H²·K` with the roots of `R` among those of `f, H, K`. Then `G` has
+degree 24 on `C`, and `C ∖ C[2] → ℙ¹ ∖ {∞}` is an orbifold covering of the `j`-line.
+
+| case | `C` | `j(C)` | `G` | cusp widths |
+|---|---|---|---|---|
+| I | `y² = x(x² + 44x − 16)` | `2¹⁴·31³/5³` | `−(x⁴+48x³+224x²−768x+256)³ / (1024 x⁵ (x²+44x−16))` | 10, 10, 2, 2 |
+| II | `y² = (x−24)(x+8)(x+12)` | `2²·73³/3⁴` | `x³(x³−384x−3072)³ / (4096 (x−24)(x+8)³(x+12)²)` | 12, 6, 4, 2 |
+| III | `y² = x(x² − 16)` | `1728` | `(x⁴+224x²+256)³ / (x²(x−4)⁴(x+4)⁴)` | 8, 8, 4, 4 |
+| IV | `y² = x³ − 1728` | `0` | `x³(x+24)³(x²−24x+576)³ / (64 (x−12)³(x²+12x+144)³)` | 6, 6, 6, 6 |
+
+(I is the Belyi map `−(t²−10t+5)³/t` of [Sijs] composed with the dual 2-isogeny; III and IV are
+similar. II was found by solving `H³ − K² = μ·(x−24)(x+8)³(x+12)²`.)
+
+**Analytic chain** (`OrbicurveCores/S1/`; interfaces in `S1/Defs.lean`):
+
+1. *Lattice uniformisation.* `C ≅ ℂ/Λ` (heights). Let `ψ : ℍ → ℂ ∖ Λ` be oka's universal covering and
+   `Γ = ⟨A, B⟩` its extended deck group, so that `Uniformizes C A B`. Let `λ : Γ → Λ` be the translation
+   part and `Γ₂ = λ⁻¹(2Λ)`, which contains all squares.
+2. *`F = G(x(u/2))`* (`EllOrbStatement`). `u ↦ x(u/2) = a℘(u/2) + r` is a local biholomorphism on
+   `ℂ ∖ Λ` onto the `x`-line minus the `2`-torsion `x`-coordinates. So `F` is an orbifold covering
+   (`IsOrbCover F Λᶜ sig`) with local forms of order `sig`, and `F(u + 2l) = F(u)`.
+3. *`j` is an orbifold covering* (`JOrbStatement`): `j(ρ) = 0` and `j(i) = 1728`. `j` has order
+   exactly `|Stab|` at every point, because its fibres are `SL₂(ℤ)`-orbits and the stabiliser acts as
+   a rotation in the Cayley coordinate. Charts are `SL₂(ℤ)`-translates of one invariant disc.
+4. *Orbifold lifting* (`OrbLiftStatement`): the germs of lifts `(z, h z, h' z)` form a covering
+   space of `ℍ` (oka's `isCoveringMapOn_of_sections`). `ℍ` is convex, so there is a global section.
+5. *Möbius.* Let `h` lift `Ψ = F ∘ ψ` through `j`, and let `k` lift `j` through `F` (then through
+   `ψ`). By Baire and the identity theorem, `h ∘ k = δ ∈ SL₂(ℤ)`. By Schwarz–Pick (infinitesimal, with
+   its equality case), `k` is Möbius, hence so is `h`. For `γ ∈ Γ₂` we have `j ∘ h ∘ γ = j ∘ h`, so
+   `h γ h⁻¹ ∈ ±SL₂(ℤ)`. Hence `tr(γ²) ∈ ℤ` and `tr(γ)² ∈ ℤ` for all `γ ∈ Γ`, so `Γ` is Takeuchi
+   (`takeuchi_one_infty_of_int`, `exists_conj_of_takeuchiSq`).
+6. *Rigidity* (`RigidityStatement`): `Uniformizes W A B`, `Uniformizes W' A B` ⇒ `j W = j W'`. Lift
+   both uniformisations to `ℂ ∖ Λ`, `ℂ ∖ Λ'`. The kernels of `λ, λ'` are both `[Γ, Γ]`, because
+   `Γ^{ab}` is 2-generated and surjects onto `ℤ²`. So `β(ψ̃ z) = ψ̃'(z)` is a well-defined
+   biholomorphism `ℂ∖Λ → ℂ∖Λ'` with `β(u + l) = β(u) + M l`. It is proper modulo the lattices, so it
+   extends over `Λ`. Then `β'` is periodic and entire, hence constant (Liouville), so `Λ' = aΛ`.
+7. *Transport* (`Uniformizes` is invariant under `SL₂(ℝ)`-conjugation, signs and Nielsen moves; for
+   `det g < 0` pass to the complex-conjugate curve, whose `j` is `conj j`).
+8. *Counting.* By 5 the four curves have Takeuchi classes `c(k) ∈ Fin 4`. By 6, 7 and distinct
+   `j`, `c` is injective, hence bijective. A curve `W` with a Takeuchi group of class `i = c(k)` has
+   `j(W) = j(C_k)` (or its conjugate, which is the same since it is real) by 6 and 7.
+
 ### 2.4 What is needed for U1, U2, S1
 
 * U1: Mathlib has `ℍ`, the `SL₂(ℝ)` action, the modular group and `j` (and `lana-agents/heights`
