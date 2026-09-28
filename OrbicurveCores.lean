@@ -65,5 +65,6 @@ import OrbicurveCores.S1.Transport
 import OrbicurveCores.Sharpness
 import OrbicurveCores.SharpnessData
 import OrbicurveCores.Takeuchi
+import OrbicurveCores.U2.S1
 import OrbicurveCores.U2.Statement
 import OrbicurveCores.Uniformization

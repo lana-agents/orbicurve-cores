@@ -15,8 +15,21 @@ import OrbicurveCores.Reconcile
 * `S1NonExceptional`: the part of S1 used for it: a once-punctured elliptic curve over `ℂ` with
   non-exceptional `j` is not uniformised by one of Takeuchi's four groups.
 
-U2 proves `CanLift27C` from `S1NonExceptional` (`canLift27C_of_s1`, in progress). Passing from
-`ℂ` to arbitrary fields of characteristic `0` (Lefschetz principle, descent) is separate.
+U2 proves `CanLift27C` from `S1NonExceptional` (`canLift27C_of_s1`, in progress;
+`S1NonExceptional` itself is `s1NonExceptional`, from S1). Passing from `ℂ` to arbitrary fields
+of characteristic `0` (Lefschetz principle, descent) is separate.
+
+Ingredients already proved in `lana-agents/oka` (branch `wp-u2`):
+* **R3**: `Uniformization.Peripheral.commensurator_eq_pmDeck_or`: if the `±`-deck group `Γ̃` of the
+  uniformisation of `ℂ/Λ ∖ 0` has finite index in its commensurator, then `Comm(Γ̃) = Γ̃`, unless
+  `g₃(Λ) = 0` (`j = 1728`) or `g₂(Λ) = 0` (`j = 0`);
+* the polynomial Riemann–Hurwitz count used for R3 and for uniqueness of the map to `hemi E`:
+  `Uniformization.RatFuncPoly.orbifold_count` (a polynomial map `A¹ → A¹` for which `e · m` is
+  constant on fibres, `m = 2` on a 3-element set `E₂`, has degree `1`, or degree `2` with `E₂`
+  symmetric, or degree `3` with `E₂` equilateral) with `g₃_eq_zero_of_symm`,
+  `g₂_eq_zero_of_cube`;
+* K2 (`Peripheral.exists_monic_wpΨ_smul`), finite étale algebras over holomorphic functions on `ℍ`
+  (`FEt.exists_isLift`, `FEt.exists_smul_eq`).
 -/
 
 open scoped MatrixGroups
