@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: The orbicurve-cores contributors
 -/
 import OrbicurveCores.ForMathlib.ProjectiveLine
+import OrbicurveCores.M2.Setup
 
 /-!
 # M2: cross ratios on `ℙ¹(k)`
@@ -201,5 +202,50 @@ lemma finite_of_two_refs {p q p' q' : OnePoint k} (hpq : p ≠ q) (hpp' : p ≠ 
     rw [← br_mv_mv]
     exact br_eq_zero_of_parallel (lift_ne_zero y') (br_crMat_eq_zero h1 e1)
       (br_crMat_eq_zero h2 e2)
+
+/-! ### Measurability -/
+
+section measurability
+
+open MeasureTheory
+
+variable {k : Type*} [NontriviallyNormedField k] [ProperSpace k] [DecidableEq k]
+  [MeasurableSpace k] [BorelSpace k]
+
+omit [DecidableEq k] in
+lemma measurable_lift : Measurable (lift : OnePoint k → k × k) := by
+  intro T hT
+  have hcoe : MeasurableEmbedding ((↑) : k → OnePoint k) :=
+    OnePoint.isOpenEmbedding_coe.measurableEmbedding
+  have e : lift ⁻¹' T = ((↑) '' {a : k | (a, (1 : k)) ∈ T}) ∪
+      {y : OnePoint k | y = ∞ ∧ ((1 : k), (0 : k)) ∈ T} := by
+    ext y
+    cases y with
+    | infty => simp
+    | coe a => simp
+  rw [e]
+  refine (hcoe.measurableSet_image.2 ?_).union ?_
+  · exact measurable_prodMk_right hT
+  · by_cases h : ((1 : k), (0 : k)) ∈ T
+    · simp [h]
+    · simp [h]
+
+omit [DecidableEq k] in
+lemma measurable_wcr : Measurable fun y : OnePoint k × OnePoint k × OnePoint k × OnePoint k ↦
+    wcr y.1 y.2.1 y.2.2.1 y.2.2.2 := by
+  have hl : ∀ {f : OnePoint k × OnePoint k × OnePoint k × OnePoint k → OnePoint k},
+      Measurable f → Measurable fun y ↦ lift (f y) := fun hf ↦ measurable_lift.comp hf
+  have hb : ∀ {f g : OnePoint k × OnePoint k × OnePoint k × OnePoint k → OnePoint k},
+      Measurable f → Measurable g → Measurable fun y ↦ br (lift (f y)) (lift (g y)) := by
+    intro f g hf hg
+    simp only [br]
+    have h1 := hl hf; have h2 := hl hg
+    exact (h1.fst.mul h2.snd).sub (h1.snd.mul h2.fst)
+  simp only [wcr]
+  exact ((hb measurable_fst measurable_snd.snd.fst).mul
+    (hb measurable_snd.fst measurable_snd.snd.snd)).div
+    ((hb measurable_fst measurable_snd.snd.snd).mul (hb measurable_snd.fst measurable_snd.snd.fst))
+
+end measurability
 
 end OrbicurveCores.M2
