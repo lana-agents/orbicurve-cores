@@ -46,6 +46,10 @@ import OrbicurveCores.Markov
 import OrbicurveCores.Reconcile
 import OrbicurveCores.RiemannHurwitz
 import OrbicurveCores.S1.Defs
+import OrbicurveCores.S1.Rigidity
+import OrbicurveCores.S1.Rigidity.Lattice
+import OrbicurveCores.S1.Rigidity.Lift
+import OrbicurveCores.S1.Rigidity.Transfer
 import OrbicurveCores.Sharpness
 import OrbicurveCores.SharpnessData
 import OrbicurveCores.Takeuchi

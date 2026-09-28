@@ -85,7 +85,8 @@ noncomputable def ellX (τ : UpperHalfPlane) (a r : ℂ) (u : ℂ) : ℂ :=
 /-- The `x`-coordinates `a ℘(v) + r` of the nonzero `2`-torsion points of `ℂ / Λ`. -/
 def twoTorsionX (τ : UpperHalfPlane) (a r : ℂ) : Set ℂ :=
   (fun v ↦ a * (Heights.periodPairOfUpperHalfPlane τ).weierstrassP v + r) ''
-    {v | 2 • v ∈ (Heights.periodPairOfUpperHalfPlane τ).lattice ∧ v ∉ (Heights.periodPairOfUpperHalfPlane τ).lattice}
+    {v | 2 • v ∈ (Heights.periodPairOfUpperHalfPlane τ).lattice ∧
+      v ∉ (Heights.periodPairOfUpperHalfPlane τ).lattice}
 
 /-- **Pulling back an orbifold covering of the `x`-line.** If `G` is holomorphic off the
 `2`-torsion `x`-coordinates `Z`, has poles at `Z` and at `∞`, finite fibres, attains every value,
@@ -99,7 +100,8 @@ def EllOrbStatement : Prop :=
     (∀ w, ∃ x ∉ twoTorsionX τ a r, G x = w) →
     (∀ z ∈ twoTorsionX τ a r, Tendsto G (𝓝[≠] z) (Bornology.cobounded ℂ)) →
     Tendsto G (Bornology.cobounded ℂ) (Bornology.cobounded ℂ) →
-    IsOrbCover (fun u ↦ G (ellX τ a r u)) ((Heights.periodPairOfUpperHalfPlane τ).lattice : Set ℂ)ᶜ sig ∧
+    IsOrbCover (fun u ↦ G (ellX τ a r u))
+        ((Heights.periodPairOfUpperHalfPlane τ).lattice : Set ℂ)ᶜ sig ∧
       ∀ u ∉ (Heights.periodPairOfUpperHalfPlane τ).lattice,
         HasLocalForm (fun u ↦ G (ellX τ a r u)) u (sig (G (ellX τ a r u)))
 
