@@ -59,7 +59,7 @@ lemma sub_smul_pow_eq {M : Matrix (Fin 2) (Fin 2) k} {μ₁ μ₂ : k}
     pow_mul_sub_smul_one_eq hs hp, pow_mul_sub_smul_one_eq (by rw [add_comm, hs])
       (by rw [mul_comm, hp])]
 
-lemma br_mv (A : Matrix (Fin 2) (Fin 2) k) (u w : k × k) :
+lemma br_mv_padic (A : Matrix (Fin 2) (Fin 2) k) (u w : k × k) :
     br (mv A u) (mv A w) = A.det * br u w := by
   simp only [br, mv, Matrix.det_fin_two]
   ring
@@ -187,7 +187,7 @@ theorem Padic.exists_degenerate_limit {p : ℕ} [Fact p.Prime] [DecidableEq ℚ_
     have hsame : ∀ u w : ℚ_[p] × ℚ_[p], u ≠ 0 → w ≠ 0 → mv A u ≠ 0 → mv A w ≠ 0 →
         proj (mv A u) = proj (mv A w) := by
       intro u w _ _ hu hw
-      rw [proj_eq_proj_iff hu hw, br_mv, hdetA, zero_mul]
+      rw [proj_eq_proj_iff hu hw, br_mv_padic, hdetA, zero_mul]
     have hnot : ¬ (mv A (lift ((0 : ℚ_[p]) : OnePoint ℚ_[p])) = 0 ∧
         mv A (lift (∞ : OnePoint ℚ_[p])) = 0) := by
       rintro ⟨h0, hi⟩
