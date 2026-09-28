@@ -8,7 +8,20 @@ import OrbicurveCores.S1.Defs
 /-!
 # The `j`-function is an orbifold covering
 
-We prove `JOrbStatement`.
+We prove `JOrbStatement`: `jC` is an orbifold covering of `ℂ` from `ℍ` with signature `sig`.
+
+* `exists_localForm`: a nonconstant analytic `f` is `f z₀ + g ^ n` near `z₀` for a local
+  coordinate `g`; `exists_localForm_of_rot`: if `F` is invariant under a rotation of order `e` and
+  equal values of `F` near `0` differ by `e`-th roots of unity, then `n = e` (both divisibilities
+  are read off from slopes at `0`).
+* In the Cayley coordinate `cay τ₀` at `τ₀ ∈ ℍ`, the stabiliser of `τ₀` in `SL(2, ℤ)` acts by the
+  rotations `cmul γ τ₀` (`cay_smulC`); these are square roots of unity at `i` and cube roots of
+  unity at `ρ` (`cmul_sq_of_fix_I`, `cmul_cube_of_fix_ρ`), with `-1`, resp. `ρ`, attained. The
+  Eisenstein transformation laws give `j(ρ) = 0` and `j(i) = 1728`.
+* `exists_localData`: by proper discontinuity, the fibres of `j` near `τ₀` are orbits of the
+  stabiliser, which yields an orbifold chart of order `e` at `τ₀` (`LocalData`); its translates by
+  `SL(2, ℤ)` are pairwise equal or disjoint and cover `j⁻¹(disc)` (`LocalData.cover`), and they give
+  local normal forms along the whole fibre (`LocalData.hasLocalForm`).
 -/
 
 open Complex Metric Set Filter Topology Function UpperHalfPlane Uniformization
@@ -386,9 +399,8 @@ theorem norm_cmul (γ : SL(2, ℤ)) (τ : ℍ) : ‖cmul γ τ‖ = 1 := by
 theorem cmul_sq_of_fix_I {γ : SL(2, ℤ)} (h : γ • UpperHalfPlane.I = UpperHalfPlane.I) :
     cmul γ UpperHalfPlane.I ^ 2 = 1 := by
   have hfix := fix_eq h
-  have hre := congrArg Complex.re hfix
-  have him := congrArg Complex.im hfix
-  simp at hre him
+  have hre : ((γ 0 1 : ℤ) : ℝ) = -(γ 1 0 : ℝ) := by simpa using congrArg Complex.re hfix
+  have him : ((γ 0 0 : ℤ) : ℝ) = (γ 1 1 : ℝ) := by simpa using congrArg Complex.im hfix
   have hb : γ 0 1 = -γ 1 0 := by exact_mod_cast hre
   have ha : γ 0 0 = γ 1 1 := by exact_mod_cast him
   have hdet : γ 0 0 * γ 1 1 - γ 0 1 * γ 1 0 = 1 := by exact_mod_cast det_coe γ
@@ -562,5 +574,376 @@ theorem jC_I : jC UpperHalfPlane.I = 1728 := by rw [jC_coe, modularJ_I]
 
 theorem jBranch_eq : jBranch = {1728, 0} := by
   rw [jBranch, modularJ_I, modularJ_ρ]
+
+/-! ### Orbifold charts of `j` at a point of `ℍ` -/
+
+/-- Orbifold chart data of `jC` at `τ₀`: an `OrbChart` over `jC τ₀` whose domain `U` is a
+neighbourhood of `τ₀` in `ℍ`, stable under the stabiliser of `τ₀`, meeting its translates only
+through the stabiliser, and whose coordinate `u` is a local coordinate at `τ₀`. -/
+structure LocalData (τ₀ : ℂ) (e : ℕ) (r : ℝ) (U : Set ℂ) (u v : ℂ → ℂ) : Prop where
+  chart : OrbChart jC (jC τ₀) e r U u v
+  mem : τ₀ ∈ U
+  sub : U ⊆ upper
+  analyticAt : AnalyticAt ℂ u τ₀
+  u_self : u τ₀ = 0
+  deriv_ne : deriv u τ₀ ≠ 0
+  stab : ∀ γ : SL(2, ℤ), ∀ z ∈ U, smulC γ z ∈ U → smulC γ τ₀ = τ₀
+  inv : ∀ γ : SL(2, ℤ), smulC γ τ₀ = τ₀ → ∀ z ∈ U, smulC γ z ∈ U
+
+/-- Proper discontinuity: a neighbourhood of `τ₀` meeting its translates only through the
+stabiliser of `τ₀`. -/
+theorem exists_nhds_stab (τ₀ : ℍ) :
+    ∃ N ∈ 𝓝 τ₀, ∀ γ : SL(2, ℤ), ∀ z ∈ N, γ • z ∈ N → γ • τ₀ = τ₀ := by
+  obtain ⟨U, hU, hUγ⟩ := ProperlyDiscontinuousSMul.exists_nhds_image_smul_eq_self 𝒮ℒ τ₀
+  refine ⟨U, hU, fun γ z hz hγz ↦ ?_⟩
+  let g : 𝒮ℒ := ⟨Matrix.SpecialLinearGroup.mapGL ℝ γ, γ, rfl⟩
+  have hg : ∀ x : ℍ, g • x = γ • x := fun x ↦ rfl
+  have := hUγ g ⟨γ • z, ⟨z, hz, hg z⟩, hγz⟩
+  rwa [hg] at this
+
+theorem smulC_eq_self_iff {γ : SL(2, ℤ)} {τ₀ : ℍ} : smulC γ τ₀ = τ₀ ↔ γ • τ₀ = τ₀ := by
+  rw [smulC_coe]
+  exact ⟨fun h ↦ UpperHalfPlane.ext h, fun h ↦ by rw [h]⟩
+
+/-- **Orbifold charts of `j`.** If the stabiliser of `τ₀` acts in the Cayley coordinate by `e`-th
+roots of unity, one of which has order exactly `e`, then `j` has an orbifold chart of order `e`
+at `τ₀`. -/
+theorem exists_localData (τ₀ : ℍ) {e : ℕ} (he : 0 < e)
+    (hS : ∀ γ : SL(2, ℤ), γ • τ₀ = τ₀ → cmul γ τ₀ ^ e = 1)
+    {γ₀ : SL(2, ℤ)} (hγ₀ : γ₀ • τ₀ = τ₀) (hR : ∀ m : ℕ, cmul γ₀ τ₀ ^ m = 1 → e ∣ m) :
+    ∃ r > 0, ∃ U u v, LocalData (τ₀ : ℂ) e r U u v := by
+  set τ : ℂ := ↑τ₀
+  have hτ : 0 < τ.im := τ₀.im_pos
+  set w := jC τ
+  set F : ℂ → ℂ := fun s ↦ jC (cayInv τ s)
+  -- proper discontinuity
+  obtain ⟨N, hN, hNγ⟩ := exists_nhds_stab τ₀
+  set N' : Set ℂ := (↑) '' N
+  have hN' : N' ∈ 𝓝 τ := by
+    have := isOpenEmbedding_coe.isOpenMap.image_mem_nhds hN
+    simpa using this
+  have hN'mem : ∀ z (hz : 0 < z.im), z ∈ N' → (⟨z, hz⟩ : ℍ) ∈ N := by
+    rintro z hz ⟨x, hx, rfl⟩
+    exact hx
+  have hstab : ∀ (γ : SL(2, ℤ)) (z : ℂ), 0 < z.im → z ∈ N' → smulC γ z ∈ N' →
+      γ • τ₀ = τ₀ := by
+    intro γ z hz h1 h2
+    refine hNγ γ ⟨z, hz⟩ (hN'mem z hz h1) ?_
+    have := hN'mem _ (im_smulC_pos γ hz) h2
+    simpa only [smulC_of_im_pos γ hz] using this
+  -- a disc on which `F` has fibres the orbits of the stabiliser
+  have hcont : Tendsto (cayInv τ) (𝓝 0) (𝓝 τ) := by
+    have := (analyticAt_cayInv τ (zero_ne_one (α := ℂ))).continuousAt.tendsto
+    rwa [cayInv_zero] at this
+  have hev : ∀ᶠ s in 𝓝 (0 : ℂ), ‖s‖ < 1 ∧ cayInv τ s ∈ N' := by
+    filter_upwards [ball_mem_nhds (0 : ℂ) one_pos, hcont hN'] with s h1 h2
+    exact ⟨by rwa [mem_ball_zero_iff] at h1, h2⟩
+  obtain ⟨δ₀, hδ₀, hball⟩ := Metric.eventually_nhds_iff_ball.mp hev
+  have hQ : ∀ s₁ ∈ ball (0 : ℂ) δ₀, ∀ s₂ ∈ ball (0 : ℂ) δ₀, F s₁ = F s₂ →
+      ∃ u : ℂ, u ^ e = 1 ∧ s₂ = u * s₁ := by
+    intro s₁ h₁ s₂ h₂ hF
+    obtain ⟨h₁1, h₁N⟩ := hball s₁ h₁
+    obtain ⟨h₂1, h₂N⟩ := hball s₂ h₂
+    have hz₁ := im_cayInv_pos hτ h₁1
+    have hz₂ := im_cayInv_pos hτ h₂1
+    obtain ⟨γ, hγ⟩ := Heights.exists_smul_eq_of_modularJ_eq ⟨_, hz₂⟩ ⟨_, hz₁⟩ (by
+      rw [← jC_of_im_pos hz₂, ← jC_of_im_pos hz₁]; exact hF.symm)
+    have hsm : smulC γ (cayInv τ s₁) = cayInv τ s₂ := by rw [smulC_of_im_pos γ hz₁, hγ]
+    have hfix : γ • τ₀ = τ₀ := hstab γ _ hz₁ h₁N (by rw [hsm]; exact h₂N)
+    refine ⟨cmul γ τ₀, hS γ hfix, ?_⟩
+    have := cay_smulC hfix hz₁
+    rwa [hsm, cay_cayInv hτ h₂1, cay_cayInv hτ h₁1] at this
+  have hRF : ∀ s ∈ ball (0 : ℂ) δ₀, F (cmul γ₀ τ₀ * s) = F s := by
+    intro s hs
+    obtain ⟨h1, -⟩ := hball s hs
+    have hz := im_cayInv_pos hτ h1
+    have h2 := cay_smulC hγ₀ hz
+    rw [cay_cayInv hτ h1] at h2
+    have h3 : cayInv τ (cmul γ₀ τ₀ * s) = smulC γ₀ (cayInv τ s) := by
+      rw [← h2, cayInv_cay hτ (im_smulC_pos γ₀ hz)]
+    simp only [F]
+    rw [h3, jC_smulC γ₀ hz]
+  have hj : AnalyticAt ℂ jC τ := differentiableOn_jC.analyticAt (isOpen_upper.mem_nhds hτ)
+  have hFan : AnalyticAt ℂ F 0 :=
+    (by rw [cayInv_zero]; exact hj : AnalyticAt ℂ jC (cayInv τ 0)).comp
+      (analyticAt_cayInv τ (zero_ne_one (α := ℂ)))
+  obtain ⟨φ, hφ, hφ0, hφ', hFφ⟩ := exists_localForm_of_rot hFan hδ₀ hQ hR hRF
+  have hF0 : F 0 = w := by simp only [F, cayInv_zero, w]
+  -- the inverse of the local coordinate
+  set a := deriv φ 0
+  have hs : HasStrictDerivAt φ a 0 := hφ.hasStrictDerivAt
+  set E := (hs.hasStrictFDerivAt_equiv hφ').toOpenPartialHomeomorph φ
+  have hsrc : (0 : ℂ) ∈ E.source :=
+    (hs.hasStrictFDerivAt_equiv hφ').mem_toOpenPartialHomeomorph_source
+  have htgt : (0 : ℂ) ∈ E.target := by
+    have := (hs.hasStrictFDerivAt_equiv hφ').image_mem_toOpenPartialHomeomorph_target
+    rwa [hφ0] at this
+  have hEφ : ∀ x, E x = φ x := fun _ ↦ rfl
+  have hE0 : E.symm 0 = 0 := by
+    have := E.left_inv hsrc
+    rwa [hEφ, hφ0] at this
+  have hanN : ∀ᶠ s in 𝓝 (0 : ℂ), AnalyticAt ℂ φ s := hφ.eventually_analyticAt
+  have hdN : ∀ᶠ s in 𝓝 (0 : ℂ), deriv φ s ≠ 0 := hφ.deriv.continuousAt.eventually_ne hφ'
+  have hev1 : ∀ᶠ s in 𝓝 (0 : ℂ), s ∈ E.source ∧ F s = w + φ s ^ e ∧ AnalyticAt ℂ φ s ∧
+      deriv φ s ≠ 0 ∧ s ∈ ball (0 : ℂ) δ₀ := by
+    filter_upwards [E.open_source.mem_nhds hsrc, hFφ, hanN, hdN, ball_mem_nhds _ hδ₀]
+      with s h1 h2 h3 h4 h5
+    exact ⟨h1, by rw [h2, hF0], h3, h4, h5⟩
+  obtain ⟨δ₁, hδ₁, hb1⟩ := Metric.eventually_nhds_iff_ball.mp hev1
+  have hsymm : Tendsto E.symm (𝓝 0) (𝓝 0) := by
+    have := (E.continuousAt_symm htgt).tendsto
+    rwa [hE0] at this
+  have hev2 : ∀ᶠ t in 𝓝 (0 : ℂ), t ∈ E.target ∧ E.symm t ∈ ball (0 : ℂ) δ₁ := by
+    filter_upwards [E.open_target.mem_nhds htgt, hsymm (ball_mem_nhds _ hδ₁)] with t h1 h2
+    exact ⟨h1, h2⟩
+  obtain ⟨r, hr, hb2⟩ := Metric.eventually_nhds_iff_ball.mp hev2
+  -- the chart
+  set U : Set ℂ := upper ∩ cay τ ⁻¹' ball 0 δ₁ ∩ jC ⁻¹' ball w (r ^ e)
+  have hmemU : ∀ z ∈ U, 0 < z.im ∧ cay τ z ∈ ball (0 : ℂ) δ₁ ∧ jC z = w + φ (cay τ z) ^ e ∧
+      ‖φ (cay τ z)‖ < r := by
+    rintro z ⟨⟨hz, hs⟩, hj⟩
+    obtain ⟨-, hF, -⟩ := hb1 _ hs
+    have hjz : jC z = w + φ (cay τ z) ^ e := by
+      rw [← hF]; simp only [F, cayInv_cay hτ hz]
+    refine ⟨hz, hs, hjz, ?_⟩
+    rw [mem_preimage, mem_ball, dist_eq_norm, hjz, add_sub_cancel_left, norm_pow] at hj
+    exact (pow_lt_pow_iff_left₀ (norm_nonneg _) hr.le he.ne').mp hj
+  have hnorm1 : ∀ s ∈ ball (0 : ℂ) δ₁, ‖s‖ < 1 := fun s hs ↦ (hball _ (hb1 s hs).2.2.2.2).1
+  refine ⟨r, hr, U, fun z ↦ φ (cay τ z), fun t ↦ cayInv τ (E.symm t), ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩,
+    ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · have h1 : IsOpen (upper ∩ cay τ ⁻¹' ball 0 δ₁) :=
+      (continuousOn_cay hτ).isOpen_inter_preimage isOpen_upper isOpen_ball
+    exact (continuousOn_jC.mono inter_subset_left).isOpen_inter_preimage h1 isOpen_ball
+  · intro z hz
+    rw [mem_ball_zero_iff]
+    exact (hmemU z hz).2.2.2
+  · intro t ht
+    obtain ⟨htt, hst⟩ := hb2 t ht
+    obtain ⟨-, hF, -⟩ := hb1 _ hst
+    have h1 := hnorm1 _ hst
+    have hz := im_cayInv_pos hτ h1
+    refine ⟨⟨hz, ?_⟩, ?_⟩
+    · rw [mem_preimage, cay_cayInv hτ h1]; exact hst
+    · have : jC (cayInv τ (E.symm t)) = w + t ^ e := by
+        have h2 : F (E.symm t) = jC (cayInv τ (E.symm t)) := rfl
+        rw [← h2, hF, ← hEφ, E.right_inv htt]
+      rw [mem_preimage, this, mem_ball, dist_eq_norm, add_sub_cancel_left, norm_pow]
+      rw [mem_ball_zero_iff] at ht
+      exact pow_lt_pow_left₀ ht (norm_nonneg _) he.ne'
+  · intro z hz
+    obtain ⟨hz, hs, -, -⟩ := hmemU z hz
+    have := E.left_inv (hb1 _ hs).1
+    rw [hEφ] at this
+    change cayInv τ (E.symm (φ (cay τ z))) = z
+    rw [this, cayInv_cay hτ hz]
+  · intro t ht
+    obtain ⟨htt, hst⟩ := hb2 t ht
+    rw [cay_cayInv hτ (hnorm1 _ hst), ← hEφ, E.right_inv htt]
+  · intro t ht
+    obtain ⟨htt, hst⟩ := hb2 t ht
+    obtain ⟨-, -, han, hd, -⟩ := hb1 _ hst
+    have h1 : HasDerivAt E.symm (deriv φ (E.symm t))⁻¹ t :=
+      E.hasDerivAt_symm htt hd han.differentiableAt.hasDerivAt
+    have h2 : DifferentiableAt ℂ (cayInv τ) (E.symm t) := by
+      refine (analyticAt_cayInv τ ?_).differentiableAt
+      intro h
+      have := hnorm1 _ hst
+      rw [h, norm_one] at this
+      exact lt_irrefl _ this
+    exact (h2.comp t h1.differentiableAt).differentiableWithinAt
+  · intro z hz
+    exact (hmemU z hz).2.2.1
+  · refine ⟨⟨hτ, ?_⟩, ?_⟩
+    · rw [mem_preimage, cay_self]; exact mem_ball_self hδ₁
+    · rw [mem_preimage, mem_ball, dist_self]; exact pow_pos hr e
+  · exact inter_subset_left.trans inter_subset_left
+  · exact (by rw [cay_self]; exact hφ : AnalyticAt ℂ φ (cay τ τ)).comp (analyticAt_cay hτ hτ)
+  · rw [cay_self, hφ0]
+  · change deriv (φ ∘ cay τ) τ ≠ 0
+    rw [deriv_comp _ (by rw [cay_self]; exact hφ.differentiableAt)
+      (analyticAt_cay hτ hτ).differentiableAt, cay_self]
+    exact mul_ne_zero hφ' (deriv_cay_ne_zero hτ)
+  · intro γ z hz hγz
+    obtain ⟨hz', hs, -, -⟩ := hmemU z hz
+    obtain ⟨hγz', hγs, -, -⟩ := hmemU _ hγz
+    have h1 := (hball _ (hb1 _ hs).2.2.2.2).2
+    have h2 := (hball _ (hb1 _ hγs).2.2.2.2).2
+    rw [cayInv_cay hτ hz'] at h1
+    rw [cayInv_cay hτ hγz'] at h2
+    exact smulC_eq_self_iff.mpr (hstab γ z hz' h1 h2)
+  · intro γ hγ z hz
+    have hfix := smulC_eq_self_iff.mp hγ
+    obtain ⟨⟨hz', hs⟩, hj⟩ := hz
+    refine ⟨⟨im_smulC_pos γ hz', ?_⟩, ?_⟩
+    · rw [mem_preimage, cay_smulC hfix hz', mem_ball_zero_iff, norm_mul, norm_cmul, one_mul,
+        ← mem_ball_zero_iff]
+      exact hs
+    · rw [mem_preimage, jC_smulC γ hz']
+      exact hj
+
+/-! ### Translates of the charts -/
+
+theorem image_smulC_eq {U : Set ℂ} (hU : U ⊆ upper) (γ : SL(2, ℤ)) :
+    smulC γ '' U = upper ∩ smulC γ⁻¹ ⁻¹' U := by
+  ext y
+  constructor
+  · rintro ⟨z, hz, rfl⟩
+    exact ⟨im_smulC_pos γ (hU hz), by rw [mem_preimage, smulC_inv_smulC γ (hU hz)]; exact hz⟩
+  · rintro ⟨hy, hy'⟩
+    exact ⟨_, hy', smulC_smulC_inv γ hy⟩
+
+variable {τ₀ : ℂ} {e : ℕ} {r : ℝ} {U : Set ℂ} {u v : ℂ → ℂ}
+
+theorem LocalData.translate (hD : LocalData τ₀ e r U u v) (γ : SL(2, ℤ)) :
+    smulC γ '' U ⊆ upper ∧ OrbChart jC (jC τ₀) e r (smulC γ '' U)
+      (fun z ↦ u (smulC γ⁻¹ z)) (fun t ↦ smulC γ (v t)) := by
+  have hsub := hD.sub
+  have hC := hD.chart
+  refine ⟨?_, ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩⟩
+  · rintro _ ⟨z, hz, rfl⟩
+    exact im_smulC_pos γ (hsub hz)
+  · rw [image_smulC_eq hsub]
+    exact (continuousOn_smulC γ⁻¹).isOpen_inter_preimage isOpen_upper hC.isOpen
+  · rintro _ ⟨z, hz, rfl⟩
+    change u (smulC γ⁻¹ (smulC γ z)) ∈ ball 0 r
+    rw [smulC_inv_smulC γ (hsub hz)]
+    exact hC.mapsTo_u hz
+  · intro t ht
+    exact ⟨v t, hC.mapsTo_v ht, rfl⟩
+  · rintro _ ⟨z, hz, rfl⟩
+    rw [smulC_inv_smulC γ (hsub hz), hC.v_u z hz]
+  · intro t ht
+    rw [smulC_inv_smulC γ (hsub (hC.mapsTo_v ht)), hC.u_v t ht]
+  · exact (differentiableOn_smulC γ).comp hC.differentiableOn_v
+      (fun t ht ↦ hsub (hC.mapsTo_v ht))
+  · rintro _ ⟨z, hz, rfl⟩
+    rw [smulC_inv_smulC γ (hsub hz), jC_smulC γ (hsub hz), hC.eq_pow z hz]
+
+theorem LocalData.image_stab (hD : LocalData τ₀ e r U u v) {σ : SL(2, ℤ)}
+    (hσ : smulC σ τ₀ = τ₀) : smulC σ '' U = U := by
+  have hσ' : smulC σ⁻¹ τ₀ = τ₀ := by
+    have := smulC_inv_smulC σ (hD.sub hD.mem)
+    rwa [hσ] at this
+  apply Subset.antisymm
+  · rintro _ ⟨z, hz, rfl⟩
+    exact hD.inv σ hσ z hz
+  · intro z hz
+    exact ⟨_, hD.inv σ⁻¹ hσ' z hz, smulC_smulC_inv σ (hD.sub hz)⟩
+
+theorem LocalData.translate_eq (hD : LocalData τ₀ e r U u v) {γ γ' : SL(2, ℤ)}
+    (h : ¬ Disjoint (smulC γ '' U) (smulC γ' '' U)) : smulC γ '' U = smulC γ' '' U := by
+  obtain ⟨_, ⟨z, hz, rfl⟩, ⟨z', hz', hzz⟩⟩ := not_disjoint_iff.mp h
+  have h1 : smulC (γ'⁻¹ * γ) z = z' := by
+    rw [← smulC_smulC _ _ (hD.sub hz), ← hzz, smulC_inv_smulC _ (hD.sub hz')]
+  have hσ : smulC (γ'⁻¹ * γ) τ₀ = τ₀ := hD.stab _ z hz (by rw [h1]; exact hz')
+  have e1 : smulC (γ' * (γ'⁻¹ * γ)) '' U = smulC γ' '' (smulC (γ'⁻¹ * γ) '' U) := by
+    rw [image_image]
+    exact image_congr fun x hx ↦ (smulC_smulC _ _ (hD.sub hx)).symm
+  rw [mul_inv_cancel_left] at e1
+  rw [e1, hD.image_stab hσ]
+
+theorem LocalData.cover (hD : LocalData τ₀ e r U u v) (he : 0 < e) (hr : 0 < r) :
+    ∃ ρ > (0 : ℝ), ∃ (ι : Type) (U' : ι → Set ℂ) (u' v' : ι → ℂ → ℂ),
+      Pairwise (Disjoint on U') ∧
+      (∀ i, U' i ⊆ upper ∧ OrbChart jC (jC τ₀) e ρ (U' i) (u' i) (v' i)) ∧
+      ∀ y ∈ upper, jC y ∈ ball (jC τ₀) (ρ ^ e) → ∃ i, y ∈ U' i := by
+  let ι := {V : Set ℂ // ∃ γ : SL(2, ℤ), V = smulC γ '' U}
+  let g : ι → SL(2, ℤ) := fun i ↦ i.2.choose
+  have hg : ∀ i : ι, i.1 = smulC (g i) '' U := fun i ↦ i.2.choose_spec
+  refine ⟨r, hr, ι, fun i ↦ i.1, fun i z ↦ u (smulC (g i)⁻¹ z),
+    fun i t ↦ smulC (g i) (v t), ?_, ?_, ?_⟩
+  · intro i j hij
+    by_contra h
+    apply hij
+    apply Subtype.ext
+    change ¬ Disjoint i.1 j.1 at h
+    rw [hg i, hg j] at h ⊢
+    exact hD.translate_eq h
+  · intro i
+    change i.1 ⊆ upper ∧ OrbChart jC (jC τ₀) e r i.1 (fun z ↦ u (smulC (g i)⁻¹ z))
+      (fun t ↦ smulC (g i) (v t))
+    rw [hg i]
+    exact hD.translate (g i)
+  · intro y hy hjy
+    rw [mem_ball, dist_eq_norm] at hjy
+    obtain ⟨t, ht⟩ := IsAlgClosed.exists_pow_nat_eq (jC y - jC τ₀) he
+    have htr : t ∈ ball (0 : ℂ) r := by
+      rw [mem_ball_zero_iff]
+      rw [← ht, norm_pow] at hjy
+      exact (pow_lt_pow_iff_left₀ (norm_nonneg _) hr.le he.ne').mp hjy
+    have hz := hD.chart.mapsTo_v htr
+    have hz1 := hD.sub hz
+    have hjz : jC (v t) = jC y := by
+      rw [hD.chart.eq_pow _ hz, hD.chart.u_v t htr, ht]
+      ring
+    obtain ⟨γ, hγ⟩ := Heights.exists_smul_eq_of_modularJ_eq ⟨y, hy⟩ ⟨v t, hz1⟩ (by
+      rw [← jC_of_im_pos hy, ← jC_of_im_pos hz1, hjz])
+    refine ⟨⟨smulC γ '' U, γ, rfl⟩, v t, hz, ?_⟩
+    rw [smulC_of_im_pos γ hz1, hγ]
+
+theorem LocalData.hasLocalForm (hD : LocalData τ₀ e r U u v) {z : ℂ} (hz : 0 < z.im)
+    (hjz : jC z = jC τ₀) : HasLocalForm jC z e := by
+  have hτ := hD.sub hD.mem
+  obtain ⟨γ, hγ⟩ := Heights.exists_smul_eq_of_modularJ_eq ⟨z, hz⟩ ⟨τ₀, hτ⟩ (by
+    rw [← jC_of_im_pos hz, ← jC_of_im_pos hτ, hjz])
+  have hγz : smulC γ τ₀ = z := by rw [smulC_of_im_pos γ hτ, hγ]
+  have hinv : smulC γ⁻¹ z = τ₀ := by rw [← hγz, smulC_inv_smulC γ hτ]
+  obtain ⟨-, hC⟩ := hD.translate γ
+  have hu : AnalyticAt ℂ u (smulC γ⁻¹ z) := by rw [hinv]; exact hD.analyticAt
+  refine ⟨fun y ↦ u (smulC γ⁻¹ y), hu.comp (analyticAt_smulC γ⁻¹ hz), ?_, ?_, ?_⟩
+  · change u (smulC γ⁻¹ z) = 0
+    rw [hinv, hD.u_self]
+  · change deriv (u ∘ smulC γ⁻¹) z ≠ 0
+    rw [deriv_comp _ hu.differentiableAt (analyticAt_smulC γ⁻¹ hz).differentiableAt, hinv]
+    exact mul_ne_zero hD.deriv_ne (deriv_smulC_ne_zero γ⁻¹ hz)
+  · have hmem : z ∈ smulC γ '' U := ⟨τ₀, hD.mem, hγz⟩
+    filter_upwards [hC.isOpen.mem_nhds hmem] with y hy
+    rw [hC.eq_pow y hy, hjz]
+
+/-! ### The main theorem -/
+
+theorem exists_localData_sig (w : ℂ) :
+    ∃ τ₀ : ℍ, jC τ₀ = w ∧ ∃ r > 0, ∃ U u v, LocalData (τ₀ : ℂ) (sig w) r U u v := by
+  by_cases h0 : w = 0
+  · subst h0
+    refine ⟨ρ, jC_ρ, ?_⟩
+    have : sig 0 = 3 := if_pos rfl
+    rw [this]
+    exact exists_localData ρ (by norm_num) (fun γ hγ ↦ cmul_cube_of_fix_ρ hγ) gρ_smul
+      (fun m hm ↦ dvd_of_ρ_pow (by rwa [cmul_gρ] at hm))
+  by_cases h1 : w = 1728
+  · subst h1
+    refine ⟨UpperHalfPlane.I, jC_I, ?_⟩
+    have : sig 1728 = 2 := by simp [sig]
+    rw [this]
+    exact exists_localData _ (by norm_num) (fun γ hγ ↦ cmul_sq_of_fix_I hγ) S_smul_I
+      (fun m hm ↦ dvd_of_neg_one_pow (by rwa [cmul_S_I] at hm))
+  obtain ⟨τ₀, hτ₀⟩ := Heights.modularJ_surjective w
+  refine ⟨τ₀, by rw [jC_coe, hτ₀], ?_⟩
+  have : sig w = 1 := by simp [sig, h0, h1]
+  rw [this]
+  refine exists_localData τ₀ one_pos (fun γ hγ ↦ ?_) (one_smul _ τ₀) (fun m _ ↦ one_dvd m)
+  have hB : Heights.modularJ τ₀ ∉ jBranch := by
+    rw [hτ₀, jBranch_eq]
+    simp [h0, h1]
+  by_cases g1 : γ = 1
+  · subst g1
+    simp [cmul]
+  by_cases g2 : γ = -1
+  · subst g2
+    simp [cmul]
+  exact absurd (modularJ_mem_jBranch_of_smul_eq hγ g1 g2) hB
+
+/-- **The `j`-function is an orbifold covering** of `ℂ` with signature `sig` (ramification `3`
+over `0 = j(ρ)`, `2` over `1728 = j(i)`, and `1` elsewhere), with local normal forms of order
+`sig (j z)` at every point of `ℍ`. -/
+theorem jOrbStatement : JOrbStatement := by
+  refine ⟨fun w ↦ ?_, fun z hz ↦ ?_⟩
+  · obtain ⟨τ₀, hτ₀, r, hr, U, u, v, hD⟩ := exists_localData_sig w
+    refine ⟨⟨τ₀, τ₀.im_pos, hτ₀⟩, ?_⟩
+    have := hD.cover (sig_pos w) hr
+    rwa [hτ₀] at this
+  · obtain ⟨τ₀, hτ₀, r, hr, U, u, v, hD⟩ := exists_localData_sig (jC z)
+    exact hD.hasLocalForm hz hτ₀.symm
 
 end OrbicurveCores.S1
