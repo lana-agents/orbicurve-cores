@@ -187,71 +187,103 @@ of `Γ`.
 
 ### 2.3b Blueprint for M2 (Margulis for once-punctured torus groups)
 
-**Target.** `MargulisDenseOneInfty`: for a `(1;∞)`-group `Γ = ⟨A, B⟩` with dense commensurator
-`Δ`, `Γ` is arithmetic. By `takeuchi_one_infty` and sharpness it suffices to show
-`tr(γ)² ∈ ℤ` for all `γ ∈ Γ`. We may assume `Γ` is in Fricke normal form. It is then a free,
-discrete lattice with explicit fundamental domains (`OneInftyLattice.lean`, `PingPong.lean`).
+**Target.** `MargulisDenseOneInfty`: a `(1;∞)`-group `Γ = ⟨A, B⟩` whose commensurator `Δ` is
+dense is arithmetic. By Takeuchi and sharpness it suffices to show `tr(γ)² ∈ ℤ` for `γ = A, B, AB`.
+By `exists_normal_form` (Nielsen moves, signs, `GL₂(ℝ)`-conjugation, all of which preserve
+density of the commensurator and arithmeticity) we may assume `Γ` is in Fricke normal form. Then
+`Γ` is free, discrete and of finite covolume, and it has the explicit parabolic
+`K = [A₀, B₀] = −(1 + 2E₁₂)`.
 
-**Route** (Margulis / Zimmer Ch. 6 / D. W. Morris's notes "The commensurability criterion for
-arithmeticity (after Margulis)", specialised to `G = SL₂(ℝ)`, `P` = upper triangular):
+The route is Margulis' commensurator superrigidity, specialised and streamlined for `G = SL₂(ℝ)`
+and target `PGL₂(k)`, `k ∈ {ℂ, ℚ_p}`, acting on `Y = ℙ¹(k)`. We use sharp 3-transitivity of
+`PGL₂(k)` on `Y` wherever the general proof uses tameness or algebraic-group arguments. The
+boundary is `B = ℙ¹(ℝ) = OnePoint ℝ` with the Cauchy measure (Lebesgue class), acted on by Möbius
+transformations.
 
-* **C7 (algebra).**
-  * `F = ℚ(x, y, z)` contains the entries of `Γ`, and `F' = ℚ(x², y², z², xyz)` contains all
-    `tr(γ)²`.
-  * Every `δ ∈ Δ` is a real multiple of a matrix in `GL₂(F)`, since the `F`-span of any
-    finite-index subgroup of `Γ` is `M₂(F)` (as in A4). This gives `ρ : Δ → PGL₂(F)`.
-  * *(a) `F' = ℚ`.* For every field embedding `σ : F → ℂ`, `σ ∘ ρ : Δ → PGL₂(ℂ)` has unbounded
-    image of `Γ`: `σ` fixes the rational unipotent `K² = T₄`. So by superrigidity (C5) it
-    extends to a continuous `Φ_σ : SL₂(ℝ) → PGL₂(ℂ)`. By C6, `σ` is the identity on `F'`, hence
-    `F' = ℚ`. This covers the transcendental case too.
-  * *(b) Integrality.* For each prime `𝔭` of the number field `F`, `ρ_𝔭 : Δ → PGL₂(F_𝔭)`. If
-    `ρ_𝔭(Γ)` were unbounded, superrigidity would give a continuous map from the connected
-    `SL₂(ℝ)` to the totally disconnected `PGL₂(F_𝔭)`, which is trivial; impossible. So `Γ` is
-    `𝔭`-bounded for all `𝔭`, hence `tr(γ)² ∈ ℚ ∩ ℤ̄ = ℤ`.
-* **C5 (commensurator superrigidity).**
-  * Setting: `Γ ≤ SL₂(ℝ)` a lattice, `Δ ⊇ Γ` a dense subgroup of `Comm(Γ)`,
-    `k ∈ {ℂ, finite extensions of ℚ_p}`, and `ρ : Δ → PGL₂(k)` with `ρ(Γ)` unbounded and
-    irreducible (no invariant point or pair of points in `ℙ¹(k)`).
-  * Conclusion: `ρ` extends to a continuous homomorphism `SL₂(ℝ) → PGL₂(k)`.
-  * Proof via a `Γ`-equivariant measurable `ψ : ℙ¹(ℝ) → ℙ¹(k)` (C2 + C3), uniqueness of such
-    maps for finite-index subgroups (C1 + C4), hence `Δ`-equivariance. Then all `G`-translates of
-    `ψ` lie in one `PGL₂(k)`-orbit (tameness of `PGL₂(k)` acting on measurable maps), giving a
-    measurable, hence continuous, homomorphism extending `ρ`.
-* **C1 (ergodicity).** A lattice acts ergodically on `ℙ¹(ℝ)` and on `ℙ¹(ℝ) × ℙ¹(ℝ)` (Lebesgue
-  class). This is Moore's theorem via the Mautner phenomenon on `L²(Γ \ G)`; finite covolume is
-  `oneInftyFiniteCovolume`.
-* **C2 (Furstenberg lemma).**
-  * Statement: there is a `Γ`-equivariant measurable `ψ : ℙ¹(ℝ) → Prob(ℙ¹(k))`, obtained from a
-    fixed point of the amenable `P = AN` acting on the compact convex set of `Γ`-equivariant
-    measurable maps `G → Prob(ℙ¹(k))`.
-  * That set is realised as measures on (fundamental domain) × `ℙ¹(k)` with fixed first
-    marginal, compact by Prokhorov (Mathlib).
-  * Needs Markov–Kakutani for commuting affine maps, which is not in Mathlib.
-* **C3 (tameness).** `PGL₂(k)` acting on `Prob(ℙ¹(k))`: orbits are locally closed, and the
-  stabiliser of a measure is compact or fixes a point or a pair of points (explicit Cartan
-  decomposition and proximality for `PGL₂` over local fields). Irreducibility and unboundedness
-  of `ρ(Γ)` then upgrade `ψ` to a point map.
-* **C4 (ergodicity vs. tameness).** A measurable equivariant map from an ergodic action to a tame
-  (countably separated) action is essentially constant modulo the group.
-* **C6 (continuous homomorphisms).** A continuous homomorphism `SL₂(ℝ) → PGL₂(K)` is trivial for
-  `K` totally disconnected. For `K = ℂ`, the continuous class function `g ↦ tr(Φ g)²/det(Φ g)`
-  agrees with `σ ∘ tr²` on the dense `Δ`, which forces `σ = id` on `F'`. The planned route is
-  one-parameter subgroups and Lie-algebra homomorphisms.
+**Parts.**
 
-**Estimate.**
+* **P (ℙ¹ over a local field).** `OnePoint k` for a locally compact, second countable,
+  nontrivially normed field `k`: second countable, metrizable and Borel. `GL₂(k)` acts
+  continuously. The cross ratio is written in homogeneous coordinates. The Möbius map carrying
+  `(0, 1, ∞)` to a distinct triple `t` is `h(t)`, and `(t, y) ↦ h(t)⁻¹y` is continuous and
+  invariant. The *relative position* `rel(t, t') = h(t)⁻¹ t'` is continuous and invariant.
+  Linear algebra: `cr(u, v; p, q) = c` iff `v = M_{p,q,c}(u)`, where `M_{p,q,c}` is linear with
+  eigenlines exactly `p` and `q` when `c ≠ 1`. A non-scalar `2×2` matrix fixes at most 2 points.
+  (Generic parts go to `ForMathlib/`.)
+* **D (double ergodicity; Moore via Mautner).** Every lattice `Γ'` with a good fundamental set
+  (in particular every finite-index subgroup of a normal-form group) acts ergodically on
+  `B × B`.
+  * Hopf coordinates `Ω = {(x, y, s) : x ≠ y}` for `PSL₂(ℝ)`. `Γ` acts by
+    `(γx, γy, s + log|cx + d|)`, and the measure `dx dy ds / (x − y)²` is invariant.
+  * The right actions of `A` (`s ↦ s + t`), `N` (fixes `x`) and `N⁻` (fixes `y`) are explicit
+    and measure-preserving, with `a_σ n_t a_{−σ} = n_{e^{2σ}t}`.
+  * A `Γ`-partition of unity on `Ω` of finite total mass comes from the finite-area fundamental
+    set in `ℍ` and an explicit Crofton-type integral bound. Finite multiplicity comes from
+    Shimizu's lemma.
+  * The `L¹`-norm `∫ χ |Φ|` on `Γ`-invariant functions is invariant under right translations
+    and continuous in the translation.
+  * Mautner: `1_E(x, y)` is right-`A`-invariant, hence right-`N`- and `N⁻`-invariant, hence
+    constant.
+* **F (Furstenberg boundary map).** For a lattice `Γ` as above acting on a compact metrizable `Y`
+  through `α`, there is a measurable `ψ : B → Prob(Y)` with `ψ(γx) = α(γ)_*ψ(x)` almost
+  everywhere.
+  * Take a `Γ`-equivariant measurable `φ : G → Prob(Y)`, the average over the finite set of
+    `γ` with `γ⁻¹g·i` in the fundamental set.
+  * Average `φ` over left Følner sets `±{a_s n_u : 0 ≤ s ≤ n, |u| ≤ n}` of `P`. The result is
+    exactly `Γ`-equivariant and uniformly asymptotically `P`-invariant.
+  * *Tail convex combinations* in the Hilbert space `L²(ℝ × P × ℕ)` of test-function coordinates
+    converge (parallelogram law). An a.e. subsequence converges in `Prob(Y)` (Prokhorov).
+  * The convergence set is exactly `Γ`- and `P`-invariant, so the limit descends to
+    `B = G/P` via `x ↦ n_x w`.
+  * No Haar measure on `G` is needed.
+* **S (superrigidity).** Let `Γ ≤ Δ ≤ Comm(Γ)` with `Δ` dense and `ρ : Δ → GL₂(k)`. Assume
+  (i) no finite-index subgroup of `Γ` has a common fixed point in `Y`, and (ii) `ρ(Γ)` is
+  unbounded (its orbit of `(0, 1, ∞)` leaves every compact subset of the distinct triples).
+  Then there is a homomorphism `Φ : SL₂(ℝ) → Möb(Y)` extending `ρ`, with `g ↦ Φ(g)y`
+  continuous. The steps:
+  1. Furstenberg map `ψ₀ : B → Prob(Y)`. The invariant `μ³(distinct triples)` is `Γ`-invariant.
+  2. *Three or more support points* (a.e.). The normalised `μ³` on distinct triples gives a
+     `Γ`-equivariant `x ↦ ν_x ∈ Prob(Y^{(3)})`. Double ergodicity makes
+     `ν_{x₁}⊗ν_{x₂}{rel(t₁,t₂) ∈ C}` constant, so some compact `E` has `ν_x(E) > 1/2` a.e. Then
+     `ρ(γ)E ∩ E ≠ ∅` for all `γ`, so `ρ(Γ)` is bounded, a contradiction.
+  3. *At most two support points.* Either a unique atom of mass `> 1/2`, giving a point map
+     `ψ : B → Y`, or two atoms of mass `1/2`, giving an unordered pair map.
+  4. *NoPair.* No finite-index `Γ'` admits an equivariant unordered-pair map:
+     * if pairs meet a.e., weights `w(y) = ν{x : y ∈ S(x)}` and B. H. Neumann's lemma
+       (`Subgroup.exists_finiteIndex_of_leftCoset_cover`) produce a finite-index subgroup with a
+       fixed point;
+     * if pairs are a.e. disjoint, `cr + 1/cr` is constant, and two generic reference pairs
+       force `S(x)` to meet a finite set, contradicting disjointness.
+  5. The point map is essentially non-constant, and `ψ(x₁) ≠ ψ(x₂)` a.e. by double
+     ergodicity and (i).
+  6. *Uniqueness.* Two `Γ'`-equivariant point maps agree a.e. Otherwise they form a pair map
+     (NoPair).
+  7. *`Δ`-equivariance.* `x ↦ ρ(δ)⁻¹ψ(δx)` is `Γ ∩ δ⁻¹Γδ`-equivariant, so it equals `ψ`.
+  8. *Extension.* `g ↦ ψ∘g` is continuous in measure. For `δₙ → g`, at a generic triple
+     `ρ(δₙ) = h(tₙ)h(t)⁻¹ → h(t')h(t)⁻¹ =: Φ(g)`. Uniqueness makes `Φ` a well-defined
+     homomorphism, and the same argument gives continuity.
+* **E (the finish, elementary).**
+  * *Unipotent rigidity.* `Φ(u_{2/m})^m = u_2`, and the only Möbius `m`-th root of `z ↦ z + 2`
+    is `z ↦ z + 2/m`. Over `ℚ_p` this contradicts continuity (`2/p^j → ∞`). Over `ℂ`
+    continuity gives `Φ(u_t) = u_t`.
+  * Conjugating by `γ₀ = (A₀B₀)⁻¹ ∈ Γ` (`γ₀∞ = 0`) gives `Φ(L_s) = L_{cs}` with
+    `c = σ(z²)/z²`. The Weyl element `w = u₁L₋₁u₁` has `Φ(w)² = 1`, so `tr = 2 − 2c = 0`,
+    i.e. `σ(z²) = z²`. The same holds for `x², y²` via the cusps `A₀∞` and `B₀∞`.
+  * *Algebra (C7).*
+    * C7.1 **[done]**: `Δ ⊆ ℝ^×·GL₂(F)`, `F = ℚ(x, y, z)`.
+    * With `F' = ℚ(x², y², z²)`: `Γ ⊆ ℝ^×·GL₂(F')` (Klein-four grading), and likewise `Δ`, so
+      `ρ_σ` is defined for every embedding `σ : F' → ℂ`. Unipotent rigidity gives `F' = ℚ`
+      (needs: `σ` moving a non-rational element exists).
+    * Then `Γ, Δ ⊆ ℝ^×·GL₂(ℚ)`. For a prime `p` with some `tr(γ)²` non-`p`-integral, `ρ_p(Γ)` is
+      unbounded, contradicting the `ℚ_p` case. Hence `x², y², z² ∈ ℤ`, and Takeuchi plus
+      sharpness finish.
+  * Nonelementarity (i) for every finite-index subgroup: `K^m` fixes only `∞`, and
+    `A₀K^mA₀⁻¹` fixes only `A₀∞ ≠ ∞`.
 
-| part | lines |
-|---|---|
-| C1 | 4–6k |
-| C2 | 5–8k |
-| C3 | 3–5k |
-| C4 | 1–2k |
-| C5 assembly | 2–3k |
-| C6 | 2–4k |
-| C7 | 2–4k |
-| **total** | **about 20–30k** |
+**Estimate** (streamlined route): P 1.5–2k, D 3–4k, F 1.5–2.5k, S 2.5–3.5k, E 1.5–2.5k. Total
+about 10–15k lines.
 
-**Already available.** Discreteness, finite covolume, the explicit fundamental domains, M1, and
+**Already available.** Discreteness, finite covolume, the explicit fundamental sets, M1, C7.1, and
 the finish (`takeuchi_one_infty`, sharpness).
 
 ### 2.4 What is needed for U1, U2, S1
@@ -295,7 +327,7 @@ projects:
 | piece | new infrastructure | estimate (Lean lines) |
 |---|---|---|
 | M1 dichotomy | done (about 1.2k lines, including the finite-covolume proof L) | — |
-| M2 Margulis (non-uniform, `SL₂(ℝ)`) | amenability, ergodicity, boundary maps, trees, valuations | 25–45k |
+| M2 Margulis (non-uniform, `SL₂(ℝ)`) | double ergodicity (Mautner), Furstenberg map (Følner + Hilbert), `ℙ¹(k)` geometry, extension, unipotent rigidity | 10–15k (streamlined route, §2.3b) |
 | U1 uniformisation of `E ∖ 0` | uniformisation theorem or Fricke-space route | 10–30k |
 | U2 algebraic ↔ analytic cores | covering theory + `oka` + Lefschetz principle | 5–15k |
 | S1 identification of the four curves | automorphisms (III, IV); hauptmoduln or Belyi (I, II) | 5–15k |
