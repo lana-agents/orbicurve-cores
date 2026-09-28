@@ -56,16 +56,24 @@ lemma vcT_injective : Function.Injective (vcT C) := by
   have := h.2; field_simp at this
   exact Prod.ext rfl (by linear_combination this)
 
-/-- **The uniformisation of `C • E_τ₀` by the edge pairings of oka's `ψ`.** -/
-theorem uniformizes_unif :
-    Uniformizes (C • Heights.latticeWeierstrassCurve τ₀) (A (unifOf (Lt τ₀)))
-      (B (unifOf (Lt τ₀))) := by
+/-- oka's uniformisation `ψ` of `ℂ ∖ Λ`, composed with the Weierstrass point map and the
+coordinate change to `C • E_τ₀`. -/
+noncomputable def piU (z : ℂ) : ℂ × ℂ := vcT C (wpt τ₀ ((unifOf (Lt τ₀)).Ψ z))
+
+/-- The properties of `Uniformizes (C • E_τ₀) A B` for the explicit map `piU`. -/
+theorem uniformizes_piU :
+    (∀ z : ℍ, DifferentiableAt ℂ (piU τ₀ C) z ∧ deriv (piU τ₀ C) z ≠ 0) ∧
+    (∀ z : ℍ, (C • Heights.latticeWeierstrassCurve τ₀).toAffine.Equation (piU τ₀ C z).1
+      (piU τ₀ C z).2) ∧
+    (∀ x y : ℂ, (C • Heights.latticeWeierstrassCurve τ₀).toAffine.Equation x y →
+      ∃ z : ℍ, piU τ₀ C z = (x, y)) ∧
+    (∀ z w : ℍ, piU τ₀ C z = piU τ₀ C w ↔
+      ∃ γ ∈ Subgroup.closure {A (unifOf (Lt τ₀)), B (unifOf (Lt τ₀))}, γ • z = w) := by
   set U := unifOf (Lt τ₀)
   have hu : (C.u : ℂ) ≠ 0 := C.u.ne_zero
-  set W := C • Heights.latticeWeierstrassCurve τ₀
-  set π : ℂ → ℂ × ℂ := fun z ↦ vcT C (wpt τ₀ (U.Ψ z))
+  set π : ℂ → ℂ × ℂ := piU τ₀ C
   have hΨ : ∀ z : ℍ, U.Ψ z ∉ (Lt τ₀).lattice := fun z ↦ U.notMem z z.im_pos
-  refine ⟨π, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_⟩
   · -- holomorphic with nonvanishing derivative
     intro z
     have hz : 0 < (z : ℂ).im := z.im_pos
@@ -125,7 +133,7 @@ theorem uniformizes_unif :
       rw [← vcT_equation_iff τ₀ C, hTXY]; exact hxy
     obtain ⟨z₀, hz₀, hwz⟩ := exists_wpt_eq τ₀ hE
     obtain ⟨z, hz⟩ := U.surj z₀ hz₀
-    exact ⟨z, by simp only [π]; rw [hz, hwz, hTXY]⟩
+    exact ⟨z, by simp only [π, piU]; rw [hz, hwz, hTXY]⟩
   · -- the fibres are the orbits of `⟨A, B⟩`
     intro z w
     have key : π z = π w ↔ U.ψ w - U.ψ z ∈ (Lt τ₀).lattice := by
@@ -133,7 +141,7 @@ theorem uniformizes_unif :
       · intro h
         exact (wpt_eq_iff τ₀ (hΨ w) (hΨ z)).mp (vcT_injective C h.symm)
       · intro h
-        simp only [π]
+        simp only [π, piU]
         rw [(wpt_eq_iff τ₀ (hΨ z) (hΨ w)).mpr (by
           have := neg_mem h; rwa [neg_sub] at this)]
     rw [key]
@@ -170,6 +178,12 @@ theorem uniformizes_unif :
       exact ⟨h', hh', by rw [e, hgz]⟩
     · rintro ⟨γ, hγ, rfl⟩
       exact U.smul_mem_iff (hABΓ hγ) z
+
+/-- **The uniformisation of `C • E_τ₀` by the edge pairings of oka's `ψ`.** -/
+theorem uniformizes_unif :
+    Uniformizes (C • Heights.latticeWeierstrassCurve τ₀) (A (unifOf (Lt τ₀)))
+      (B (unifOf (Lt τ₀))) :=
+  ⟨piU τ₀ C, uniformizes_piU τ₀ C⟩
 
 lemma tr_commutator_unif :
     tr (A (unifOf (Lt τ₀)) * B (unifOf (Lt τ₀)) * (A (unifOf (Lt τ₀)))⁻¹ *
