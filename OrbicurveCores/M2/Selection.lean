@@ -62,7 +62,8 @@ lemma mem_iff_of_heavy [MeasurableSingletonClass Z] {μ : Measure Z} [IsProbabil
     exact lt_irrefl _ this
 
 /-- **Heavy-atom selection.** -/
-theorem exists_measurable_heavy_selection [MeasurableSingletonClass Z] (κ : Kernel X Z) [IsMarkovKernel κ] {S : Set X}
+theorem exists_measurable_heavy_selection [MeasurableSingletonClass Z] (κ : Kernel X Z)
+    [IsMarkovKernel κ] {S : Set X}
     (hS : MeasurableSet S) (hκ : ∀ x ∈ S, ∃ z, 1 / 2 < κ x {z}) :
     ∃ f : X → Z, Measurable f ∧ ∀ x ∈ S, 1 / 2 < κ x {f x} := by
   classical
