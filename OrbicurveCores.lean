@@ -14,6 +14,7 @@ import OrbicurveCores.Fuchsian.OneInftyLattice
 import OrbicurveCores.Fuchsian.PingPong
 import OrbicurveCores.GroupMain
 import OrbicurveCores.JValues
+import OrbicurveCores.M2.BoundaryMeasure
 import OrbicurveCores.M2.Setup
 import OrbicurveCores.M2.TraceField
 import OrbicurveCores.Markov

@@ -656,6 +656,32 @@ lemma continuousAt_rel {t t' : OnePoint k × OnePoint k × OnePoint k} (ht : Dis
   · exact (continuousAt_mobAdj ht t'.2.2).comp (x := (t, t'))
       (f := fun p : Triple k × Triple k ↦ (p.1, p.2.2.2)) (by fun_prop)
 
+/-- Möbius maps depend continuously on the matrix and the point. -/
+lemma continuousAt_mob_param {T : Type*} [TopologicalSpace T] {M : T → Matrix (Fin 2) (Fin 2) k}
+    {t₀ : T} (hM : ContinuousAt M t₀) (hdet : (M t₀).det ≠ 0) (x₀ : OnePoint k) :
+    ContinuousAt (fun p : T × OnePoint k ↦ mob (M p.1) p.2) (t₀, x₀) := by
+  obtain ⟨s₀, hs₀, e₀⟩ := exists_sec x₀
+  have key : ∀ p : T × OnePoint k, mob (M p.1) p.2 = proj (mv (M p.1) (s₀ p.2)) := by
+    intro p
+    obtain ⟨c₀, hc₀, f₀⟩ := e₀ p.2
+    exact mob_eq_proj_of_sec hc₀ f₀
+  simp_rw [key]
+  have hne : mv (M t₀) (s₀ x₀) ≠ 0 := by
+    obtain ⟨c₀, hc₀, f₀⟩ := e₀ x₀
+    exact mv_ne_zero hdet (by rw [f₀]; exact smul_ne_zero hc₀ (lift_ne_zero x₀))
+  refine (continuousAt_proj hne).comp_of_eq ?_ rfl
+  have h0 : ContinuousAt (fun p : T × OnePoint k ↦ s₀ p.2) (t₀, x₀) :=
+    hs₀.comp_of_eq (by fun_prop) rfl
+  have hM' : ContinuousAt (fun p : T × OnePoint k ↦ M p.1) (t₀, x₀) :=
+    hM.comp_of_eq (by fun_prop) rfl
+  have e : ∀ i j, ContinuousAt (fun p : T × OnePoint k ↦ M p.1 i j) (t₀, x₀) := fun i j ↦
+    ContinuousAt.comp (g := fun N : Matrix (Fin 2) (Fin 2) k ↦ N i j)
+      (f := fun p : T × OnePoint k ↦ M p.1)
+      ((continuous_apply j).comp (continuous_apply i)).continuousAt hM'
+  simp only [mv]
+  exact ((((e 0 0).mul h0.fst).add ((e 0 1).mul h0.snd))).prodMk
+    (((e 1 0).mul h0.fst).add ((e 1 1).mul h0.snd))
+
 end topology
 
 end OnePoint.Proj
