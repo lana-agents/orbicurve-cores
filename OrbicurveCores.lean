@@ -4,6 +4,8 @@ import OrbicurveCores.Core
 import OrbicurveCores.FourGroups
 import OrbicurveCores.Fricke
 import OrbicurveCores.FrickeRigidity
+import OrbicurveCores.Fuchsian.Commensurator
+import OrbicurveCores.Fuchsian.Covolume
 import OrbicurveCores.Fuchsian.DenseCriterion
 import OrbicurveCores.Fuchsian.DenseSubgroup
 import OrbicurveCores.JValues
