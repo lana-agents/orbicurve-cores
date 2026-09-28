@@ -53,6 +53,7 @@ import OrbicurveCores.S1.EllOrb
 import OrbicurveCores.S1.JOrb
 import OrbicurveCores.S1.LatticeUnif
 import OrbicurveCores.S1.LocalForm
+import OrbicurveCores.S1.Main
 import OrbicurveCores.S1.Mobius
 import OrbicurveCores.S1.OrbLift
 import OrbicurveCores.S1.Rational
@@ -60,6 +61,7 @@ import OrbicurveCores.S1.Rigidity
 import OrbicurveCores.S1.Rigidity.Lattice
 import OrbicurveCores.S1.Rigidity.Lift
 import OrbicurveCores.S1.Rigidity.Transfer
+import OrbicurveCores.S1.Transport
 import OrbicurveCores.Sharpness
 import OrbicurveCores.SharpnessData
 import OrbicurveCores.Takeuchi
