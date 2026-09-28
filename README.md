@@ -23,12 +23,14 @@ See `Blueprint.md` for the full plan, sources and status table. In short:
     arithmetic groups, Nielsen descent, the Diophantine lemma, and Fricke rigidity up to
     `GL(2,ℝ)`-conjugacy;
   * arithmetic groups admit no core (`IsArithmeticSL.not_admitsCore`);
-  * the group-level CanLift 2.7 (`canLift27_group`, `canLift27_group_conj`), **conditional on**
-    `MargulisOneInfty` (Margulis' commensurator theorem for once-punctured torus groups, stated
-    but not proved).
+  * sharpness: the four explicit groups are arithmetic (certified coset enumeration), so Takeuchi's
+    theorem holds as an iff (`isArithmeticSL_iff_isTakeuchiConj`);
+  * the group-level CanLift 2.7, `not_admitsCore_iff_isTakeuchiConj`: a `(1;∞)`-group has no core
+    iff it is one of the four. The direction `→` is **conditional on** `MargulisOneInfty`
+    (Margulis' commensurator theorem for once-punctured torus groups, stated but not proved).
 * **Missing** (research-scale): Margulis' theorem (M1, M2), uniformisation of `E ∖ 0` (U1), the
   algebraic ↔ analytic comparison of cores (U2), identification of the four uniformised curves
-  (S1), and sharpness of the four groups (A8).
+  (S1).
 
 ## Dependencies
 
