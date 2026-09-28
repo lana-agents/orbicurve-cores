@@ -67,12 +67,13 @@ lemma im_smul_SL (g : SL(2, ℝ)) (z : ℍ) :
   rw [UpperHalfPlane.im_smul_eq_div_normSq]
   simp [denom]
 
-/-- **Ford-type covering criterion.** -/
-theorem hasFiniteCovolume_of_cover {Γ : Subgroup SL(2, ℝ)} {w a : ℝ} (hw : 0 < w)
+/-- **Ford-type covering criterion**, explicit form: every orbit meets the strip
+`a ≤ Re z ≤ a + w`, `Im z ≥ η` for some `η > 0`. -/
+theorem exists_strip_cover_of_cover {Γ : Subgroup SL(2, ℝ)} {w a : ℝ} (hw : 0 < w)
     {τ : SL(2, ℝ)} (hτ : τ ∈ Γ) (hτz : ∀ z : ℍ, ((τ • z : ℍ) : ℂ) = z + w)
     {ι : Type*} [Finite ι] (g : ι → SL(2, ℝ)) (hg : ∀ i, g i ∈ Γ)
     (hcov : ∀ t ∈ Icc a (a + w), ∃ i, |g i 1 0 * t + g i 1 1| < 1) :
-    HasFiniteCovolume Γ := by
+    ∃ η > 0, ∀ z : ℍ, ∃ γ ∈ Γ, γ • z ∈ {z : ℍ | z.re ∈ Icc a (a + w) ∧ η ≤ z.im} := by
   obtain ⟨i₀, -⟩ := hcov a ⟨le_rfl, by linarith⟩
   haveI := Fintype.ofFinite ι
   haveI : Nonempty ι := ⟨i₀⟩
@@ -162,9 +163,7 @@ theorem hasFiniteCovolume_of_cover {Γ : Subgroup SL(2, ℝ)} {w a : ℝ} (hw : 
     · have := congrArg Complex.im (hτk ⌈(a - z.re) / w⌉ z)
       simpa using this
   -- the covering set
-  refine ⟨{z : ℍ | z.re ∈ Icc a (a + w) ∧ η ≤ z.im}, ?_, volume_strip_lt_top _ _ _ hη, ?_⟩
-  · exact (measurableSet_Icc.preimage continuous_re.measurable).inter
-      (measurableSet_Ici.preimage continuous_im.measurable)
+  refine ⟨η, hη, ?_⟩
   -- the reduction
   have hP : ∀ n : ℕ, ∀ z : ℍ, η * ρ ^ (2 * n) ≤ z.im →
       ∃ γ ∈ Γ, γ • z ∈ {z : ℍ | z.re ∈ Icc a (a + w) ∧ η ≤ z.im} := by
@@ -206,5 +205,16 @@ theorem hasFiniteCovolume_of_cover {Γ : Subgroup SL(2, ℝ)} {w a : ℝ} (hw : 
     simpa [pow_mul] using this.const_mul η
   obtain ⟨n, hn⟩ := (hlim.eventually (gt_mem_nhds z.im_pos)).exists
   exact hP n z hn.le
+
+/-- **Ford-type covering criterion.** -/
+theorem hasFiniteCovolume_of_cover {Γ : Subgroup SL(2, ℝ)} {w a : ℝ} (hw : 0 < w)
+    {τ : SL(2, ℝ)} (hτ : τ ∈ Γ) (hτz : ∀ z : ℍ, ((τ • z : ℍ) : ℂ) = z + w)
+    {ι : Type*} [Finite ι] (g : ι → SL(2, ℝ)) (hg : ∀ i, g i ∈ Γ)
+    (hcov : ∀ t ∈ Icc a (a + w), ∃ i, |g i 1 0 * t + g i 1 1| < 1) :
+    HasFiniteCovolume Γ := by
+  obtain ⟨η, hη, h⟩ := exists_strip_cover_of_cover hw hτ hτz g hg hcov
+  refine ⟨{z : ℍ | z.re ∈ Icc a (a + w) ∧ η ≤ z.im}, ?_, volume_strip_lt_top _ _ _ hη, h⟩
+  exact (measurableSet_Icc.preimage continuous_re.measurable).inter
+    (measurableSet_Ici.preimage continuous_im.measurable)
 
 end OrbicurveCores.Fuchsian

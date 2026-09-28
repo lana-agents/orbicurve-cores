@@ -137,9 +137,11 @@ lemma commutator_n_smul (w : ℍ) : (((nA hz hrel * nB hz hrel * (nA hz hrel)⁻
   field_simp
   ring
 
-/-- **Finite covolume of the normal form group** under the triangle inequalities. -/
-theorem hasFiniteCovolume_normal (hx : 0 < x) (hy : 0 < y) (h1 : x < y + z) (h2 : y < x + z)
-    (h3 : z < x + y) : HasFiniteCovolume (Subgroup.closure {nA hz hrel, nB hz hrel}) := by
+/-- **Explicit fundamental strip of the normal form group** under the triangle inequalities:
+every orbit meets `-1 ≤ Re z ≤ 1`, `Im z ≥ η`. -/
+theorem exists_strip_cover_normal (hx : 0 < x) (hy : 0 < y) (h1 : x < y + z) (h2 : y < x + z)
+    (h3 : z < x + y) : ∃ η > 0, ∀ w : ℍ, ∃ γ ∈ Subgroup.closure {nA hz hrel, nB hz hrel},
+      γ • w ∈ {z : ℍ | z.re ∈ Icc (-1) (-1 + 2) ∧ η ≤ z.im} := by
   set Γ := Subgroup.closure {nA hz hrel, nB hz hrel}
   have hA : (nA hz hrel) ∈ Γ := Subgroup.subset_closure (by simp)
   have hB : (nB hz hrel) ∈ Γ := Subgroup.subset_closure (by simp)
@@ -160,7 +162,7 @@ theorem hasFiniteCovolume_normal (hx : 0 < x) (hy : 0 < y) (h1 : x < y + z) (h2 
         | exact hB
         | exact inv_mem hA
         | exact inv_mem (mul_mem hA hB)
-  refine hasFiniteCovolume_of_cover (a := -1) (w := 2) (by norm_num) hK
+  refine exists_strip_cover_of_cover (a := -1) (w := 2) (by norm_num) hK
     (commutator_n_smul hz hrel) g hg ?_
   intro t ht
   have ht' : t ∈ Set.Icc (-1 : ℝ) 1 := by constructor <;> linarith [ht.1, ht.2]
@@ -189,6 +191,14 @@ theorem hasFiniteCovolume_normal (hx : 0 < x) (hy : 0 < y) (h1 : x < y + z) (h2 
     change |((((nA hz hrel * nB hz hrel)⁻¹ : SL(2, ℝ)) : Matrix (Fin 2) (Fin 2) ℝ)) 1 0 * t +
       ((((nA hz hrel * nB hz hrel)⁻¹ : SL(2, ℝ)) : Matrix (Fin 2) (Fin 2) ℝ)) 1 1| < 1
     rw [e6]; simpa using h
+
+/-- **Finite covolume of the normal form group** under the triangle inequalities. -/
+theorem hasFiniteCovolume_normal (hx : 0 < x) (hy : 0 < y) (h1 : x < y + z) (h2 : y < x + z)
+    (h3 : z < x + y) : HasFiniteCovolume (Subgroup.closure {nA hz hrel, nB hz hrel}) := by
+  obtain ⟨η, hη, h⟩ := exists_strip_cover_normal hz hrel hx hy h1 h2 h3
+  refine ⟨{z : ℍ | z.re ∈ Icc (-1) (-1 + 2) ∧ η ≤ z.im}, ?_, volume_strip_lt_top _ _ _ hη, h⟩
+  exact (measurableSet_Icc.preimage continuous_re.measurable).inter
+    (measurableSet_Ici.preimage continuous_im.measurable)
 
 end normalForm
 
