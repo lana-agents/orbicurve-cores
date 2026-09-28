@@ -74,4 +74,5 @@ import OrbicurveCores.U2.R3
 import OrbicurveCores.U2.Realize
 import OrbicurveCores.U2.S1
 import OrbicurveCores.U2.Statement
+import OrbicurveCores.U2.TheoremG
 import OrbicurveCores.Uniformization
