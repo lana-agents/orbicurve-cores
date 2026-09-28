@@ -1,6 +1,7 @@
 import OrbicurveCores.ArithTraces
 import OrbicurveCores.Classification
 import OrbicurveCores.Core
+import OrbicurveCores.ForMathlib.ProjectiveLine
 import OrbicurveCores.FourGroups
 import OrbicurveCores.Fricke
 import OrbicurveCores.FrickeRigidity
