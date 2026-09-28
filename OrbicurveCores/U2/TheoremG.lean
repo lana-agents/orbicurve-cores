@@ -9,6 +9,8 @@ import OrbicurveCores.U2.GaloisClosure
 import OrbicurveCores.U2.Realize
 import OrbicurveCores.U2.R3
 import Oka.Uniformization.FEtLattice
+import OrbicurveCores.GroupCanLift
+import OrbicurveCores.U2.S1
 
 /-!
 # Theorem G: automorphisms of finite étale covers fix the `x`-coordinate
@@ -149,5 +151,115 @@ theorem mobius_mem_commensurator [W.IsElliptic] (h : IsUniformization W G₁ G�
   rwa [← Subgroup.Commensurable.eq hcomm]
 
 end Commensurator
+
+section FixX
+
+/-- The first coordinate of a uniformisation is holomorphic on `ℍ`. -/
+theorem holH_fst {W : WeierstrassCurve ℂ} {G₁ G₂ : SL(2, ℝ)} {π : ℂ → ℂ × ℂ}
+    (h : IsUniformization W G₁ G₂ π) : Unif.HolH fun τ : ℍ ↦ (π τ).1 := by
+  intro z hz
+  have hd : DifferentiableAt ℂ π z := (h.holo ⟨z, hz⟩).1
+  refine (hd.fst.congr_of_eventuallyEq ?_).differentiableWithinAt
+  filter_upwards [(isOpen_lt continuous_const Complex.continuous_im).mem_nhds hz] with w hw
+  rw [UpperHalfPlane.ofComplex_apply_of_im_pos hw]
+
+/-- The second coordinate of a uniformisation is holomorphic on `ℍ`. -/
+theorem holH_snd {W : WeierstrassCurve ℂ} {G₁ G₂ : SL(2, ℝ)} {π : ℂ → ℂ × ℂ}
+    (h : IsUniformization W G₁ G₂ π) : Unif.HolH fun τ : ℍ ↦ (π τ).2 := by
+  intro z hz
+  have hd : DifferentiableAt ℂ π z := (h.holo ⟨z, hz⟩).1
+  refine (hd.snd.congr_of_eventuallyEq ?_).differentiableWithinAt
+  filter_upwards [(isOpen_lt continuous_const Complex.continuous_im).mem_nhds hz] with w hw
+  rw [UpperHalfPlane.ofComplex_apply_of_im_pos hw]
+
+variable (E : WeierstrassCurve ℂ) [E.IsElliptic]
+
+/-- The `x`-coordinate of `E ∖ {0}`. -/
+noncomputable def xP : (AffOrbicurve.punctured E).A := puncturedRingEquiv E (FEt.xA E)
+
+variable {B : Type*} [CommRing B] [Algebra ℂ B]
+  [Algebra (AffOrbicurve.punctured E).A B] [IsScalarTower ℂ (AffOrbicurve.punctured E).A B]
+  [IsDedekindDomain B] [Module.Finite (AffOrbicurve.punctured E).A B]
+  [FaithfulSMul (AffOrbicurve.punctured E).A B]
+
+set_option maxHeartbeats 1000000 in
+/-- **Theorem G, analytic form.** For a finite étale cover `B` of `E ∖ {0}` with non-exceptional
+`j`, every `ℂ`-automorphism of `B` fixes the `x`-coordinate. -/
+theorem fixes_xP (hj : ∀ c ∈ AffOrbicurve.excJ, E.j ≠ (c : ℂ))
+    (het : ∀ w : Ideal B, w.IsMaximal → w.ramificationIdx (AffOrbicurve.punctured E).A = 1)
+    (σ : B ≃ₐ[ℂ] B) :
+    σ (algebraMap (AffOrbicurve.punctured E).A B (xP E)) =
+      algebraMap (AffOrbicurve.punctured E).A B (xP E) := by
+  classical
+  set A := (AffOrbicurve.punctured E).A
+  haveI : Algebra.FiniteType ℂ B := Algebra.FiniteType.trans (S := A) inferInstance inferInstance
+  haveI : Algebra.IsIntegral A B := Algebra.IsIntegral.of_finite A B
+  obtain ⟨t, ht⟩ := Heights.modularJ_surjective E.j
+  obtain ⟨C, hC⟩ := WeierstrassCurve.exists_variableChange_of_j_eq
+    (Heights.latticeWeierstrassCurve t) E (by rw [Heights.latticeWeierstrassCurve_j, ht])
+  obtain ⟨htr, htrA, h3, h4, h5, h6⟩ := uniformization_of_variableChange t E C hC
+  have h : IsUniformization E _ _ (uniformizationMap t C) := ⟨h3, h4, h5, h6⟩
+  set π := uniformizationMap t C
+  set e : A ≃ₐ[ℂ] E.toAffine.CoordinateRing := ((puncturedRingEquiv E).restrictScalars ℂ).symm
+  set ι₀ : A →ₐ[ℂ] (ℍ → ℂ) :=
+    (FEt.coordFun E (fun τ ↦ (π τ).1) (fun τ ↦ (π τ).2) h.mem).comp e.toAlgHom
+  have hinj : Function.Injective ι₀ :=
+    (FEt.coordFun_injective h.mem fun x₀ y₀ hE ↦ by
+      obtain ⟨τ, hτ⟩ := h.surj x₀ y₀ hE
+      exact ⟨τ, congrArg Prod.fst hτ, congrArg Prod.snd hτ⟩).comp e.injective
+  have he : ∀ a, e (puncturedRingEquiv E a) = a := fun a ↦ (puncturedRingEquiv E).symm_apply_apply a
+  set yP : A := puncturedRingEquiv E (FEt.yA E)
+  have hx : ∀ τ : ℍ, ι₀ (xP E) τ = (π τ).1 := fun τ ↦ by
+    simp only [ι₀, xP, AlgHom.coe_comp, Function.comp_apply, AlgEquiv.coe_toAlgHom, he]
+    exact FEt.coordFun_xA h.mem τ
+  have hy : ∀ τ : ℍ, ι₀ yP τ = (π τ).2 := fun τ ↦ by
+    simp only [ι₀, yP, AlgHom.coe_comp, Function.comp_apply, AlgEquiv.coe_toAlgHom, he]
+    exact FEt.coordFun_yA h.mem τ
+  have hxy : ∀ χ χ' : A →ₐ[ℂ] ℂ, χ (xP E) = χ' (xP E) → χ yP = χ' yP → χ = χ' := by
+    intro χ χ' h1 h2
+    have := FEt.algHom_ext_coord (χ := χ.comp e.symm.toAlgHom) (χ' := χ'.comp e.symm.toAlgHom)
+      h1 h2
+    ext a
+    have := congrArg (fun φ : E.toAffine.CoordinateRing →ₐ[ℂ] ℂ ↦ φ (e a)) this
+    simpa using this
+  have hW : ∀ χ : A →ₐ[ℂ] ℂ, E.toAffine.Equation (χ (xP E)) (χ yP) := fun χ ↦
+    FEt.equation_coord (χ.comp e.symm.toAlgHom)
+  have hhol : ∀ a, Unif.HolH (ι₀ a) := fun a ↦
+    FEt.holH_coordFun h.mem (holH_fst h) (holH_snd h) (e a)
+  set n := Module.finrank A B
+  have hcount : ∀ τ, Nat.card (FEt.Over B (FEt.pt ι₀ τ)) = n := fun τ ↦
+    card_points_over het (FEt.pt ι₀ τ)
+  have hloc : ∀ τ, LocPres ι₀ (B := B) n τ := fun τ ↦
+    exists_locPres (AffOrbicurve.punctured E).not_isField het (FEt.pt ι₀ τ)
+  have hgrowth : ∀ a, FEt.PolyBdd (fun τ ↦ (π τ).1) fun τ ↦ ‖ι₀ a τ‖ := fun a ↦
+    FEt.polyBdd_coordFun h.mem (e a)
+  have hpoly : ∀ g : ℍ → ℂ, Unif.HolH g →
+      (∀ γ ∈ Subgroup.closure {Generators.A (unifOf (Generators.Lt t)), Generators.B (unifOf (Generators.Lt t))},
+        ∀ τ, g (γ • τ) = g τ) →
+      FEt.PolyBdd (fun τ ↦ (π τ).1) (fun τ ↦ ‖g τ‖) → ∃ a, ∀ τ, ι₀ a τ = g τ := by
+    intro g hg hinv hb
+    obtain ⟨a, ha⟩ := FEt.exists_coord_of_invariant hC hg hinv hb
+    exact ⟨e.symm a, fun τ ↦ by simpa [ι₀] using ha τ⟩
+  have hn : 0 < n := Module.finrank_pos
+  have hne : Nonempty (FEt.Over B (FEt.pt ι₀ UpperHalfPlane.I)) := by
+    exact (Nat.card_pos_iff.mp (by rw [hcount]; exact hn)).1
+  obtain ⟨ψ₀⟩ := hne
+  obtain ⟨ι, hι, -, hιh⟩ := FEt.exists_isLift hhol hcount hloc UpperHalfPlane.I ψ₀
+  obtain ⟨g, hg⟩ := FEt.exists_mobius h hx hy hxy hW hhol hcount hloc hgrowth hpoly hinj σ hι hιh
+  have hgc := mobius_mem_commensurator h hx hy hxy hhol hcount hloc σ hι hg
+  have hcore : AdmitsCore (Subgroup.closure
+      {Generators.A (unifOf (Generators.Lt t)), Generators.B (unifOf (Generators.Lt t))}) := by
+    by_contra hno
+    exact s1NonExceptional E _ _ ⟨π, h3, h4, h5, h6⟩ hj
+      ((canLift27_group_unconditional htr htrA).mp hno)
+  rcases r3 h hcore with hr | hr | hr
+  · refine sub_eq_zero.mp (FEt.IsLift.eq_zero hinj hι fun τ ↦ ?_)
+    obtain ⟨ψ, hψ⟩ := hι.pt τ
+    rw [← hψ, map_sub, hψ, hg, hι.apply_algebraMap, hι.apply_algebraMap, hx, hx]
+    exact sub_eq_zero.mpr (hr g hgc τ)
+  · exact absurd hr (hj 0 (by simp [AffOrbicurve.excJ]) |> fun h ↦ by simpa using h)
+  · exact absurd hr (hj 1728 (by simp [AffOrbicurve.excJ]) |> fun h ↦ by simpa using h)
+
+end FixX
 
 end OrbicurveCores.U2
