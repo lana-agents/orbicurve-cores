@@ -192,6 +192,75 @@ here. U2 will use this map together with Riemann existence (`oka`) to translate 
 covers and correspondences of `E ∖ O` into finite-index subgroups and commensurator elements
 of `Γ`.
 
+### 2.3b Blueprint for M2 (Margulis for once-punctured torus groups)
+
+**Target.** `MargulisDenseOneInfty`: for a `(1;∞)`-group `Γ = ⟨A, B⟩` with dense commensurator
+`Δ`, `Γ` is arithmetic. By `takeuchi_one_infty` and sharpness it suffices to show
+`tr(γ)² ∈ ℤ` for all `γ ∈ Γ`. We may assume `Γ` is in Fricke normal form. It is then a free,
+discrete lattice with explicit fundamental domains (`OneInftyLattice.lean`, `PingPong.lean`).
+
+**Route** (Margulis / Zimmer Ch. 6 / D. W. Morris's notes "The commensurability criterion for
+arithmeticity (after Margulis)", specialised to `G = SL₂(ℝ)`, `P` = upper triangular):
+
+* **C7 (algebra).**
+  * `F = ℚ(x, y, z)` contains the entries of `Γ`, and `F' = ℚ(x², y², z², xyz)` contains all
+    `tr(γ)²`.
+  * Every `δ ∈ Δ` is a real multiple of a matrix in `GL₂(F)`, since the `F`-span of any
+    finite-index subgroup of `Γ` is `M₂(F)` (as in A4). This gives `ρ : Δ → PGL₂(F)`.
+  * *(a) `F' = ℚ`.* For every field embedding `σ : F → ℂ`, `σ ∘ ρ : Δ → PGL₂(ℂ)` has unbounded
+    image of `Γ`: `σ` fixes the rational unipotent `K² = T₄`. So by superrigidity (C5) it
+    extends to a continuous `Φ_σ : SL₂(ℝ) → PGL₂(ℂ)`. By C6, `σ` is the identity on `F'`, hence
+    `F' = ℚ`. This covers the transcendental case too.
+  * *(b) Integrality.* For each prime `𝔭` of the number field `F`, `ρ_𝔭 : Δ → PGL₂(F_𝔭)`. If
+    `ρ_𝔭(Γ)` were unbounded, superrigidity would give a continuous map from the connected
+    `SL₂(ℝ)` to the totally disconnected `PGL₂(F_𝔭)`, which is trivial; impossible. So `Γ` is
+    `𝔭`-bounded for all `𝔭`, hence `tr(γ)² ∈ ℚ ∩ ℤ̄ = ℤ`.
+* **C5 (commensurator superrigidity).**
+  * Setting: `Γ ≤ SL₂(ℝ)` a lattice, `Δ ⊇ Γ` a dense subgroup of `Comm(Γ)`,
+    `k ∈ {ℂ, finite extensions of ℚ_p}`, and `ρ : Δ → PGL₂(k)` with `ρ(Γ)` unbounded and
+    irreducible (no invariant point or pair of points in `ℙ¹(k)`).
+  * Conclusion: `ρ` extends to a continuous homomorphism `SL₂(ℝ) → PGL₂(k)`.
+  * Proof via a `Γ`-equivariant measurable `ψ : ℙ¹(ℝ) → ℙ¹(k)` (C2 + C3), uniqueness of such
+    maps for finite-index subgroups (C1 + C4), hence `Δ`-equivariance. Then all `G`-translates of
+    `ψ` lie in one `PGL₂(k)`-orbit (tameness of `PGL₂(k)` acting on measurable maps), giving a
+    measurable, hence continuous, homomorphism extending `ρ`.
+* **C1 (ergodicity).** A lattice acts ergodically on `ℙ¹(ℝ)` and on `ℙ¹(ℝ) × ℙ¹(ℝ)` (Lebesgue
+  class). This is Moore's theorem via the Mautner phenomenon on `L²(Γ \ G)`; finite covolume is
+  `oneInftyFiniteCovolume`.
+* **C2 (Furstenberg lemma).**
+  * Statement: there is a `Γ`-equivariant measurable `ψ : ℙ¹(ℝ) → Prob(ℙ¹(k))`, obtained from a
+    fixed point of the amenable `P = AN` acting on the compact convex set of `Γ`-equivariant
+    measurable maps `G → Prob(ℙ¹(k))`.
+  * That set is realised as measures on (fundamental domain) × `ℙ¹(k)` with fixed first
+    marginal, compact by Prokhorov (Mathlib).
+  * Needs Markov–Kakutani for commuting affine maps, which is not in Mathlib.
+* **C3 (tameness).** `PGL₂(k)` acting on `Prob(ℙ¹(k))`: orbits are locally closed, and the
+  stabiliser of a measure is compact or fixes a point or a pair of points (explicit Cartan
+  decomposition and proximality for `PGL₂` over local fields). Irreducibility and unboundedness
+  of `ρ(Γ)` then upgrade `ψ` to a point map.
+* **C4 (ergodicity vs. tameness).** A measurable equivariant map from an ergodic action to a tame
+  (countably separated) action is essentially constant modulo the group.
+* **C6 (continuous homomorphisms).** A continuous homomorphism `SL₂(ℝ) → PGL₂(K)` is trivial for
+  `K` totally disconnected. For `K = ℂ`, the continuous class function `g ↦ tr(Φ g)²/det(Φ g)`
+  agrees with `σ ∘ tr²` on the dense `Δ`, which forces `σ = id` on `F'`. The planned route is
+  one-parameter subgroups and Lie-algebra homomorphisms.
+
+**Estimate.**
+
+| part | lines |
+|---|---|
+| C1 | 4–6k |
+| C2 | 5–8k |
+| C3 | 3–5k |
+| C4 | 1–2k |
+| C5 assembly | 2–3k |
+| C6 | 2–4k |
+| C7 | 2–4k |
+| **total** | **about 20–30k** |
+
+**Already available.** Discreteness, finite covolume, the explicit fundamental domains, M1, and
+the finish (`takeuchi_one_infty`, sharpness).
+
 ### 2.4 What is needed for U1, U2, S1
 
 * U1: Mathlib has `ℍ`, the `SL₂(ℝ)` action, the modular group and `j` (and `lana-agents/heights`
