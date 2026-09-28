@@ -13,10 +13,10 @@ import OrbicurveCores.Fuchsian.OneInftyLattice
 import OrbicurveCores.Fuchsian.PingPong
 import OrbicurveCores.GroupMain
 import OrbicurveCores.JValues
+import OrbicurveCores.M2.TraceField
 import OrbicurveCores.Markov
 import OrbicurveCores.Reconcile
 import OrbicurveCores.RiemannHurwitz
 import OrbicurveCores.Sharpness
 import OrbicurveCores.SharpnessData
-import OrbicurveCores.Statement
 import OrbicurveCores.Takeuchi

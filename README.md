@@ -12,9 +12,9 @@ Formalise Proposition 2.7 of Mochizuki, *The Absolute Anabelian Geometry of Cano
 
 See `Blueprint.md` for the full plan, sources and status table. In short:
 
-* **Statement.** `OrbicurveCores.CanLift27` (`Statement.lean`) states [EstIUT] Prop. 2.1 = [CanLift]
-  Prop. 2.7 over any field of characteristic 0. It uses a stack-free notion of core: finitely many
-  étale self-correspondences of `E_{k̄} ∖ {0}`. The four exceptional values
+* **Statement.** `OrbicurveCores.CanLift27Genuine` (`Reconcile.lean`) states [EstIUT] Prop. 2.1 =
+  [CanLift] Prop. 2.7 over any field of characteristic 0, with the genuine `k`-cores of
+  `lana-agents/pi1` ([CanLift] Def. 2.1). The four exceptional values
   `{0, 1728, 2¹⁴·31³/5³, 2²·73³/3⁴}` are `OrbicurveCores.exceptionalJ` (`JValues.lean`, checked
   against Sijsling's models). This statement is **not proved**.
 * **Proved (no `sorry`, standard axioms only)**, at the level of Fuchsian groups:
@@ -26,9 +26,14 @@ See `Blueprint.md` for the full plan, sources and status table. In short:
   * sharpness: the four explicit groups are arithmetic (certified coset enumeration), so Takeuchi's
     theorem holds as an iff (`isArithmeticSL_iff_isTakeuchiConj`);
   * the group-level CanLift 2.7, `not_admitsCore_iff_isTakeuchiConj`: a `(1;∞)`-group has no core
-    iff it is one of the four. The direction `→` is **conditional on** `MargulisOneInfty`
-    (Margulis' commensurator theorem for once-punctured torus groups, stated but not proved).
-* **Missing** (research-scale): Margulis' theorem (M1, M2), uniformisation of `E ∖ 0` (U1), the
+    iff it is one of the four (`GroupMain.lean`, `canLift27_group_iff`). The direction `→` is
+    **conditional on** `MargulisDenseOneInfty` (Margulis' commensurator theorem in its standard
+    form: dense commensurator ⇒ arithmetic, for once-punctured torus groups);
+  * once-punctured torus groups are free, discrete lattices (`oneInftyFiniteCovolume`,
+    `oneInfty_discrete`), and infinite index in the commensurator forces a dense commensurator
+    (M1, `commensurator_dense`).
+* **Missing** (research-scale): Margulis' theorem (M2, in progress under `OrbicurveCores/M2/`),
+  uniformisation of `E ∖ 0` (U1), the
   algebraic ↔ analytic comparison of cores (U2), identification of the four uniformised curves
   (S1).
 
