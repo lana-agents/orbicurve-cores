@@ -10,6 +10,7 @@ import OrbicurveCores.Fuchsian.DenseCriterion
 import OrbicurveCores.Fuchsian.DenseSubgroup
 import OrbicurveCores.Fuchsian.FordCover
 import OrbicurveCores.Fuchsian.OneInftyLattice
+import OrbicurveCores.Fuchsian.PingPong
 import OrbicurveCores.GroupMain
 import OrbicurveCores.JValues
 import OrbicurveCores.Markov

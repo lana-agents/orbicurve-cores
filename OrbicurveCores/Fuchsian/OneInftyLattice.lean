@@ -333,32 +333,36 @@ theorem hasFiniteCovolume_of_signs {A B A' B' : SL(2, ℝ)} (hA : A' ∈ ({A, -A
   · exact ⟨-γ, h1, by rwa [neg_smul_SL]⟩
 
 open Realizes in
-/-- **Once-punctured torus groups have finite covolume.** -/
-theorem oneInftyFiniteCovolume : OneInftyFiniteCovolume := by
-  intro A B hcomm hA
+/-- **Reduction to the normal form.** Every once-punctured torus group is, after Nielsen moves,
+sign changes and `GL(2, ℝ)`-conjugation, a Fricke normal form group with triangle inequalities. -/
+theorem exists_normal_form {A B : SL(2, ℝ)} (hcomm : tr (A * B * A⁻¹ * B⁻¹) = -2)
+    (hA : tr A ≠ 0) :
+    ∃ (x y z : ℝ) (_ : 0 < x) (_ : 0 < y) (hz : 0 < z)
+      (hrel : x ^ 2 + y ^ 2 + z ^ 2 = x * y * z),
+      (x < y + z ∧ y < x + z ∧ z < x + y) ∧
+      ∃ A' B' : SL(2, ℝ), Subgroup.closure {A', B'} = Subgroup.closure {A, B} ∧
+        ∃ A'' ∈ ({A', -A'} : Set SL(2, ℝ)), ∃ B'' ∈ ({B', -B'} : Set SL(2, ℝ)),
+          ∃ g : GL (Fin 2) ℝ, g * toGL A'' * g⁻¹ = toGL (nA hz hrel) ∧
+            g * toGL B'' * g⁻¹ = toGL (nB hz hrel) := by
   have hrel := (tr_commutator_eq_neg_two_iff A B).mp hcomm
   have hr : Realizes (Subgroup.closure {A, B}) (tr A) (tr B) (tr (A * B)) :=
     ⟨A, B, rfl, rfl, rfl, rfl⟩
   obtain ⟨N, hN⟩ := exists_nat_ge ((|tr A| + |tr B| + |tr (A * B)|) / 2)
   obtain ⟨_, _, _, ⟨A', B', hcl, rfl, rfl, rfl⟩, hrel', hx', t1, t2, t3⟩ :=
     exists_triangle N _ _ _ hr hrel hA (by linarith)
-  rw [← hcl]
   have hpos : 0 < tr A' * tr B' * tr (A' * B') := by
     rw [← hrel']; have := pow_pos (abs_pos.mpr hx') 2; rw [sq_abs] at this; positivity
   obtain ⟨A'', hA'', B'', hB'', e1, e2, e3, e4⟩ := exists_sign_normalize hpos
-  refine hasFiniteCovolume_of_signs hA'' hB'' ?_
-  set x := |tr A'|
-  set y := |tr B'|
-  set z := |tr (A' * B')|
   have hy' : tr B' ≠ 0 := by
     intro h; rw [h] at hrel'; apply hx'; nlinarith [sq_nonneg (tr A'), sq_nonneg (tr (A' * B'))]
   have hz' : tr (A' * B') ≠ 0 := by
     intro h; rw [h] at hrel'; apply hx'; nlinarith [sq_nonneg (tr A'), sq_nonneg (tr B')]
-  have hx0 : 0 < x := abs_pos.mpr hx'
-  have hy0 : 0 < y := abs_pos.mpr hy'
-  have hz0 : 0 < z := abs_pos.mpr hz'
-  have hrelxyz : x ^ 2 + y ^ 2 + z ^ 2 = x * y * z := by
-    simp only [x, y, z, sq_abs]
+  have hx0 : 0 < |tr A'| := abs_pos.mpr hx'
+  have hy0 : 0 < |tr B'| := abs_pos.mpr hy'
+  have hz0 : 0 < |tr (A' * B')| := abs_pos.mpr hz'
+  have hrelxyz : |tr A'| ^ 2 + |tr B'| ^ 2 + |tr (A' * B')| ^ 2 =
+      |tr A'| * |tr B'| * |tr (A' * B')| := by
+    simp only [sq_abs]
     rw [← abs_mul, ← abs_mul, ← hrel', abs_of_pos (by rw [hrel']; exact hpos)]
   have hx4 : 4 < tr A'' ^ 2 := by
     rw [e1, sq_abs]; exact four_lt_sq_of_fricke hrel' hx'
@@ -366,7 +370,17 @@ theorem oneInftyFiniteCovolume : OneInftyFiniteCovolume := by
     rw [e4, (tr_commutator_eq_neg_two_iff A' B').mpr hrel']; norm_num
   obtain ⟨g, hgA, hgB⟩ := exists_conj_of_tr_eq (A' := nA hz0 hrelxyz) (B' := nB hz0 hrelxyz)
     hx4 hc (by rw [e1, tr_nA]) (by rw [e2, tr_nB]) (by rw [e3, tr_nAnB])
-  exact hasFiniteCovolume_of_conj g hgA hgB (hasFiniteCovolume_normal hz0 hrelxyz hx0 hy0 t2 t3 t1)
+  exact ⟨_, _, _, hx0, hy0, hz0, hrelxyz, ⟨t2, t3, t1⟩, A', B', hcl, A'', hA'', B'', hB'', g,
+    hgA, hgB⟩
+
+/-- **Once-punctured torus groups have finite covolume.** -/
+theorem oneInftyFiniteCovolume : OneInftyFiniteCovolume := by
+  intro A B hcomm hA
+  obtain ⟨x, y, z, hx, hy, hz, hrel, ⟨t1, t2, t3⟩, A', B', hcl, A'', hA'', B'', hB'', g, hgA,
+    hgB⟩ := exists_normal_form hcomm hA
+  rw [← hcl]
+  exact hasFiniteCovolume_of_signs hA'' hB''
+    (hasFiniteCovolume_of_conj g hgA hgB (hasFiniteCovolume_normal hz hrel hx hy t1 t2 t3))
 
 end OrbicurveCores.Fuchsian
 
