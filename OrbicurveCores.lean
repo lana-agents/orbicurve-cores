@@ -13,6 +13,7 @@ import OrbicurveCores.Fuchsian.OneInftyLattice
 import OrbicurveCores.Fuchsian.PingPong
 import OrbicurveCores.GroupMain
 import OrbicurveCores.JValues
+import OrbicurveCores.M2.Ergodic
 import OrbicurveCores.M2.ErgodicMautner
 import OrbicurveCores.M2.GoodLattice
 import OrbicurveCores.M2.HopfContinuity

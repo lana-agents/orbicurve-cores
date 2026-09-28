@@ -210,7 +210,9 @@ transformations.
   Linear algebra: `cr(u, v; p, q) = c` iff `v = M_{p,q,c}(u)`, where `M_{p,q,c}` is linear with
   eigenlines exactly `p` and `q` when `c ≠ 1`. A non-scalar `2×2` matrix fixes at most 2 points.
   (Generic parts go to `ForMathlib/`.)
-* **D (double ergodicity; Moore via Mautner).** Every lattice `Γ'` with a good fundamental set
+* **D (double ergodicity; Moore via Mautner).** **[done]** (`M2/Ergodic.lean`,
+  `GoodLattice.isDoublyErgodic`; `M2/GoodLattice.lean`, `goodLattice_normal`, `GoodLattice.of_le`)
+  Every lattice `Γ'` with a good fundamental set
   (in particular every finite-index subgroup of a normal-form group) acts ergodically on
   `B × B`.
   * Hopf coordinates `Ω = {(x, y, s) : x ≠ y}` for `PSL₂(ℝ)`. `Γ` acts by
