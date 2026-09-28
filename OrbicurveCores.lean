@@ -1,6 +1,7 @@
 import OrbicurveCores.ArithTraces
 import OrbicurveCores.Classification
 import OrbicurveCores.Core
+import OrbicurveCores.ForMathlib.TailConvex
 import OrbicurveCores.FourGroups
 import OrbicurveCores.Fricke
 import OrbicurveCores.FrickeRigidity
@@ -13,6 +14,8 @@ import OrbicurveCores.Fuchsian.OneInftyLattice
 import OrbicurveCores.Fuchsian.PingPong
 import OrbicurveCores.GroupMain
 import OrbicurveCores.JValues
+import OrbicurveCores.M2.Furstenberg
+import OrbicurveCores.M2.FurstenbergLimit
 import OrbicurveCores.M2.Setup
 import OrbicurveCores.M2.TraceField
 import OrbicurveCores.Markov
