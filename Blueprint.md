@@ -163,6 +163,35 @@ candidates fail.
   Rough size: 25–45k lines of Lean. M1 (dichotomy) about 3–6k more, done by hand for `SL₂(ℝ)`:
   a Lie-algebra argument plus Zariski density of a (1;∞) group, where `A, B, [A,B]` generate `M₂(ℝ)`.
 
+### 2.3a Interface for U1 (uniformisation), to be proved in `lana-agents/oka` branch `wp-uniformization`
+
+The group-level results here (`canLift27_group_iff`, `oneInftyFiniteCovolume`, `oneInfty_discrete`)
+need from U1 exactly the following. It is stated without Riemann-surface infrastructure: a
+holomorphic immersion of `ℍ` onto the affine Weierstrass curve, whose fibres are the orbits of a
+once-punctured torus group.
+
+```lean
+/-- **U1: uniformisation of once-punctured elliptic curves.** -/
+theorem uniformization_oncePunctured (W : WeierstrassCurve ℂ) [W.IsElliptic] :
+    ∃ (A B : SL(2, ℝ)) (π : ℂ → ℂ × ℂ),
+      tr (A * B * A⁻¹ * B⁻¹) = -2 ∧ tr A ≠ 0 ∧
+      -- `π` is holomorphic on `ℍ` with injective differential (an immersion)
+      (∀ z : ℍ, DifferentiableAt ℂ π z ∧ deriv π z ≠ 0) ∧
+      -- `π` maps `ℍ` onto the affine curve `E(ℂ) ∖ {O}`
+      (∀ z : ℍ, W.toAffine.Equation (π z).1 (π z).2) ∧
+      (∀ x y : ℂ, W.toAffine.Equation x y → ∃ z : ℍ, π z = (x, y)) ∧
+      -- the fibres of `π` are exactly the orbits of `Γ = ⟨A, B⟩`
+      (∀ z w : ℍ, π z = π w ↔ ∃ γ ∈ Subgroup.closure {A, B}, γ • z = w)
+```
+
+Here `tr` is `OrbicurveCores.tr` (the trace of an element of `SL(2, ℝ)`), `ℍ` is Mathlib's
+`UpperHalfPlane`, and `γ • z` is Mathlib's `SL(2, ℝ)`-action. The data are unique up to
+`GL(2, ℝ)`-conjugation and signs of `A, B`, by lifting to the universal cover. Uniqueness is not
+needed from the U1 agent; it follows from the fibre condition by covering theory, which U2 does
+here. U2 will use this map together with Riemann existence (`oka`) to translate finite étale
+covers and correspondences of `E ∖ O` into finite-index subgroups and commensurator elements
+of `Γ`.
+
 ### 2.4 What is needed for U1, U2, S1
 
 * U1: Mathlib has `ℍ`, the `SL₂(ℝ)` action, the modular group and `j` (and `lana-agents/heights`
