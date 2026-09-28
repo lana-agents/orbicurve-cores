@@ -74,7 +74,6 @@ theorem exists_transcendental_isIntegral (hA : ¬ IsField A) :
     have hq : q₁ ≤ q₂ := fun r hr ↦ by
       simp only [q₁, q₂, RingHom.mem_ker] at hr ⊢
       rw [← hρ, AlgHom.comp_apply]
-      change ρ₂ (ρ₁ r) = 0
       rw [show ρ₁ r = 0 from hr, map_zero]
     have hX1 : MvPolynomial.X i1 ∉ q₁ := by
       rw [RingHom.mem_ker]
