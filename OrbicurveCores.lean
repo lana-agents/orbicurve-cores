@@ -15,6 +15,8 @@ import OrbicurveCores.Fuchsian.PingPong
 import OrbicurveCores.GroupMain
 import OrbicurveCores.JValues
 import OrbicurveCores.M2.BoundaryMeasure
+import OrbicurveCores.M2.CrossRatio
+import OrbicurveCores.M2.ErgodicUse
 import OrbicurveCores.M2.Setup
 import OrbicurveCores.M2.TraceField
 import OrbicurveCores.Markov
