@@ -211,8 +211,19 @@ Total: roughly 50–110k lines, which is comparable to the whole `oka` repositor
 
 ## 4. Reconciliation items
 
-* R1: once `lana-agents/pi1` (`wp-orbicurve-pi1`) or `iut` (`wp-genuine-pi1`) defines a genuine
-  `HasCore` (stack- or π₁-based), prove it equivalent to `AdmitsCore` of §1.2 (over `ℂ` this is
-  the double-coset count; in general, [CanLift] Prop. 2.3).
+* R1 (partly done): `lana-agents/pi1` branch `wp-orbicurve-pi1` (pinned at `1f39d5b` as a Lake
+  dependency) defines genuine `k`-cores for affine orbicurves (`AffOrbicurve.IsCoreOf`,
+  `IsArithmetic`: coarse Dedekind ring plus stabiliser orders, [CanLift] Def. 2.1). It also
+  defines `punctured E`, `hemi E`, `excJ`, and the statement `AffOrbicurve.CanLift27` (core =
+  hemi-elliptic quotient for non-exceptional `j`). `Reconcile.lean` proves
+  `exceptionalJ = excJ` and that pi1's `CanLift27` implies the [EstIUT] form
+  `CanLift27Genuine` stated with genuine cores. Still open: the equivalence of
+  `IsArithmetic (punctured E)` with `¬ OncePuncturedAdmitsCore` (§1.2). Over `ℂ` both are
+  `[Comm(Γ):Γ] = ∞`, which needs U1–U2.
 * R2: `iut`'s `EtalePi1Theory.excJ` / `hasCore_oncePunctured` should be instantiated with the
   four values of §1.1 (a finite set of rationals), and [EstIUT] 2.1 should be cited for them.
+* R3: the stronger pi1 form (the core **is** `(E∖0)/±1`) additionally needs the Riemann–Hurwitz
+  step of [CanLift] 2.7: the ramification types `(2,2,2,2), (2,3,6), (2,4,4), (3,3,3)` for
+  `E → Z^crs`, together with arithmeticity of the triangle groups `(2,3,∞), (2,4,∞), (3,3,∞)`.
+  At the group level this is: `Comm(Γ)` for non-arithmetic `Γ` is the `(0;2,2,2,∞)` group
+  `⟨Γ, ι⟩`.

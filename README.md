@@ -34,9 +34,9 @@ See `Blueprint.md` for the full plan, sources and status table. In short:
 
 ## Dependencies
 
-No Lake dependencies beyond Mathlib. The core notion is defined locally. It should be reconciled
-with the genuine `HasCore` of `lana-agents/pi1` (branch `wp-orbicurve-pi1`) once that exists; see
-`Blueprint.md` §4. No Θ-data or `iut` dependency is needed.
+Mathlib, and `lana-agents/pi1` (branch `wp-orbicurve-pi1`, pinned) for the genuine
+`k`-cores of affine orbicurves. `Reconcile.lean` links the two notions of the statement (see
+`Blueprint.md` §4). No Θ-data or `iut` dependency is needed.
 
 ## Layout
 

@@ -16,3 +16,8 @@ rev = "v4.32.0"
 
 [[lean_lib]]
 name = "OrbicurveCores"
+
+[[require]]
+name = "pi1"
+git = "https://github.com/lana-agents/pi1.git"
+rev = "1f39d5b416ee130abe42fe92545a0af753551849"
