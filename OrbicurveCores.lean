@@ -2,6 +2,7 @@ import OrbicurveCores.ArithTraces
 import OrbicurveCores.Classification
 import OrbicurveCores.Core
 import OrbicurveCores.ForMathlib.ProjectiveLine
+import OrbicurveCores.ForMathlib.TailConvex
 import OrbicurveCores.FourGroups
 import OrbicurveCores.Fricke
 import OrbicurveCores.FrickeRigidity
@@ -17,6 +18,8 @@ import OrbicurveCores.JValues
 import OrbicurveCores.M2.BoundaryMeasure
 import OrbicurveCores.M2.CrossRatio
 import OrbicurveCores.M2.ErgodicUse
+import OrbicurveCores.M2.Furstenberg
+import OrbicurveCores.M2.FurstenbergLimit
 import OrbicurveCores.M2.Setup
 import OrbicurveCores.M2.TraceField
 import OrbicurveCores.Markov

@@ -226,7 +226,8 @@ transformations.
     constant.
 * **F (Furstenberg boundary map).** For a lattice `Γ` as above acting on a compact metrizable `Y`
   through `α`, there is a measurable `ψ : B → Prob(Y)` with `ψ(γx) = α(γ)_*ψ(x)` almost
-  everywhere.
+  everywhere. **[done]** (`M2/Furstenberg.lean`, `GoodLattice.exists_boundaryMap`, for nonempty `Y`; the
+  limit argument is `M2/FurstenbergLimit.lean`, the Hilbert-space lemma `ForMathlib/TailConvex.lean`).
   * Take a `Γ`-equivariant measurable `φ : G → Prob(Y)`, the average over the finite set of
     `γ` with `γ⁻¹g·i` in the fundamental set.
   * Average `φ` over left Følner sets `±{a_s n_u : 0 ≤ s ≤ n, |u| ≤ n}` of `P`. The result is
