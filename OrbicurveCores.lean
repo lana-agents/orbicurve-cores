@@ -67,6 +67,7 @@ import OrbicurveCores.SharpnessData
 import OrbicurveCores.Takeuchi
 import OrbicurveCores.U2.CoordRing
 import OrbicurveCores.U2.EtalePoints
+import OrbicurveCores.U2.GaloisClosure
 import OrbicurveCores.U2.HemiUnique
 import OrbicurveCores.U2.Noether
 import OrbicurveCores.U2.R3
