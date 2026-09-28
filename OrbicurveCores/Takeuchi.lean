@@ -310,6 +310,23 @@ lemma IsArithmeticSL.exists_pow_four_ne_one {Γ : Subgroup SL(2, ℝ)} (hΓ : Is
   simp at e3
   lia
 
+/-- **Takeuchi's diophantine reduction.** A `(1;∞)`-group `⟨A, B⟩` with `tr A ≠ 0` all of whose
+squared traces are integers has a Nielsen-equivalent generating pair (again with
+`tr [A', B'] = -2`) whose squared trace triple is `(9,9,9)`, `(8,8,16)`, `(5,20,25)` or
+`(6,12,18)`. -/
+theorem takeuchi_one_infty_of_int {A B : SL(2, ℝ)} (hcomm : tr (A * B * A⁻¹ * B⁻¹) = -2)
+    (hA : tr A ≠ 0) (hint : ∀ γ ∈ Subgroup.closure {A, B}, ∃ m : ℤ, tr γ ^ 2 = m) :
+    ∃ A' B' : SL(2, ℝ), Subgroup.closure {A', B'} = Subgroup.closure {A, B} ∧
+      tr (A' * B' * A'⁻¹ * B'⁻¹) = -2 ∧ TakeuchiSq (tr A') (tr B') (tr (A' * B')) := by
+  have hrel := (tr_commutator_eq_neg_two_iff A B).mp hcomm
+  have hr : Realizes (Subgroup.closure {A, B}) (tr A) (tr B) (tr (A * B)) :=
+    ⟨A, B, rfl, rfl, rfl, rfl⟩
+  obtain ⟨N, hN⟩ := exists_nat_ge (tr A ^ 2 + tr B ^ 2 + tr (A * B) ^ 2)
+  have hpos : 0 < tr A ^ 2 + tr B ^ 2 + tr (A * B) ^ 2 := by positivity
+  obtain ⟨x, y, z, ⟨A', B', hcl, rfl, rfl, rfl⟩, hrel', hT⟩ :=
+    exists_takeuchiSq hint N _ _ _ hr hrel hN hpos
+  exact ⟨A', B', hcl, (tr_commutator_eq_neg_two_iff A' B').mpr hrel', hT⟩
+
 /-- **Takeuchi's theorem for `(1;∞)`-groups (necessity).** Let `A, B ∈ SL(2, ℝ)` with
 parabolic commutator, `tr [A, B] = -2`. If `⟨A, B⟩` is arithmetic (conjugate to a group
 commensurable with `SL(2, ℤ)`), then `⟨A, B⟩ = ⟨A', B'⟩` for a Nielsen-equivalent pair (again
@@ -330,12 +347,6 @@ theorem takeuchi_one_infty {A B : SL(2, ℝ)} (hcomm : tr (A * B * A⁻¹ * B⁻
     have hz : tr (A * B) = 0 := by nlinarith [sq_nonneg (tr B), sq_nonneg (tr (A * B))]
     obtain ⟨γ, hγ, h4⟩ := harith.exists_pow_four_ne_one
     exact h4 (pow_four_eq_one_of_tr_zero h0 hy hz hγ)
-  have hr : Realizes (Subgroup.closure {A, B}) (tr A) (tr B) (tr (A * B)) :=
-    ⟨A, B, rfl, rfl, rfl, rfl⟩
-  obtain ⟨N, hN⟩ := exists_nat_ge (tr A ^ 2 + tr B ^ 2 + tr (A * B) ^ 2)
-  have hpos : 0 < tr A ^ 2 + tr B ^ 2 + tr (A * B) ^ 2 := by positivity
-  obtain ⟨x, y, z, ⟨A', B', hcl, rfl, rfl, rfl⟩, hrel', hT⟩ :=
-    exists_takeuchiSq hint N _ _ _ hr hrel hN hpos
-  exact ⟨A', B', hcl, (tr_commutator_eq_neg_two_iff A' B').mpr hrel', hT⟩
+  exact takeuchi_one_infty_of_int hcomm hA hint
 
 end OrbicurveCores

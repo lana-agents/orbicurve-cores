@@ -21,6 +21,7 @@ import OrbicurveCores.M2.CrossRatio
 import OrbicurveCores.M2.Ergodic
 import OrbicurveCores.M2.ErgodicMautner
 import OrbicurveCores.M2.ErgodicUse
+import OrbicurveCores.M2.Final
 import OrbicurveCores.M2.FromProb
 import OrbicurveCores.M2.Furstenberg
 import OrbicurveCores.M2.FurstenbergLimit
@@ -31,6 +32,7 @@ import OrbicurveCores.M2.HopfFinite
 import OrbicurveCores.M2.NoPair
 import OrbicurveCores.M2.PadicUnbounded
 import OrbicurveCores.M2.PointMaps
+import OrbicurveCores.M2.Rational
 import OrbicurveCores.M2.Selection
 import OrbicurveCores.M2.Setup
 import OrbicurveCores.M2.Superrigid

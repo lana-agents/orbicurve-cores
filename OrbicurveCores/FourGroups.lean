@@ -157,17 +157,13 @@ lemma exists_sign_normalize {A B : SL(2, ℝ)} (hpos : 0 < tr A * tr B * tr (A *
     exact ⟨A, by simp, B, by simp, (abs_of_pos hx).symm, (abs_of_pos hy).symm,
       (abs_of_pos hz').symm, rfl⟩
 
-/-- **Takeuchi's theorem, up to conjugacy.** An arithmetic `(1;∞)`-group `⟨A, B⟩ ⊆ SL(2, ℝ)` has
-a Nielsen-equivalent generating pair `(A', B')` which, up to signs, is simultaneously
-`GL(2, ℝ)`-conjugate to one of the four explicit pairs `takeuchiPair i`. -/
-theorem takeuchi_one_infty_conj {A B : SL(2, ℝ)} (hcomm : tr (A * B * A⁻¹ * B⁻¹) = -2)
-    (harith : IsArithmeticSL (Subgroup.closure {A, B})) :
-    ∃ A' B' : SL(2, ℝ), Subgroup.closure {A', B'} = Subgroup.closure {A, B} ∧
-      ∃ i : Fin 4, ∃ A'' ∈ ({A', -A'} : Set SL(2, ℝ)), ∃ B'' ∈ ({B', -B'} : Set SL(2, ℝ)),
-        ∃ g : GL (Fin 2) ℝ, g * toGL A'' * g⁻¹ = toGL (takeuchiPair i).1 ∧
-          g * toGL B'' * g⁻¹ = toGL (takeuchiPair i).2 := by
-  obtain ⟨A', B', hcl, hc', hT⟩ := takeuchi_one_infty hcomm harith
-  refine ⟨A', B', hcl, ?_⟩
+/-- A pair with commutator trace `-2` and one of Takeuchi's squared trace triples is, up to signs,
+simultaneously `GL(2, ℝ)`-conjugate to one of the four explicit pairs `takeuchiPair i`. -/
+theorem exists_conj_of_takeuchiSq {A' B' : SL(2, ℝ)} (hc' : tr (A' * B' * A'⁻¹ * B'⁻¹) = -2)
+    (hT : TakeuchiSq (tr A') (tr B') (tr (A' * B'))) :
+    ∃ i : Fin 4, ∃ A'' ∈ ({A', -A'} : Set SL(2, ℝ)), ∃ B'' ∈ ({B', -B'} : Set SL(2, ℝ)),
+      ∃ g : GL (Fin 2) ℝ, g * toGL A'' * g⁻¹ = toGL (takeuchiPair i).1 ∧
+        g * toGL B'' * g⁻¹ = toGL (takeuchiPair i).2 := by
   have hrel := (tr_commutator_eq_neg_two_iff A' B').mp hc'
   have hX : 4 < tr A' ^ 2 := by
     rcases hT with h | h | h | h <;> linarith [h.1]
@@ -192,6 +188,19 @@ theorem takeuchi_one_infty_conj {A B : SL(2, ℝ)} (hcomm : tr (A * B * A⁻¹ *
   · obtain ⟨g, hg1, hg2⟩ := exists_conj_of_tr_eq (A' := pairIIA) (B' := pairIIB) hx'' hc''
       (by rw [h1, ha, t2a]) (by rw [h2, hb, t2b]) (by rw [h3, hc, t2c])
     exact ⟨1, A'', hA'', B'', hB'', g, hg1, hg2⟩
+
+
+/-- **Takeuchi's theorem, up to conjugacy.** An arithmetic `(1;∞)`-group `⟨A, B⟩ ⊆ SL(2, ℝ)` has
+a Nielsen-equivalent generating pair `(A', B')` which, up to signs, is simultaneously
+`GL(2, ℝ)`-conjugate to one of the four explicit pairs `takeuchiPair i`. -/
+theorem takeuchi_one_infty_conj {A B : SL(2, ℝ)} (hcomm : tr (A * B * A⁻¹ * B⁻¹) = -2)
+    (harith : IsArithmeticSL (Subgroup.closure {A, B})) :
+    ∃ A' B' : SL(2, ℝ), Subgroup.closure {A', B'} = Subgroup.closure {A, B} ∧
+      ∃ i : Fin 4, ∃ A'' ∈ ({A', -A'} : Set SL(2, ℝ)), ∃ B'' ∈ ({B', -B'} : Set SL(2, ℝ)),
+        ∃ g : GL (Fin 2) ℝ, g * toGL A'' * g⁻¹ = toGL (takeuchiPair i).1 ∧
+          g * toGL B'' * g⁻¹ = toGL (takeuchiPair i).2 := by
+  obtain ⟨A', B', hcl, hc', hT⟩ := takeuchi_one_infty hcomm harith
+  exact ⟨A', B', hcl, exists_conj_of_takeuchiSq hc' hT⟩
 
 /-- **[CanLift] Prop. 2.7 / [EstIUT] Prop. 2.1, group-theoretic form up to conjugacy,
 conditional on Margulis.** A `(1;∞)`-group `⟨A, B⟩ ⊆ SL(2, ℝ)` without core is, after Nielsen

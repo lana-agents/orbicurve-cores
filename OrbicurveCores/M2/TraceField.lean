@@ -194,42 +194,41 @@ open OrbicurveCores.Fuchsian
 
 variable {x y z : ℝ} (hz : 0 < z) (hrel : x ^ 2 + y ^ 2 + z ^ 2 = x * y * z)
 
-private lemma E12_sq : !![(0 : ℝ), 1; 0, 0] * !![(0 : ℝ), 1; 0, 0] = 0 := by
+lemma E12_sq : !![(0 : ℝ), 1; 0, 0] * !![(0 : ℝ), 1; 0, 0] = 0 := by
   ext i j; fin_cases i <;> fin_cases j <;> simp
 
 /-- The conjugate `A₀ E₁₂ A₀⁻¹`. -/
-private lemma nA_E12_nA_inv :
+lemma nA_E12_nA_inv :
     ((nA hz hrel : SL(2, ℝ)) : Matrix (Fin 2) (Fin 2) ℝ) * !![0, 1; 0, 0] *
       (((nA hz hrel)⁻¹ : SL(2, ℝ)) : Matrix (Fin 2) (Fin 2) ℝ) =
       !![-x * (x - y / z), (x - y / z) ^ 2; -x ^ 2, -(-x * (x - y / z))] := by
   rw [Matrix.SpecialLinearGroup.coe_inv, coe_nA, adjugate_fin_two]
   ext i j; fin_cases i <;> fin_cases j <;> simp <;> ring
 
-/-- **C7.1.** For a once-punctured torus group in Fricke normal form and a subfield `F`
-containing `x, y, z`, every element `δ` of the commensurator satisfies `(δ⁻¹)ᵢₚ δ_qj ∈ F`. So
-`δ` is a real multiple of a matrix over `F`. -/
-theorem mul_mem_of_mem_commensurator (hxF : x ∈ F) (hyF : y ∈ F) (hzF : z ∈ F) {δ : SL(2, ℝ)}
-    (hδ : δ ∈ commensurator (Subgroup.closure {nA hz hrel, nB hz hrel})) (i p q j : Fin 2) :
+omit hz hrel in
+lemma trace_conj_pow {δ P : SL(2, ℝ)} {N : Matrix (Fin 2) (Fin 2) ℝ}
+    (hP : (P : Matrix (Fin 2) (Fin 2) ℝ) = -(1 + (2 : ℝ) • N)) (hN : N * N = 0)
+    (hNtr : N.trace = 0) (n : ℕ) :
+    ((δ⁻¹ * P ^ n * δ : SL(2, ℝ)) : Matrix (Fin 2) (Fin 2) ℝ).trace = 2 * (-1) ^ n := by
+  rw [Matrix.SpecialLinearGroup.coe_mul, Matrix.SpecialLinearGroup.coe_mul, Matrix.trace_mul_comm,
+    ← Matrix.mul_assoc, ← Matrix.SpecialLinearGroup.coe_mul, mul_inv_cancel,
+    Matrix.SpecialLinearGroup.coe_one, Matrix.one_mul, coe_pow_of_nilpotent hP hN,
+    Matrix.trace_smul, Matrix.trace_add, Matrix.trace_smul, hNtr, Matrix.trace_one]
+  simp; ring
+
+/-- **C7.1, general form.** Let `F ⊆ ℝ` be a subfield with `x², x(x − y/z), (x − y/z)² ∈ F`, and
+suppose every element of the normal-form group `Γ` with trace `±2` has entries in `F`. Then every
+element `δ` of the commensurator satisfies `(δ⁻¹)ᵢₚ δ_qj ∈ F`. -/
+theorem mul_mem_of_mem_commensurator' (hax : x * (x - y / z) ∈ F) (hbx : (x - y / z) ^ 2 ∈ F)
+    (hcx : x ^ 2 ∈ F)
+    (hF : ∀ n : ℕ, ∀ γ ∈ Subgroup.closure {nA hz hrel, nB hz hrel},
+      (γ : Matrix (Fin 2) (Fin 2) ℝ).trace = 2 * (-1) ^ n → SLIn F γ)
+    {δ : SL(2, ℝ)} (hδ : δ ∈ commensurator (Subgroup.closure {nA hz hrel, nB hz hrel}))
+    (i p q j : Fin 2) :
     ((δ⁻¹ : SL(2, ℝ)) : Matrix (Fin 2) (Fin 2) ℝ) i p * (δ : Matrix (Fin 2) (Fin 2) ℝ) q j ∈ F := by
   set Γ := Subgroup.closure {nA hz hrel, nB hz hrel}
   have hx0 : x ≠ 0 := by
     rintro rfl; nlinarith [sq_nonneg y]
-  have hYF : y / z ∈ F := div_mem hyF hzF
-  have hAF : SLIn F (nA hz hrel) := by
-    intro i j; rw [coe_nA]
-    fin_cases i <;> fin_cases j <;>
-      simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, of_apply, cons_val', cons_val_zero,
-        cons_val_one, cons_val_fin_one]
-    exacts [sub_mem hxF hYF, div_mem hxF (pow_mem hzF 2), hxF, hYF]
-  have hBF : SLIn F (nB hz hrel) := by
-    intro i j; rw [coe_nB]
-    fin_cases i <;> fin_cases j <;>
-      simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, of_apply, cons_val', cons_val_zero,
-        cons_val_one, cons_val_fin_one]
-    all_goals first
-      | exact sub_mem hyF (div_mem hxF hzF) | exact div_mem hyF (pow_mem hzF 2)
-      | exact neg_mem (div_mem hyF (pow_mem hzF 2)) | exact hyF | exact neg_mem hyF
-      | exact div_mem hxF hzF | exact div_mem (neg_mem hyF) (pow_mem hzF 2)
   have hAΓ : nA hz hrel ∈ Γ := Subgroup.subset_closure (by simp)
   have hBΓ : nB hz hrel ∈ Γ := Subgroup.subset_closure (by simp)
   set K := nA hz hrel * nB hz hrel * (nA hz hrel)⁻¹ * (nB hz hrel)⁻¹ with hK
@@ -251,6 +250,8 @@ theorem mul_mem_of_mem_commensurator (hxF : x ∈ F) (hyF : y ∈ F) (hzF : z �
     rw [← Matrix.mul_assoc (((nA hz hrel)⁻¹ : SL(2, ℝ)) : Matrix (Fin 2) (Fin 2) ℝ), hAA,
       Matrix.one_mul, ← Matrix.mul_assoc !![(0 : ℝ), 1; 0, 0], E12_sq, Matrix.zero_mul,
       Matrix.mul_zero]
+  have hN2tr : N2.trace = 0 := by
+    rw [hN2, nA_E12_nA_inv]; simp [Matrix.trace_fin_two]
   set K2 := nA hz hrel * K * (nA hz hrel)⁻¹
   have hK2Γ : K2 ∈ Γ := mul_mem (mul_mem hAΓ hKΓ) (inv_mem hAΓ)
   have hK2c : (K2 : Matrix (Fin 2) (Fin 2) ℝ) = -(1 + (2 : ℝ) • N2) := by
@@ -259,16 +260,44 @@ theorem mul_mem_of_mem_commensurator (hxF : x ∈ F) (hyF : y ∈ F) (hzF : z �
   obtain ⟨n1, hn1, h1⟩ := exists_pow_conj_mem hδ hKΓ
   obtain ⟨n2, hn2, h2⟩ := exists_pow_conj_mem hδ hK2Γ
   have h1F : SLIn F (δ⁻¹ * K ^ n1 * δ⁻¹⁻¹) := by
-    rw [inv_inv]; exact slIn_of_mem_closure F hAF hBF h1
+    rw [inv_inv]
+    exact hF n1 _ h1 (trace_conj_pow hKc E12_sq (by simp [Matrix.trace_fin_two]) n1)
   have h2F : SLIn F (δ⁻¹ * K2 ^ n2 * δ⁻¹⁻¹) := by
-    rw [inv_inv]; exact slIn_of_mem_closure F hAF hBF h2
+    rw [inv_inv]
+    exact hF n2 _ h2 (trace_conj_pow hK2c hN2sq hN2tr n2)
   have e1 := matIn_conj_of_pow F hKc E12_sq hn1 h1F
   have e2 := matIn_conj_of_pow F hK2c hN2sq hn2 h2F
   rw [hN2, nA_E12_nA_inv] at e2
   have := mul_mem_of_conj_gens F δ⁻¹ (a := -x * (x - y / z)) (b := (x - y / z) ^ 2)
-    (c := -x ^ 2) (mul_mem (neg_mem hxF) (sub_mem hxF hYF)) (pow_mem (sub_mem hxF hYF) 2)
-    (neg_mem (pow_mem hxF 2)) (neg_ne_zero.mpr (pow_ne_zero 2 hx0)) e1 e2 i p q j
+    (c := -x ^ 2) (by rw [neg_mul]; exact neg_mem hax) hbx (neg_mem hcx)
+    (neg_ne_zero.mpr (pow_ne_zero 2 hx0)) e1 e2 i p q j
   rwa [inv_inv] at this
+
+/-- **C7.1.** For a once-punctured torus group in Fricke normal form and a subfield `F`
+containing `x, y, z`, every element `δ` of the commensurator satisfies `(δ⁻¹)ᵢₚ δ_qj ∈ F`. So
+`δ` is a real multiple of a matrix over `F`. -/
+theorem mul_mem_of_mem_commensurator (hxF : x ∈ F) (hyF : y ∈ F) (hzF : z ∈ F) {δ : SL(2, ℝ)}
+    (hδ : δ ∈ commensurator (Subgroup.closure {nA hz hrel, nB hz hrel})) (i p q j : Fin 2) :
+    ((δ⁻¹ : SL(2, ℝ)) : Matrix (Fin 2) (Fin 2) ℝ) i p * (δ : Matrix (Fin 2) (Fin 2) ℝ) q j ∈ F := by
+  have hYF : y / z ∈ F := div_mem hyF hzF
+  have hAF : SLIn F (nA hz hrel) := by
+    intro i j; rw [coe_nA]
+    fin_cases i <;> fin_cases j <;>
+      simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, of_apply, cons_val', cons_val_zero,
+        cons_val_one, cons_val_fin_one]
+    exacts [sub_mem hxF hYF, div_mem hxF (pow_mem hzF 2), hxF, hYF]
+  have hBF : SLIn F (nB hz hrel) := by
+    intro i j; rw [coe_nB]
+    fin_cases i <;> fin_cases j <;>
+      simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, of_apply, cons_val', cons_val_zero,
+        cons_val_one, cons_val_fin_one]
+    all_goals first
+      | exact sub_mem hyF (div_mem hxF hzF) | exact div_mem hyF (pow_mem hzF 2)
+      | exact neg_mem (div_mem hyF (pow_mem hzF 2)) | exact hyF | exact neg_mem hyF
+      | exact div_mem hxF hzF | exact div_mem (neg_mem hyF) (pow_mem hzF 2)
+  exact mul_mem_of_mem_commensurator' F hz hrel (mul_mem hxF (sub_mem hxF hYF))
+    (pow_mem (sub_mem hxF hYF) 2) (pow_mem hxF 2)
+    (fun _ γ hγ _ ↦ slIn_of_mem_closure F hAF hBF hγ) hδ i p q j
 
 end normalForm
 
