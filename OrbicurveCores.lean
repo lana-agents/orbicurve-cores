@@ -48,3 +48,4 @@ import OrbicurveCores.RiemannHurwitz
 import OrbicurveCores.Sharpness
 import OrbicurveCores.SharpnessData
 import OrbicurveCores.Takeuchi
+import OrbicurveCores.Uniformization

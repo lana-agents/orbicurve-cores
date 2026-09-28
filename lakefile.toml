@@ -21,3 +21,10 @@ name = "OrbicurveCores"
 name = "pi1"
 git = "https://github.com/lana-agents/pi1.git"
 rev = "1f39d5b416ee130abe42fe92545a0af753551849"
+
+# Uniformisation of once-punctured elliptic curves (U1): `Uniformization.uniformization_oncePunctured`.
+# `oka` pins `lana-agents/heights` at 3539e2a; this is the only `heights` revision in this project.
+[[require]]
+name = "oka"
+git = "https://github.com/lana-agents/oka.git"
+rev = "043c179ac869ad3cdffd1caca3873367f668f4f3"
