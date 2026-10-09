@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2026 The orbicurve-cores contributors. All rights reserved.
+Copyright (c) 2026 LANA Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: The orbicurve-cores contributors
+Authors: LANA Project
 -/
 import OrbicurveCores.ForMathlib.TailConvex
 
