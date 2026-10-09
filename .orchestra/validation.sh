@@ -11,7 +11,20 @@ if ! [ -z "$(git status --porcelain)" ]; then
 fi
 
 # Verify all .lean files are imported.
-lake exe mk_all --lib OrbicurveCores --git --check || exit 1
+# `OrbicurveCores.lean` starts with a copyright header that mk_all does not write, so regenerate the
+# root module with mk_all and compare it with the committed file minus its leading header.
+root_saved="$(mktemp)"
+cp OrbicurveCores.lean "$root_saved"
+# mk_all exits 1 when it rewrites the file (always, because of the header); a failed run leaves
+# the file with its header, which the comparison below then rejects.
+lake exe mk_all --lib OrbicurveCores --git > /dev/null || true
+if ! awk 'NR == 1 && $0 == "/-" { h = 1 } h { if ($0 == "-/") h = 0; next } { print }' "$root_saved" \
+    | cmp -s - OrbicurveCores.lean; then
+  cp "$root_saved" OrbicurveCores.lean
+  echo "The file 'OrbicurveCores.lean' is out of date: run \`lake exe mk_all --lib OrbicurveCores --git\` and keep its header."
+  exit 1
+fi
+cp "$root_saved" OrbicurveCores.lean
 
 # Fetch build cache
 lake exe cache get
