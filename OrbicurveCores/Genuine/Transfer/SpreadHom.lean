@@ -130,4 +130,76 @@ lemma rhoM_modelHemi_X : rhoM Z e ((modelHemi E₀ e hZ φ f₀ hf₀).f X) = φ
 
 end Hemi
 
+section Punctured
+
+/-- The map of Weierstrass coordinate rings `k₀[E₀] → k[E_k]`. -/
+noncomputable abbrev coordMap :
+    E₀.toAffine.CoordinateRing →+* (E₀.baseChange k).toAffine.CoordinateRing :=
+  WeierstrassCurve.Affine.CoordinateRing.map E₀ (algebraMap k₀ k)
+
+omit [CharZero k₀] [CharZero k] [E₀.IsElliptic] in
+lemma coordMap_injective : Function.Injective (coordMap (k := k) E₀) :=
+  WeierstrassCurve.Affine.CoordinateRing.map_injective (algebraMap k₀ k).injective
+
+/-- The map of function fields `k₀(E₀) → k(E_k)`. -/
+noncomputable def fmap :
+    E₀.toAffine.FunctionField →+* (E₀.baseChange k).toAffine.FunctionField :=
+  IsFractionRing.map (coordMap_injective (k := k) E₀)
+
+omit [CharZero k₀] [CharZero k] [E₀.IsElliptic] in
+lemma fmap_algebraMap (c : E₀.toAffine.CoordinateRing) :
+    fmap (k := k) E₀ (algebraMap _ _ c) = algebraMap _ _ (coordMap (k := k) E₀ c) := by
+  unfold fmap IsFractionRing.map
+  exact IsLocalization.map_eq _ c
+
+omit [CharZero k₀] [CharZero k] [E₀.IsElliptic] in
+lemma fmap_algebraMap_poly (g : k₀[X]) :
+    fmap (k := k) E₀ (algebraMap k₀[X] _ g) =
+      algebraMap k[X] _ (g.map (algebraMap k₀ k)) := by
+  rw [IsScalarTower.algebraMap_apply k₀[X] E₀.toAffine.CoordinateRing,
+    fmap_algebraMap, IsScalarTower.algebraMap_apply k[X]
+      (E₀.baseChange k).toAffine.CoordinateRing]
+  congr 1
+  change WeierstrassCurve.Affine.CoordinateRing.map E₀ _ (AdjoinRoot.of _ g) = AdjoinRoot.of _ _
+  rw [← AdjoinRoot.mk_C]
+  change WeierstrassCurve.Affine.CoordinateRing.map E₀ _
+    (WeierstrassCurve.Affine.CoordinateRing.mk E₀ (C g)) = _
+  rw [WeierstrassCurve.Affine.CoordinateRing.map_mk, Polynomial.map_C]
+  rfl
+
+omit [CharZero k₀] [CharZero k] [E₀.IsElliptic] in
+lemma isIntegral_fmap (a : puncturedRing E₀) :
+    IsIntegral k[X] (fmap (k := k) E₀ (a : E₀.toAffine.FunctionField)) := by
+  obtain ⟨p, hp, hpa⟩ := a.2
+  refine ⟨p.map (Polynomial.mapRingHom (algebraMap k₀ k)), hp.map _, ?_⟩
+  rw [Polynomial.eval₂_map, Polynomial.eval₂_eq_sum_range]
+  rw [Polynomial.eval₂_eq_sum_range] at hpa
+  have := congrArg (fmap (k := k) E₀) hpa
+  rw [map_sum, map_zero] at this
+  rw [← this]
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  rw [map_mul, map_pow, RingHom.comp_apply, fmap_algebraMap_poly]
+  rfl
+
+/-- The map `k₀[E₀ ∖ 0] → k[E_k ∖ 0]`. -/
+noncomputable def theta : puncturedRing E₀ →+* puncturedRing (E₀.baseChange k) :=
+  ((fmap (k := k) E₀).comp (integralClosure k₀[X] E₀.toAffine.FunctionField).val.toRingHom
+    ).codRestrict (integralClosure k[X] (E₀.baseChange k).toAffine.FunctionField).toSubring
+      fun a ↦ isIntegral_fmap E₀ a
+
+omit [CharZero k₀] [CharZero k] [E₀.IsElliptic] in
+lemma theta_coe (a : puncturedRing E₀) :
+    ((theta (k := k) E₀ a : puncturedRing (E₀.baseChange k)) :
+      (E₀.baseChange k).toAffine.FunctionField) = fmap E₀ (a : E₀.toAffine.FunctionField) := rfl
+
+omit [CharZero k₀] [CharZero k] [E₀.IsElliptic] in
+lemma theta_injective : Function.Injective (theta (k := k) E₀) := by
+  intro a b h
+  have := congrArg (fun z : puncturedRing (E₀.baseChange k) ↦
+    (z : (E₀.baseChange k).toAffine.FunctionField)) h
+  simp only [theta_coe] at this
+  exact Subtype.ext ((fmap (k := k) E₀).injective this)
+
+end Punctured
+
 end OrbicurveCores.Transfer
