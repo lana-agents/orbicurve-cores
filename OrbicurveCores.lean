@@ -6,6 +6,15 @@ Authors: LANA Project
 import OrbicurveCores.ArithTraces
 import OrbicurveCores.Classification
 import OrbicurveCores.Core
+import OrbicurveCores.ForMathlib.Abhyankar.Compositum
+import OrbicurveCores.ForMathlib.Abhyankar.Embed
+import OrbicurveCores.ForMathlib.Abhyankar.Fibre
+import OrbicurveCores.ForMathlib.Abhyankar.Generator
+import OrbicurveCores.ForMathlib.Abhyankar.Order
+import OrbicurveCores.ForMathlib.Abhyankar.Steps
+import OrbicurveCores.ForMathlib.Abhyankar.Tower
+import OrbicurveCores.ForMathlib.Abhyankar.Unramified
+import OrbicurveCores.ForMathlib.Abhyankar.Valuation
 import OrbicurveCores.ForMathlib.ComplexEmbedding
 import OrbicurveCores.ForMathlib.ProjectiveLine
 import OrbicurveCores.ForMathlib.TailConvex
