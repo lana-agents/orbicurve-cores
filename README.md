@@ -35,11 +35,16 @@ See `Blueprint.md` for the full plan, sources and status table. In short:
   * once-punctured torus groups are free, discrete lattices (`oneInftyFiniteCovolume`,
     `oneInfty_discrete`), and infinite index in the commensurator forces a dense commensurator
     (M1, `commensurator_dense`).
-* **Missing**:
-  * uniformisation of `E ∖ 0` (U1): proved separately in `lana-agents/oka`
-    (`wp-uniformization`);
-  * the algebraic ↔ analytic comparison of cores (U2);
-  * identification of the four uniformised curves (S1).
+* **Proved assembly** (`Genuine/Assembly.lean`, `canLift27Genuine_of`): `CanLift27Genuine` follows
+  from U1 (`lana-agents/oka`, pinned), S1 (`S1.not_takeuchi_of_nonExceptional`), the group-level
+  theorem, and three stated interfaces (Blueprint §2.6):
+  * R3 `CommIndexFour`: a once-punctured torus group with a core has index 4 in its
+    commensurator (`Comm(Γ) = ⟨Γ, ι⟩`);
+  * U2 `HemiCoreComplex`: over `ℂ`, `(E ∖ 0)/±1` is then the core of `E ∖ 0` (algebraic ↔
+    analytic comparison of cores);
+  * T `HemiCoreTransfer`: [CanLift] Prop. 2.3 and the Lefschetz principle, from `ℂ` to any field
+    of characteristic 0.
+* **Missing**: proofs of R3, U2 and T (Blueprint §2.6 lists the lemma-level milestones).
 
 ## Dependencies
 
