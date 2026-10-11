@@ -140,8 +140,9 @@ lemma finrank_quotient_eq_one (p : Ideal R) (q : Ideal S) [p.IsMaximal] [q.IsMax
   exact (LinearEquiv.ofBijective (Algebra.linearMap (R ⧸ p) (S ⧸ q)) hb).finrank_eq.symm
 
 /-- **The fibres have `n = rank_R S` points**, if `R → S` is unramified. -/
-theorem card_fib (hunr : ∀ q : Ideal S, q.IsMaximal → q.ramificationIdx R = 1)
-    (χ₀ : R →ₐ[ℂ] ℂ) : Nat.card (Fib S χ₀) = Module.finrank R S := by
+theorem card_fib' (χ₀ : R →ₐ[ℂ] ℂ)
+    (hunr : ∀ q : Ideal S, q.IsMaximal → q.under R = RingHom.ker χ₀ → q.ramificationIdx R = 1) :
+    Nat.card (Fib S χ₀) = Module.finrank R S := by
   haveI : (RingHom.ker χ₀).IsMaximal := ker_isMaximal χ₀
   rw [Nat.card_congr (fibEquiv χ₀), Nat.card_eq_fintype_card,
     ← Ideal.sum_ramification_inertia_eq_finrank (RingHom.ker χ₀) S]
@@ -149,8 +150,13 @@ theorem card_fib (hunr : ∀ q : Ideal S, q.IsMaximal → q.ramificationIdx R = 
   refine Finset.sum_congr rfl fun q _ ↦ ?_
   haveI := q.2.2
   haveI : q.1.IsMaximal := Ideal.IsMaximal.of_liesOver_isMaximal q.1 (RingHom.ker χ₀)
-  rw [hunr q.1 inferInstance, Ideal.inertiaDeg_eq_of_isMaximal (RingHom.ker χ₀) q.1,
-    finrank_quotient_eq_one]
+  rw [hunr q.1 inferInstance (Ideal.LiesOver.over (P := q.1) (p := RingHom.ker χ₀)).symm,
+    Ideal.inertiaDeg_eq_of_isMaximal (RingHom.ker χ₀) q.1, finrank_quotient_eq_one]
+
+/-- **The fibres have `n = rank_R S` points**, if `R → S` is unramified. -/
+theorem card_fib (hunr : ∀ q : Ideal S, q.IsMaximal → q.ramificationIdx R = 1)
+    (χ₀ : R →ₐ[ℂ] ℂ) : Nat.card (Fib S χ₀) = Module.finrank R S :=
+  card_fib' χ₀ fun q hq _ ↦ hunr q hq
 
 omit [Module.Finite R S] in
 lemma finite_fib (χ₀ : R →ₐ[ℂ] ℂ) : (Fib S χ₀).Finite := by
@@ -230,8 +236,9 @@ lemma natDegree_minpoly_le (θ : S) : (minpoly R θ).natDegree ≤ Module.finran
 
 /-- **Minimal polynomial of a separating element**: it has degree `n = rank_R S`, and its
 reduction at the point has simple roots at the values of `θ`. -/
-theorem minpoly_of_separating (hunr : ∀ q : Ideal S, q.IsMaximal → q.ramificationIdx R = 1)
-    (χ₀ : R →ₐ[ℂ] ℂ) {θ : S} (hθ : Set.InjOn (fun χ : S →ₐ[ℂ] ℂ ↦ χ θ) (Fib S χ₀)) :
+theorem minpoly_of_separating' (χ₀ : R →ₐ[ℂ] ℂ)
+    (hunr : ∀ q : Ideal S, q.IsMaximal → q.under R = RingHom.ker χ₀ → q.ramificationIdx R = 1)
+    {θ : S} (hθ : Set.InjOn (fun χ : S →ₐ[ℂ] ℂ ↦ χ θ) (Fib S χ₀)) :
     (minpoly R θ).natDegree = Module.finrank R S ∧
       ∀ χ ∈ Fib S χ₀, ((minpoly R θ).map (χ₀ : R →+* ℂ)).derivative.eval (χ θ) ≠ 0 := by
   classical
@@ -246,7 +253,7 @@ theorem minpoly_of_separating (hunr : ∀ q : Ideal S, q.IsMaximal → q.ramific
   -- `n` distinct roots
   set T := (finite_fib (S := S) χ₀).toFinset.image fun χ ↦ χ θ
   have hTcard : T.card = Module.finrank R S := by
-    rw [Finset.card_image_of_injOn (by simpa using hθ), ← card_fib hunr χ₀,
+    rw [Finset.card_image_of_injOn (by simpa using hθ), ← card_fib' χ₀ hunr,
       Nat.card_coe_set_eq, Set.ncard_eq_toFinset_card _ (finite_fib χ₀)]
   have hTsub : T ⊆ Q.roots.toFinset := fun r hr ↦ by
     obtain ⟨χ, hχ, rfl⟩ := Finset.mem_image.mp hr
@@ -267,6 +274,13 @@ theorem minpoly_of_separating (hunr : ∀ q : Ideal S, q.IsMaximal → q.ramific
   have hsep : Q.Separable :=
     (nodup_roots_iff_of_splits hQm.ne_zero (IsAlgClosed.splits Q)).mp hnd
   exact hsep.eval₂_derivative_ne_zero (RingHom.id ℂ) (hroot χ hχ)
+
+/-- **Minimal polynomial of a separating element** (globally unramified version). -/
+theorem minpoly_of_separating (hunr : ∀ q : Ideal S, q.IsMaximal → q.ramificationIdx R = 1)
+    (χ₀ : R →ₐ[ℂ] ℂ) {θ : S} (hθ : Set.InjOn (fun χ : S →ₐ[ℂ] ℂ ↦ χ θ) (Fib S χ₀)) :
+    (minpoly R θ).natDegree = Module.finrank R S ∧
+      ∀ χ ∈ Fib S χ₀, ((minpoly R θ).map (χ₀ : R →+* ℂ)).derivative.eval (χ θ) ≠ 0 :=
+  minpoly_of_separating' χ₀ (fun q hq _ ↦ hunr q hq) hθ
 
 omit [Algebra ℂ S] [IsScalarTower ℂ R S] [Algebra.FiniteType ℂ S] in
 /-- **The different of an unramified extension is trivial.** -/
