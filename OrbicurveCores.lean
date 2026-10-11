@@ -22,11 +22,14 @@ import OrbicurveCores.Genuine.Hemi
 import OrbicurveCores.Genuine.HemiCore
 import OrbicurveCores.Genuine.HomComp
 import OrbicurveCores.Genuine.Involution
+import OrbicurveCores.Genuine.Transfer.Components
 import OrbicurveCores.Genuine.Transfer.DVR
 import OrbicurveCores.Genuine.Transfer.Generic
 import OrbicurveCores.Genuine.Transfer.Local
+import OrbicurveCores.Genuine.Transfer.LocalGen
 import OrbicurveCores.Genuine.Transfer.LocalGeneric
 import OrbicurveCores.Genuine.Transfer.Normalization
+import OrbicurveCores.Genuine.Transfer.Ramification
 import OrbicurveCores.GroupCanLift
 import OrbicurveCores.GroupMain
 import OrbicurveCores.JValues
