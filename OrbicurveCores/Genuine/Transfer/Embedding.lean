@@ -28,7 +28,8 @@ theorem nonempty_ringHom_complex (k : Type*) [Field k] [CharZero k] [Countable k
   -- `t` is uncountable
   have hct : #ℚ ≤ ℵ₀ := (Cardinal.mk_le_aleph0)
   have hC : ℵ₀ < #ℂ := by rw [Cardinal.mk_complex]; exact Cardinal.aleph0_lt_continuum
-  have htc : #ℂ = #t := IsAlgClosed.cardinal_eq_cardinal_transcendence_basis_of_aleph0_lt' _ ht hct hC
+  have htc : #ℂ = #t :=
+    IsAlgClosed.cardinal_eq_cardinal_transcendence_basis_of_aleph0_lt' _ ht hct hC
   have hsc : #s ≤ ℵ₀ := Cardinal.mk_le_aleph0
   obtain ⟨g⟩ : Nonempty (s ↪ t) := by
     apply Cardinal.lift_mk_le'.mp

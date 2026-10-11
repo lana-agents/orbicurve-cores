@@ -196,4 +196,52 @@ theorem isDedekindDomain_of_model [IsDedekindDomain A] [IsNoetherianRing A₀] :
 
 end Model
 
+section IntegralDescent
+
+variable {k₀ k R₀ B₀ : Type*} [Field k₀] [Field k] [Algebra k₀ k] [CommRing R₀] [CommRing B₀]
+  [Algebra k₀ R₀] [Algebra k₀ B₀]
+
+/-- **Integrality descends along field extensions**: if `1 ⊗ z` is integral over `k ⊗ R₀`, then
+`z` is integral over `R₀` (apply a `k₀`-linear retraction `k → k₀` to an equation). -/
+lemma isIntegral_of_isIntegral_tensor (g : R₀ →ₐ[k₀] B₀) {z : B₀}
+    (h : (letI := (bcMap k g).toRingHom.toAlgebra; IsIntegral (k ⊗[k₀] R₀) ((1 : k) ⊗ₜ[k₀] z))) :
+    (letI := g.toRingHom.toAlgebra; IsIntegral R₀ z) := by
+  letI := g.toRingHom.toAlgebra
+  letI := (bcMap k g).toRingHom.toAlgebra
+  obtain ⟨lam, hlam⟩ := (Algebra.linearMap k₀ k).exists_leftInverse_of_injective
+    (LinearMap.ker_eq_bot.mpr (algebraMap k₀ k).injective)
+  have hlam1 : lam 1 = 1 := by
+    have := congrArg (fun f ↦ f 1) hlam
+    simpa using this
+  let LR : k ⊗[k₀] R₀ →ₗ[k₀] R₀ := (TensorProduct.lid k₀ R₀).toLinearMap ∘ₗ LinearMap.rTensor R₀ lam
+  let LB : k ⊗[k₀] B₀ →ₗ[k₀] B₀ := (TensorProduct.lid k₀ B₀).toLinearMap ∘ₗ LinearMap.rTensor B₀ lam
+  have key : ∀ (c : k ⊗[k₀] R₀) (b : B₀),
+      LB (bcMap k g c * ((1 : k) ⊗ₜ[k₀] b)) = g (LR c) * b := by
+    intro c b
+    induction c with
+    | zero => simp
+    | tmul t r =>
+      simp [LB, LR, Algebra.TensorProduct.tmul_mul_tmul]
+    | add x y hx hy => rw [map_add, add_mul, map_add, hx, hy, map_add, map_add, add_mul]
+  obtain ⟨p, hp, hpz⟩ := h
+  set n := p.natDegree
+  refine ⟨Polynomial.X ^ n + ∑ i : Fin n,
+    Polynomial.C (LR (p.coeff i)) * Polynomial.X ^ (i : ℕ), ?_, ?_⟩
+  · exact Polynomial.monic_X_pow_add (Polynomial.degree_sum_fin_lt _)
+  · rw [hp.as_sum, Polynomial.eval₂_add, Polynomial.eval₂_finsetSum] at hpz
+    simp only [Polynomial.eval₂_X_pow, Polynomial.eval₂_mul, Polynomial.eval₂_C] at hpz
+    have h2 := congrArg LB hpz
+    rw [map_zero, map_add, map_sum] at h2
+    rw [Polynomial.eval₂_add, Polynomial.eval₂_finsetSum, Polynomial.eval₂_X_pow]
+    simp only [Polynomial.eval₂_mul, Polynomial.eval₂_C, Polynomial.eval₂_X_pow]
+    convert h2 using 2
+    · rw [Algebra.TensorProduct.tmul_pow, one_pow]
+      simp [LB, hlam1, n]
+    · rw [← Finset.sum_range (fun i ↦ algebraMap R₀ B₀ (LR (p.coeff i)) * z ^ i)]
+      refine Finset.sum_congr rfl fun i _ ↦ ?_
+      rw [Algebra.TensorProduct.tmul_pow, one_pow]
+      exact (key _ _).symm
+
+end IntegralDescent
+
 end OrbicurveCores.Transfer
