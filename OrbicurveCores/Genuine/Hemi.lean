@@ -126,6 +126,9 @@ noncomputable def hemiHom : AffOrbicurve.Hom (AffOrbicurve.punctured E) (AffOrbi
     have : w'.IsPrime := hw.isPrime
     exact (ramificationIdxIn_under E w').symm
 
+omit [E.IsElliptic] in
+@[simp] lemma hemiHom_f : (hemiHom E).f = hemiMap E := rfl
+
 omit [CharZero k] in
 /-- The identity morphism of an affine orbicurve. -/
 noncomputable def homId (Y : AffOrbicurve k) : AffOrbicurve.Hom Y Y where

@@ -5,6 +5,7 @@ Authors: The orbicurve-cores contributors
 -/
 import OrbicurveCores.S1.Main
 import OrbicurveCores.GroupCanLift
+import OrbicurveCores.Genuine.HemiCore
 
 /-!
 # Assembly of `CanLift27Genuine` from U1, S1, the group level, and three precise interfaces
@@ -32,7 +33,11 @@ Main results:
 * `hemiCore_complex_of`: `CommIndexFour → HemiCoreComplex →` the complex case of pi1's
   `CanLift27`;
 * `canLift27_of`: pi1's `AffOrbicurve.CanLift27` from the three interfaces;
-* `canLift27Genuine_of`: `CanLift27Genuine` from the three interfaces.
+* `canLift27Genuine_of`: `CanLift27Genuine` from the three interfaces;
+* `hemiCoreComplex_of`: U2 over `ℂ` from its descent half `U2Descent` and rigidity half
+  `U2Rigidity` (`Genuine/HemiCore.lean` does the algebra);
+* `canLift27Genuine_of'`: `CanLift27Genuine` from `CommIndexFour`, `U2Descent`, `U2Rigidity` and
+  `HemiCoreTransfer`.
 -/
 
 open Matrix
@@ -59,6 +64,29 @@ def HemiCoreComplex : Prop :=
     tr (A * B * A⁻¹ * B⁻¹) = -2 → tr A ≠ 0 → Uniformizes E A B →
       (Subgroup.closure {A, B}).relIndex (commensurator (Subgroup.closure {A, B})) = 4 →
         AffOrbicurve.IsCoreOf (AffOrbicurve.punctured E) (AffOrbicurve.hemi E)
+
+/-- **U2, descent half, over `ℂ`** (Blueprint §2.6, U2b–U2d): with the hypotheses of
+`HemiCoreComplex`, the `x`-coordinate of a finite étale cover `Z → E ∖ 0` descends along every
+finite étale `Z → Y`. -/
+def U2Descent : Prop :=
+  ∀ (E : WeierstrassCurve ℂ) [E.IsElliptic] (A B : SL(2, ℝ)),
+    tr (A * B * A⁻¹ * B⁻¹) = -2 → tr A ≠ 0 → Uniformizes E A B →
+      (Subgroup.closure {A, B}).relIndex (commensurator (Subgroup.closure {A, B})) = 4 →
+        Genuine.HemiDescends E
+
+/-- **U2, rigidity half, over `ℂ`** (Blueprint §2.6, U2e): with the hypotheses of
+`HemiCoreComplex`, every finite étale `Z → (E ∖ 0)/±1` from a finite étale cover
+`p : Z → E ∖ 0` is `x ∘ p`. -/
+def U2Rigidity : Prop :=
+  ∀ (E : WeierstrassCurve ℂ) [E.IsElliptic] (A B : SL(2, ℝ)),
+    tr (A * B * A⁻¹ * B⁻¹) = -2 → tr A ≠ 0 → Uniformizes E A B →
+      (Subgroup.closure {A, B}).relIndex (commensurator (Subgroup.closure {A, B})) = 4 →
+        Genuine.HemiRigid E
+
+/-- U2 over `ℂ` from its descent and rigidity halves (`Genuine.isCoreOf_hemi_of`). -/
+theorem hemiCoreComplex_of (hD : U2Descent) (hR : U2Rigidity) : HemiCoreComplex :=
+  fun E _ A B hc hA hU hi ↦
+    Genuine.isCoreOf_hemi_of E (hD E A B hc hA hU hi) (hR E A B hc hA hU hi)
 
 /-- The complex case of pi1's `CanLift27`. -/
 def HemiCoreComplexNonExc : Prop :=
@@ -87,6 +115,11 @@ theorem hemiCoreComplexNonExc_of (hR3 : CommIndexFour) (hU2 : HemiCoreComplex) :
 theorem canLift27_of (hR3 : CommIndexFour) (hU2 : HemiCoreComplex)
     (hT : HemiCoreTransfer.{u}) : AffOrbicurve.CanLift27.{u} :=
   hT (hemiCoreComplexNonExc_of hR3 hU2)
+
+/-- **`CanLift27Genuine` from R3, the two halves of U2 over `ℂ`, and the transfer.** -/
+theorem canLift27Genuine_of' (hR3 : CommIndexFour) (hD : U2Descent) (hR : U2Rigidity)
+    (hT : HemiCoreTransfer.{u}) : CanLift27Genuine.{u} :=
+  canLift27Genuine_of_canLift27 (canLift27_of hR3 (hemiCoreComplex_of hD hR) hT)
 
 /-- **`CanLift27Genuine` from R3, U2 over `ℂ`, and the transfer.** -/
 theorem canLift27Genuine_of (hR3 : CommIndexFour) (hU2 : HemiCoreComplex)

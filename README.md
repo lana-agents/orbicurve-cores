@@ -39,9 +39,11 @@ See `Blueprint.md` for the full plan, sources and status table. In short:
   from U1 (`lana-agents/oka`, pinned), S1 (`S1.not_takeuchi_of_nonExceptional`), the group-level
   theorem, and three stated interfaces (Blueprint §2.6):
   * R3 `CommIndexFour`: a once-punctured torus group with a core has index 4 in its
-    commensurator (`Comm(Γ) = ⟨Γ, ι⟩`);
+    commensurator (`Comm(Γ) = ⟨Γ, ι⟩`); `Genuine/Involution.lean` constructs `Γ⁺ = ⟨Γ, ι⟩` with
+    `[Γ⁺ : Γ] = 4` and `Γ⁺ ≤ Comm(Γ)`;
   * U2 `HemiCoreComplex`: over `ℂ`, `(E ∖ 0)/±1` is then the core of `E ∖ 0` (algebraic ↔
-    analytic comparison of cores);
+    analytic comparison of cores); the algebra is done (`Genuine/HemiCore.lean`,
+    `isCoreOf_hemi_of`), leaving its analytic halves `U2Descent` and `U2Rigidity`;
   * T `HemiCoreTransfer`: [CanLift] Prop. 2.3 and the Lefschetz principle, from `ℂ` to any field
     of characteristic 0.
 * **Missing**: proofs of R3, U2 and T (Blueprint §2.6 lists the lemma-level milestones).

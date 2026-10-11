@@ -16,6 +16,8 @@ import OrbicurveCores.Fuchsian.OneInftyLattice
 import OrbicurveCores.Fuchsian.PingPong
 import OrbicurveCores.Genuine.Assembly
 import OrbicurveCores.Genuine.Hemi
+import OrbicurveCores.Genuine.HemiCore
+import OrbicurveCores.Genuine.HomComp
 import OrbicurveCores.Genuine.Involution
 import OrbicurveCores.GroupCanLift
 import OrbicurveCores.GroupMain

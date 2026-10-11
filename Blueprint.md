@@ -383,7 +383,7 @@ from U1, S1, the group-level theorem and three precise interfaces. The `k`-core 
 |---|---|---|
 | F' | `canLift27Genuine_of : CommIndexFour → HemiCoreComplex → HemiCoreTransfer → CanLift27Genuine` (also `canLift27_of`: pi1's `CanLift27`) | **[done]** `Genuine/Assembly.lean` |
 | R3 | `CommIndexFour`: a once-punctured torus group with a core has index `4` in its commensurator (`Comm(Γ) = ⟨Γ, ι⟩`, `ι² = -1`) | **[stated]**; R3a done |
-| U2 | `HemiCoreComplex`: over `ℂ`, if `(A, B)` uniformises `E ∖ 0` and `[Comm(Γ) : Γ] = 4`, then `hemi E` is the `ℂ`-core of `punctured E` | **[stated]** |
+| U2 | `HemiCoreComplex`: over `ℂ`, if `(A, B)` uniformises `E ∖ 0` and `[Comm(Γ) : Γ] = 4`, then `hemi E` is the `ℂ`-core of `punctured E` | **[stated]**; reduced to `U2Descent` and `U2Rigidity` (`hemiCoreComplex_of`) |
 | T | `HemiCoreTransfer`: the complex case of pi1's `CanLift27` implies it over every field of characteristic `0` | **[stated]** |
 
 **R3** (group level). Write `Δ = Comm(Γ)`, of finite index, hence discrete.
@@ -406,22 +406,35 @@ from U1, S1, the group-level theorem and three precise interfaces. The `k`-core 
 
 * U2a. **[done]** `H ∈ LocBar(X)`, via `X → H` given by the `x`-coordinate
   (`Genuine/Hemi.lean`: `hemiHom`, `locBar_hemi`; `k(E)/k(x)` is Galois, so all primes over `v`
-  have ramification index `ramificationIdxIn v`); valid over any field of characteristic `0`.
-* U2b. Covers of `X`: an `AffOrbicurve` `Z` with `Z → X` has trivial multiplicities and is a
-  scheme finite étale over `X`; `Z(ℂ) → X(ℂ)` is a finite covering space, so `π` lifts to
-  `π_Z : ℍ → Z(ℂ)`, with deck group `Γ_Z ≤ Γ` of finite index (topological covering theory plus
-  the algebraic → analytic direction of RET in `oka`).
-* U2c. Quotients: for `Z → Y`, the étale condition `e(w | v) = m_Y(v)` says that `Z(ℂ) → Y(ℂ)` has
-  constant local degree along fibres, so continuation of local lifts (as in S1's
-  `orbLiftStatement`) gives `Δ_Y = {g ∈ SL(2, ℝ) : q π_Z g = q π_Z}`, a group containing `Γ_Z`
-  with finite index; hence `Δ_Y ≤ Comm(Γ)`.
-* U2d. Existence of `Y → H`: `x ∘ π` is `Comm(Γ) = ⟨Γ, ι, -1⟩`-invariant (R3a), so it descends to a
-  holomorphic function on `Y(ℂ)`, finite over `ℂ`; it is algebraic (GAGA/RET for the finite map,
-  or: integral over `A_Y` by its symmetric functions over the fibres of `Z → Y`). The étale
-  condition at `H` is a local degree count.
-* U2e. Uniqueness of `Y → H`: two maps give `g` with `g Δ_Y g⁻¹ ≤ Comm(Γ)` and the same
-  composite up to `g`; `g` commensurates `Γ` (finite covolume), so `g ∈ Comm(Γ)` and the two
-  maps agree on `Y(ℂ)`, hence as ring maps (`A_Y` reduced, Nullstellensatz).
+  have ramification index `ramificationIdxIn v`).
+* U2-alg. **[done]** (`Genuine/HomComp.lean`, `Genuine/HemiCore.lean`, any field of
+  characteristic `0`) Ramification indices are multiplicative in towers, finite étale morphisms
+  compose (`Hom.comp`), and `isCoreOf_hemi_of : HemiDescends E → HemiRigid E →
+  IsCoreOf (punctured E) (hemi E)`, where
+  * `HemiDescends E`: for finite étale `p : Z → X`, `q : Z → Y`, `x ∘ p = q^* f` for some
+    `f ∈ A_Y` (then `f` defines a finite étale `Y → H`, `homOfDescent`: the étale condition
+    follows from `e_p = 1`, `m_Z = 1`, `e_q = m_Y` and multiplicativity);
+  * `HemiRigid E`: every finite étale `Z → H` with `Z` finite étale over `X` is `x ∘ p`.
+  So `HemiCoreComplex` follows from `U2Descent` and `U2Rigidity` (`hemiCoreComplex_of`), the
+  complex cases of these two statements (`Genuine/Assembly.lean`).
+* U2b. Covers of `X`: for `p : Z → X`, `m_Z = 1` and `p` is unramified, so `Z(ℂ) → X(ℂ)` (points =
+  maximal ideals, topology from generators of `A_Z`) is a finite covering space (holomorphic
+  implicit function theorem; properness of finite maps). `π` lifts to `π_Z : ℍ → Z(ℂ)` (oka's
+  covering lifting, as in S1's `orbLiftStatement`), with deck group `Γ_Z ≤ Γ` of finite index.
+* U2c. Local degrees: for a finite map of smooth affine curves over `ℂ`, the algebraic
+  ramification index at a point equals the analytic local degree (algebraic uniformiser = local
+  holomorphic coordinate).
+* U2d (`U2Descent`). For `q : Z → Y`: if `q(z) = q(z')` then `z' = π_Z(g w)`, `z = π_Z(w)` with
+  `g` in the group `Δ_Y = {g : q π_Z g = q π_Z}` (continuation of local lifts, using U2c and the
+  étale condition `e_q = m_Y`). `Δ_Y ⊇ Γ_Z` with finite index, so `Δ_Y ≤ Comm(Γ) = Γ⁺` (R3), and
+  `x ∘ π` is `Γ⁺`-invariant (`ι` acts as `[-1]`), so `x ∘ p` is constant on fibres of `q`. Hence
+  `x ∘ p` lies in the function field of `Y` (Galois closure of `k(Z)/k(Y)`), and it is integral,
+  so it lies in `A_Y`.
+* U2e (`U2Rigidity`). A finite étale `φ : Z → H` makes `φ ∘ π_Z : ℍ → ℂ` an orbifold covering of
+  the orbifold `ℂ` with three cone points of order `2`, as is `x ∘ π`. Lifting each through the
+  other (S1's orbifold lifting) gives a biholomorphism `h` of `ℍ`, i.e. a Möbius map, with
+  `x ∘ π ∘ h = φ ∘ π_Z`; then `h` commensurates `Γ`, so `h ∈ Γ⁺` and `φ = x ∘ p` on `Z(ℂ)`, hence
+  as functions (Nullstellensatz).
 
 **T** ([CanLift] Prop. 2.3 + Lefschetz).
 
