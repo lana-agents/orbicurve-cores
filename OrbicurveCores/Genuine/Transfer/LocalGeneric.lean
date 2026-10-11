@@ -8,6 +8,7 @@ import OrbicurveCores.Genuine.Transfer.Local
 import OrbicurveCores.Genuine.Transfer.Normalization
 import Mathlib.RingTheory.PolynomialAlgebra
 import Mathlib.RingTheory.Flat.TorsionFree
+import OrbicurveCores.Genuine.Transfer.Components
 
 /-!
 # T2c, generic case: local structure of `K ⊗_k A` over the generic point
@@ -130,5 +131,22 @@ theorem isDVR_generic [CharZero k] (M : Ideal (K ⊗[k] A)) [M.IsMaximal]
   exact IsLocalization.map_nonZeroDivisors_le M.primeCompl _ ⟨_, hnz, rfl⟩
 
 end Setup
+
+/-- **T2c**: for a Dedekind domain `A` of finite type over `k` (characteristic `0`) which is not a
+field, and any field extension `K / k`, every localization of `K ⊗_k A` at a maximal ideal is a
+discrete valuation ring. -/
+theorem locallyDVR_tensor [CharZero k] [IsDedekindDomain A] [Algebra.FiniteType k A]
+    (hA : ¬ IsField A) : LocallyDVR (K ⊗[k] A) := by
+  intro M _
+  by_cases hv : M.comap (Algebra.TensorProduct.includeRight : A →ₐ[k] K ⊗[k] A) = ⊥
+  · obtain ⟨t, ht, hfin⟩ := exists_finite_polynomial k A hA
+    letI : Algebra k[X] A := t.toRingHom.toAlgebra
+    haveI : IsScalarTower k k[X] A := IsScalarTower.of_algebraMap_eq fun c ↦ by
+      change _ = t (Polynomial.C c)
+      rw [← Polynomial.algebraMap_eq, AlgHom.commutes]
+    haveI : Module.Finite k[X] A := hfin
+    haveI : FaithfulSMul k[X] A := (faithfulSMul_iff_algebraMap_injective _ _).mpr ht
+    exact isDVR_generic M hv
+  · exact isDVR_closed M hv
 
 end OrbicurveCores.Transfer
