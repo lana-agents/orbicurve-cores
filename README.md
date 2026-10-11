@@ -42,12 +42,13 @@ See `Blueprint.md` for the full plan, sources and status table. In short:
     commensurator (`Comm(Γ) = ⟨Γ, ι⟩`); **proved** (`commIndexFour`,
     `Genuine/TranslationCase.lean`, including R3d `translationCase`);
   * U2 `HemiCoreComplex`: over `ℂ`, `(E ∖ 0)/±1` is then the core of `E ∖ 0` (algebraic ↔
-    analytic comparison of cores); the algebra is done (`Genuine/HemiCore.lean`,
-    `isCoreOf_hemi_of`), leaving its analytic halves `U2Descent` and `U2Rigidity`;
+    analytic comparison of cores); **proved** (`hemiCoreComplex`): the algebra
+    (`Genuine/HemiCore.lean`), `U2Rigidity` (`u2Rigidity`, `Genuine/Rigid/`) and `U2Descent`
+    (`u2Descent`, via Abhyankar's lemma `Abhyankar.compositumSeparates`, `Genuine/Abhyankar/`);
   * T `HemiCoreTransfer`: [CanLift] Prop. 2.3 and the Lefschetz principle, from `ℂ` to any field
     of characteristic 0.
-* **Missing**: `U2Descent`, `U2Rigidity`, `HemiCoreTransfer`
-  (`Genuine/Final.lean`, `canLift27Genuine_of_U2_transfer`; Blueprint §2.6 lists the milestones).
+* **Missing**: only `HemiCoreTransfer` (`Genuine/Final.lean`,
+  `canLift27Genuine_of_transfer : HemiCoreTransfer → CanLift27Genuine`; Blueprint §2.6).
 
 ## Dependencies
 
