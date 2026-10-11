@@ -82,7 +82,8 @@ theorem exists_model {k₀ : Type u} [Field k₀] {k : Type (max u v)} [Field k]
     ∃ (A₀ : Type u) (_ : CommRing A₀) (_ : Algebra k₀ A₀) (_ : Algebra.FiniteType k₀ A₀)
       (e : k ⊗[k₀] A₀ ≃ₐ[k] A), (∀ i, ∃ x : A₀, e ((1 : k) ⊗ₜ x) = P.val i) ∧
         ∀ x : A₀, ∃ f : MvPolynomial (Fin a) k₀,
-          e ((1 : k) ⊗ₜ x) = MvPolynomial.eval₂ ((algebraMap k A).comp (algebraMap k₀ k)) P.val f := by
+          e ((1 : k) ⊗ₜ x) =
+            MvPolynomial.eval₂ ((algebraMap k A).comp (algebraMap k₀ k)) P.val f := by
   letI : Algebra k₀ A := ((algebraMap k A).comp (algebraMap k₀ k)).toAlgebra
   haveI : IsScalarTower k₀ k A := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
   haveI : P.HasCoeffs k₀ := ⟨hP⟩

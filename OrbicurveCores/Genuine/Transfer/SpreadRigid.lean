@@ -63,7 +63,8 @@ theorem hemiRigid_subfield (h : HemiCoreComplexNonExc) (k₀ : Subfield ℂ)
 
 /-- Trivial multiplicities are defined over every model. -/
 lemma multDefinedOver_of_forall {k₀ : Type u} [Field k₀] {k : Type (max u v)} [Field k]
-    [Algebra k₀ k] {Z : AffOrbicurve k} {A₀ : Type u} [CommRing A₀] [Algebra k₀ A₀] [Algebra.FiniteType k₀ A₀]
+    [Algebra k₀ k] {Z : AffOrbicurve k} {A₀ : Type u} [CommRing A₀] [Algebra k₀ A₀]
+    [Algebra.FiniteType k₀ A₀]
     (e : k ⊗[k₀] A₀ ≃ₐ[k] Z.A) (h : ∀ w : Ideal Z.A, w.IsMaximal → Z.mult w = 1) :
     MultDefinedOver Z e :=
   ⟨fun w w' hw hw' _ ↦ (h w hw).trans (h w' hw').symm, fun w hw _ ↦ h w hw⟩
@@ -89,7 +90,8 @@ theorem hemiRigid_of_complex (h : HemiCoreComplexNonExc) {k : Type u} [Field k] 
   obtain ⟨y₀, hy₀⟩ := hgen (Fin.castAdd m 1)
   obtain ⟨f₀, hf₀⟩ := hgen (Fin.castAdd m 2)
   rw [hP] at hx₀ hy₀ hf₀
-  have hZ : MultDefinedOver Z e := multDefinedOver_of_forall.{0, u} e (Genuine.mult_eq_one_of_hom _ p)
+  have hZ : MultDefinedOver Z e :=
+    multDefinedOver_of_forall.{0, u} e (Genuine.mult_eq_one_of_hom _ p)
   have h₀ := hR _ (modelPunctured (k := k) E₀ e hZ p x₀ y₀ hx₀ hy₀)
     (modelHemi (k := k) E₀ e hZ φ f₀ hf₀)
   have h₁ := congrArg (rhoM Z e) h₀
