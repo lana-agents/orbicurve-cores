@@ -25,6 +25,7 @@ local notation "K" => FractionRing B
 local notation "Ω" => AlgebraicClosure (FractionRing B)
 
 set_option synthInstance.maxHeartbeats 200000 in
+-- instance search through towers of integral closures is slow
 /-- **A generator with a simple root at a given prime.** -/
 theorem exists_generator_IC {F F' : IntermediateField K Ω} [FiniteDimensional K F]
     [FiniteDimensional K F'] (h : F ≤ F') (p₀ : Ideal (IC B F)) [p₀.IsMaximal]
@@ -91,6 +92,7 @@ lemma eval₂_icMap {K' L₁ L₂ N : IntermediateField K Ω} (h₁ : K' ≤ L�
   exact (hom_eval₂ _ _ _ _).symm
 
 set_option synthInstance.maxHeartbeats 200000 in
+-- instance search through towers of integral closures is slow
 /-- **Composita of unramified extensions are unramified.** -/
 theorem ramIC_compositum {K' L₁ L₂ N : IntermediateField K Ω} [FiniteDimensional K K']
     [FiniteDimensional K L₁] [FiniteDimensional K L₂] [FiniteDimensional K N]

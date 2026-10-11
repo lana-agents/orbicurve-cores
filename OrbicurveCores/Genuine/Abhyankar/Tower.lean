@@ -191,6 +191,7 @@ lemma adjoin_eq_top_of_le {F F' : IntermediateField K Ω} (h : F ≤ F') (θ : F
   rwa [hι hyx] at hy
 
 set_option synthInstance.maxHeartbeats 200000 in
+-- instance search through towers of integral closures is slow
 /-- **Unramifiedness in a tower from the derivative of a minimal polynomial.** -/
 theorem ramIC_eq_one_of_aeval_derivative {F F' : IntermediateField K Ω} [FiniteDimensional K F]
     [FiniteDimensional K F'] (h : F ≤ F') {θ : IC B F'}
@@ -225,6 +226,7 @@ theorem ramIC_eq_one_of_aeval_derivative {F F' : IntermediateField K Ω} [Finite
 
 
 set_option synthInstance.maxHeartbeats 200000 in
+-- instance search through towers of integral closures is slow
 /-- **Kummer generators in a tower are unramified.** -/
 theorem ramIC_eq_one_of_pow_eq {F F' : IntermediateField K Ω} [FiniteDimensional K F]
     [FiniteDimensional K F'] (h : F ≤ F') {θ : IC B F'}
@@ -256,8 +258,9 @@ theorem ramIC_eq_one_of_pow_eq {F F' : IntermediateField K Ω} [FiniteDimensiona
     charZero_of_injective_algebraMap (algebraMap ℂ (IC B F)).injective
   exact Abhyankar.ramificationIdx_eq_one_of_pow_eq (KR := F) (KS := F') hgen' hm hθ hc
 
-omit [Algebra ℂ B] in
 set_option synthInstance.maxHeartbeats 200000 in
+-- instance search through towers of integral closures is slow
+omit [Algebra ℂ B] in
 lemma isIntegral_icMap {F F' : IntermediateField K Ω} (h : F ≤ F') :
     (icMap (B := B) h).toRingHom.IsIntegral := by
   letI i₁ : Algebra (IC B F) (IC B F') := (icMap (B := B) h).toRingHom.toAlgebra
@@ -266,8 +269,9 @@ lemma isIntegral_icMap {F F' : IntermediateField K Ω} (h : F ≤ F') :
     IsScalarTower.of_algebraMap_eq fun b ↦ ((icMap (B := B) h).commutes b).symm
   exact fun x ↦ (Algebra.IsIntegral.isIntegral (R := B) x).tower_top
 
-omit [Algebra ℂ B] in
 set_option synthInstance.maxHeartbeats 200000 in
+-- instance search through towers of integral closures is slow
+omit [Algebra ℂ B] in
 /-- The contraction of a maximal ideal along `icMap` is maximal. -/
 lemma isMaximal_comap_icMap {F F' : IntermediateField K Ω} (h : F ≤ F') (Q : Ideal (IC B F'))
     [Q.IsMaximal] : (Q.comap (icMap (B := B) h)).IsMaximal := by
@@ -283,8 +287,9 @@ lemma under_comap_icMap {F F' : IntermediateField K Ω} (h : F ≤ F') (Q : Idea
   simp only [Ideal.under, Ideal.mem_comap]
   rw [← (icMap (B := B) h).commutes b]
 
-omit [Algebra ℂ B] in
 set_option synthInstance.maxHeartbeats 200000 in
+-- instance search through towers of integral closures is slow
+omit [Algebra ℂ B] in
 /-- Going up along `icMap`. -/
 lemma exists_comap_icMap_eq {F F' : IntermediateField K Ω} (h : F ≤ F') (w : Ideal (IC B F))
     [w.IsMaximal] : ∃ Q : Ideal (IC B F'), Q.IsMaximal ∧ Q.comap (icMap (B := B) h) = w := by
