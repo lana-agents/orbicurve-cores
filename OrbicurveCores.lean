@@ -25,6 +25,8 @@ import OrbicurveCores.Genuine.Involution
 import OrbicurveCores.Genuine.Transfer.DVR
 import OrbicurveCores.Genuine.Transfer.Generic
 import OrbicurveCores.Genuine.Transfer.Local
+import OrbicurveCores.Genuine.Transfer.LocalGeneric
+import OrbicurveCores.Genuine.Transfer.Normalization
 import OrbicurveCores.GroupCanLift
 import OrbicurveCores.GroupMain
 import OrbicurveCores.JValues
