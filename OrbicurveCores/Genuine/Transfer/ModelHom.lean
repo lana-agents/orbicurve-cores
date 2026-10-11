@@ -207,6 +207,36 @@ noncomputable def homOfModels : Hom Z₀ Y₀ where
   isIntegral z := isIntegral_of_models q g hQ ιZ ιY hιZ hsq z
   etale w₀ hw₀ := etale_of_models q g hQ ιZ ιY hιZ hιY hsq hg hlie w₀ hw₀
 
+
+/-- `homOfModels` with a prescribed component `𝔮` of the target (equal to the contraction of
+the zero ideal). -/
+noncomputable def homOfModels' (𝔮 : Ideal (k ⊗[k₀] Y₀.A)) (h𝔮 : 𝔮 ∈ minimalPrimes _)
+    (heq : (⊥ : Ideal (k ⊗[k₀] Z₀.A)).comap (bcMap k g) = 𝔮)
+    (ιZ : Hom (bcComp k Z₀ ⊥ (bot_mem_minimalPrimes_of_isDomain _)) Z)
+    (ιY : Hom (bcComp k Y₀ 𝔮 h𝔮) Y)
+    (hιZ : Function.Bijective ιZ.f) (hιY : Function.Bijective ιY.f)
+    (hsq : ∀ y : Y.A, ιZ.f (q.f y) =
+      Ideal.quotientMapₐ ⊥ (bcMap k g) (heq ▸ le_rfl) (ιY.f y))
+    (hg : Function.Injective g)
+    (hlie : ∀ w₀ : Ideal Z₀.A, w₀.IsMaximal → ∃ W : Ideal (k ⊗[k₀] Z₀.A), W.IsMaximal ∧
+      W.comap (Algebra.TensorProduct.includeRight : Z₀.A →ₐ[k₀] k ⊗[k₀] Z₀.A) = w₀) :
+    Hom Z₀ Y₀ := by
+  subst heq
+  exact homOfModels q g h𝔮 ιZ ιY hιZ hιY hsq hg hlie
+
+lemma homOfModels'_f (𝔮 : Ideal (k ⊗[k₀] Y₀.A)) (h𝔮 : 𝔮 ∈ minimalPrimes _)
+    (heq : (⊥ : Ideal (k ⊗[k₀] Z₀.A)).comap (bcMap k g) = 𝔮)
+    (ιZ : Hom (bcComp k Z₀ ⊥ (bot_mem_minimalPrimes_of_isDomain _)) Z)
+    (ιY : Hom (bcComp k Y₀ 𝔮 h𝔮) Y)
+    (hιZ : Function.Bijective ιZ.f) (hιY : Function.Bijective ιY.f)
+    (hsq : ∀ y : Y.A, ιZ.f (q.f y) =
+      Ideal.quotientMapₐ ⊥ (bcMap k g) (heq ▸ le_rfl) (ιY.f y))
+    (hg : Function.Injective g)
+    (hlie : ∀ w₀ : Ideal Z₀.A, w₀.IsMaximal → ∃ W : Ideal (k ⊗[k₀] Z₀.A), W.IsMaximal ∧
+      W.comap (Algebra.TensorProduct.includeRight : Z₀.A →ₐ[k₀] k ⊗[k₀] Z₀.A) = w₀) (y : Y₀.A) :
+    (homOfModels' q g 𝔮 h𝔮 heq ιZ ιY hιZ hιY hsq hg hlie).f y = g y := by
+  subst heq
+  rfl
 end HomOfModels
 
 end OrbicurveCores.Transfer
