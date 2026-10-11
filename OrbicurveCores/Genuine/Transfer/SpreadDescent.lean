@@ -116,4 +116,143 @@ lemma rhoM_modelHom (b : B₀) :
 
 end ModelHom
 
+section Mult
+
+variable {k₀ : Type u} [Field k₀] {k : Type (max u v)} [Field k] [Algebra k₀ k]
+  {Y : AffOrbicurve k} {B₀ : Type u} [CommRing B₀] [Algebra k₀ B₀] [Algebra.FiniteType k₀ B₀]
+  (eY : k ⊗[k₀] B₀ ≃ₐ[k] Y.A)
+
+omit [Algebra.FiniteType k₀ B₀] in
+lemma le_of_gens {w w' : Ideal Y.A} {G : Set Y.A} (hG : w = Ideal.span G)
+    (hGr : G ⊆ Set.range (rhoM Y eY)) (hc : w.comap (rhoM Y eY) ≤ w'.comap (rhoM Y eY)) :
+    w ≤ w' := by
+  rw [hG, Ideal.span_le]
+  intro x hx
+  obtain ⟨b, rfl⟩ := hGr hx
+  exact hc (show rhoM Y eY b ∈ w from hG ▸ Ideal.subset_span hx)
+
+omit [Algebra.FiniteType k₀ B₀] in
+/-- **Multiplicities are defined over a model containing generators of the special maximal
+ideals.** -/
+lemma multDefinedOver_of_gens (h : ∀ w : Ideal Y.A, w.IsMaximal → Y.mult w ≠ 1 →
+      ∃ G : Set Y.A, w = Ideal.span G ∧ G ⊆ Set.range (rhoM Y eY)) :
+    MultDefinedOver Y eY := by
+  refine ⟨fun w w' hw hw' hc ↦ ?_, fun w hw hc ↦ ?_⟩
+  · by_contra hne
+    by_cases h1 : Y.mult w = 1
+    · obtain ⟨G, hG, hGr⟩ := h w' hw' (fun h2 ↦ hne (h1.trans h2.symm))
+      have := hw'.eq_of_le hw.ne_top (le_of_gens eY hG hGr hc.symm.le)
+      exact hne (congrArg Y.mult this.symm)
+    · obtain ⟨G, hG, hGr⟩ := h w hw h1
+      have := hw.eq_of_le hw'.ne_top (le_of_gens eY hG hGr hc.le)
+      exact hne (congrArg Y.mult this)
+  · by_contra h1
+    obtain ⟨G, hG, hGr⟩ := h w hw h1
+    have hle := le_of_gens eY (w' := ⊥) hG hGr (by
+      rw [hc]
+      intro x hx
+      rw [Ideal.mem_bot] at hx
+      rw [Ideal.mem_comap, hx, map_zero]
+      exact Ideal.zero_mem _)
+    have hbot : w = ⊥ := le_bot_iff.mp hle
+    rw [hbot] at hw
+    exact Y.not_isField (Ring.isField_iff_maximal_bot.mpr hw)
+
+omit [Algebra.FiniteType k₀ B₀] in
+/-- Polynomials over `k₀` in elements of `ρ(B₀)` lie in `ρ(B₀)`. -/
+lemma eval₂_mem_range {σ : Type*} (v : σ → Y.A) (hv : ∀ i, v i ∈ Set.range (rhoM Y eY))
+    (f : MvPolynomial σ k₀) :
+    MvPolynomial.eval₂ ((algebraMap k Y.A).comp (algebraMap k₀ k)) v f ∈
+      Set.range (rhoM Y eY) := by
+  induction f using MvPolynomial.induction_on with
+  | C a =>
+    rw [MvPolynomial.eval₂_C]
+    exact ⟨algebraMap k₀ B₀ a, rhoM_algebraMap eY a⟩
+  | add f₁ f₂ h₁ h₂ =>
+    obtain ⟨a₁, ha₁⟩ := h₁
+    obtain ⟨a₂, ha₂⟩ := h₂
+    exact ⟨a₁ + a₂, by rw [map_add, ha₁, ha₂, MvPolynomial.eval₂_add]⟩
+  | mul_X f₁ i h₁ =>
+    obtain ⟨a₁, ha₁⟩ := h₁
+    obtain ⟨a₂, ha₂⟩ := hv i
+    exact ⟨a₁ * a₂, by rw [map_mul, ha₁, ha₂, MvPolynomial.eval₂_mul, MvPolynomial.eval₂_X]⟩
+
+end Mult
+
+/-- **Descent over every field of characteristic `0`** (T3, descent half). -/
+theorem hemiDescends_of_complex (h : HemiCoreComplexNonExc) {k : Type u} [Field k] [CharZero k]
+    (E : WeierstrassCurve k) [E.IsElliptic] (hj : ∀ c ∈ excJ, E.j ≠ (c : k)) :
+    Genuine.HemiDescends E := by
+  classical
+  intro Z Y p q
+  -- generators of the special maximal ideals of `Y`
+  have hgens : ∀ w : Ideal Y.A, ∃ F : Finset Y.A, w = Ideal.span F := fun w ↦
+    let ⟨F, hF⟩ := (IsNoetherian.noetherian w : w.FG)
+    ⟨F, hF.symm⟩
+  choose F hF using hgens
+  let T := {w : Ideal Y.A | w.IsMaximal ∧ Y.mult w ≠ 1}
+  let G : Set Y.A := ⋃ w ∈ T, (F w : Set Y.A)
+  have hG : G.Finite := Y.finite_mult.biUnion fun w _ ↦ (F w).finite_toSet
+  let tY : Fin hG.toFinset.card → Y.A := fun i ↦ (hG.toFinset.equivFin.symm i : Y.A)
+  obtain ⟨mY, rY, PY, hPY⟩ := exists_presentation (k := k) tY
+  let s : Fin (2 + (hG.toFinset.card + mY)) → Z.A :=
+    Fin.append ![p.f (Genuine.hemiMap E X), p.f (yA E)] fun i ↦ q.f (PY.val i)
+  obtain ⟨mZ, rZ, PZ, hPZ⟩ := exists_presentation (k := k) s
+  let S : Set k := PZ.coeffs ∪ PY.coeffs ∪ {E.a₁, E.a₂, E.a₃, E.a₄, E.a₆}
+  have hS : S.Finite := (PZ.finite_coeffs.union PY.finite_coeffs).union (by simp)
+  obtain ⟨k₀, ι, hι⟩ := exists_subfield_complex S hS
+  letI : Algebra k₀ k := ι.toAlgebra
+  obtain ⟨E₀, rfl⟩ := exists_weierstrass_model (k₀ := k₀) E
+    (fun x hx ↦ hι (Set.mem_union_right _ hx))
+  haveI : E₀.IsElliptic := isElliptic_of_baseChange (k := k) E₀ inferInstance
+  obtain ⟨-, hD⟩ := hemiRigid_subfield h k₀ E₀ fun c hc ↦ j_ne_of_baseChange E₀ c (hj c hc)
+  obtain ⟨A₀, _, _, _, eZ, hgenZ, -⟩ := exists_model.{0, u} (k₀ := k₀) PZ
+    fun x hx ↦ hι (Set.mem_union_left _ (Set.mem_union_left _ hx))
+  obtain ⟨B₀, _, _, _, eY, hgenY, hpolyY⟩ := exists_model.{0, u} (k₀ := k₀) PY
+    fun x hx ↦ hι (Set.mem_union_left _ (Set.mem_union_right _ hx))
+  obtain ⟨x₀, hx₀⟩ := hgenZ (Fin.castAdd mZ (Fin.castAdd _ 0))
+  obtain ⟨y₀, hy₀⟩ := hgenZ (Fin.castAdd mZ (Fin.castAdd _ 1))
+  rw [hPZ] at hx₀ hy₀
+  simp only [s, Fin.append_left] at hx₀ hy₀
+  simp only [Fin.isValue, Matrix.cons_val_zero, Matrix.cons_val_one] at hx₀ hy₀
+  have hZ : MultDefinedOver Z eZ :=
+    multDefinedOver_of_forall.{0, u} eZ (Genuine.mult_eq_one_of_hom _ p)
+  have hY : MultDefinedOver Y eY := multDefinedOver_of_gens.{0, u} eY fun w hw hm ↦
+    ⟨F w, hF w, fun x hx ↦ by
+      have hxG : x ∈ hG.toFinset := hG.mem_toFinset.mpr (Set.mem_biUnion ⟨hw, hm⟩ hx)
+      obtain ⟨b, hb⟩ := hgenY (Fin.castAdd mY (hG.toFinset.equivFin ⟨x, hxG⟩))
+      refine ⟨b, hb.trans ?_⟩
+      rw [hPY]
+      simp [tY]⟩
+  have hq : ∀ b, ∃ a, rhoM Z eZ a = q.f (rhoM Y eY b) := by
+    intro b
+    obtain ⟨f, hf⟩ := hpolyY b
+    rw [rhoM_apply, hf]
+    have h1 : q.f (MvPolynomial.eval₂ ((algebraMap k Y.A).comp (algebraMap k₀ k)) PY.val f) =
+        MvPolynomial.eval₂ ((algebraMap k Z.A).comp (algebraMap k₀ k)) (fun i ↦ q.f (PY.val i))
+          f := by
+      refine (MvPolynomial.hom_eval₂ f _ q.f.toRingHom PY.val).trans ?_
+      congr 1
+      exact RingHom.ext fun c ↦ q.f.commutes _
+    rw [h1]
+    refine eval₂_mem_range.{0, u} eZ _ (fun i ↦ ?_) f
+    obtain ⟨a, ha⟩ := hgenZ (Fin.castAdd mZ (Fin.natAdd 2 i))
+    rw [hPZ] at ha
+    simp only [s, Fin.append_right] at ha
+    exact ⟨a, ha⟩
+  obtain ⟨f₀, hf₀⟩ := hD _ _ (modelPunctured (k := k) E₀ eZ hZ p x₀ y₀ hx₀ hy₀)
+    (modelHom eZ eY q hq hZ hY)
+  refine ⟨rhoM Y eY f₀, ?_⟩
+  rw [← rhoM_modelHom eZ eY q hq hZ hY, hf₀, rhoM_modelPunctured_x]
+
 end OrbicurveCores.Transfer
+
+namespace OrbicurveCores
+
+/-- **T. Transfer**: the core property of the punctured hemi-elliptic orbicurve passes from `ℂ`
+to every field of characteristic `0` ([CanLift] Prop. 2.3 and the Lefschetz principle). -/
+theorem hemiCoreTransfer : HemiCoreTransfer.{u} := fun h _ _ _ E _ hj ↦
+  Genuine.isCoreOf_hemi_of E (Transfer.hemiDescends_of_complex h E hj)
+    (Transfer.hemiRigid_of_complex h E hj)
+
+end OrbicurveCores

@@ -8,6 +8,7 @@ import OrbicurveCores.Genuine.CommIndex
 import OrbicurveCores.Genuine.Descent
 import OrbicurveCores.Genuine.Rigid.Main
 import OrbicurveCores.Genuine.Abhyankar.Separates
+import OrbicurveCores.Genuine.Transfer.SpreadDescent
 
 /-!
 # `CanLift27Genuine` from the remaining four interfaces
@@ -34,6 +35,9 @@ from `TranslationCase`, `CompositumSeparates ℂ` and `HemiCoreTransfer`
 `CompositumSeparates ℂ` is proved (`Abhyankar.compositumSeparates`, U2f), so U2 is proved
 (`u2Descent`, `hemiCoreComplex`) and `CanLift27Genuine` follows from `TranslationCase` and
 `HemiCoreTransfer` (`canLift27Genuine_of_translationCase_of_transfer`).
+
+R3d (`translationCase`) and the transfer (`hemiCoreTransfer`, `Genuine/Transfer/`) are proved, so
+`CanLift27Genuine` holds unconditionally (`canLift27Genuine`).
 -/
 
 universe u
@@ -92,5 +96,11 @@ theorem canLift27Genuine_of_translationCase_of_transfer (hR3d : TranslationCase)
 (`u2Rigidity`, `u2Descent`) are proved, so only `HemiCoreTransfer` remains. -/
 theorem canLift27Genuine_of_transfer (hT : HemiCoreTransfer.{u}) : CanLift27Genuine.{u} :=
   canLift27Genuine_of_translationCase_of_transfer translationCase hT
+
+/-- **[CanLift] Proposition 2.7, genuine form**: for an elliptic curve `E` over a field of
+characteristic `0` with `j(E)` not exceptional, the punctured hemi-elliptic orbicurve is the core
+of `E ∖ 0`. -/
+theorem canLift27Genuine : CanLift27Genuine.{u} :=
+  canLift27Genuine_of_transfer hemiCoreTransfer
 
 end OrbicurveCores
