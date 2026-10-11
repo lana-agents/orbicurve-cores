@@ -274,7 +274,8 @@ theorem differentIdeal_eq_top (hunr : ∀ q : Ideal S, q.IsMaximal → q.ramific
     differentIdeal R S = ⊤ := by
   haveI : CharZero R := charZero_of_injective_algebraMap (algebraMap ℂ R).injective
   haveI := finiteDimensional_fractionRing (R := R) (S := S)
-  haveI : Algebra.IsSeparable (FractionRing R) (FractionRing S) := Algebra.IsSeparable.of_integral _ _
+  haveI : Algebra.IsSeparable (FractionRing R) (FractionRing S) :=
+    Algebra.IsSeparable.of_integral _ _
   by_contra h
   obtain ⟨P, hP, hle⟩ := Ideal.exists_le_maximal _ h
   have hdvd : P ∣ differentIdeal R S := Ideal.dvd_iff_le.mpr hle
@@ -293,7 +294,8 @@ theorem derivative_mul_mem_adjoin
     aeval θ (derivative (minpoly R θ)) * a ∈ Algebra.adjoin R {θ} := by
   haveI : CharZero R := charZero_of_injective_algebraMap (algebraMap ℂ R).injective
   haveI := finiteDimensional_fractionRing (R := R) (S := S)
-  haveI : Algebra.IsSeparable (FractionRing R) (FractionRing S) := Algebra.IsSeparable.of_integral _ _
+  haveI : Algebra.IsSeparable (FractionRing R) (FractionRing S) :=
+    Algebra.IsSeparable.of_integral _ _
   haveI : IsIntegralClosure S R (FractionRing S) :=
     IsIntegralClosure.of_isIntegrallyClosed S R (FractionRing S)
   set x := algebraMap S (FractionRing S) θ
