@@ -36,6 +36,7 @@ import OrbicurveCores.Genuine.Transfer.Local
 import OrbicurveCores.Genuine.Transfer.LocalGen
 import OrbicurveCores.Genuine.Transfer.LocalGeneric
 import OrbicurveCores.Genuine.Transfer.Model
+import OrbicurveCores.Genuine.Transfer.ModelHom
 import OrbicurveCores.Genuine.Transfer.Normalization
 import OrbicurveCores.Genuine.Transfer.Ramification
 import OrbicurveCores.GroupCanLift
