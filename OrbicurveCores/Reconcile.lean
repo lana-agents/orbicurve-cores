@@ -33,7 +33,8 @@ lemma exceptionalJ_eq_excJ : exceptionalJ = AffOrbicurve.excJ := by
 
 /-- **[EstIUT] Prop. 2.1 / [CanLift] Prop. 2.7 with genuine cores**: if the once-punctured
 elliptic curve `E ∖ {0}` over a field of characteristic `0` is `k`-arithmetic (has no `k`-core in
-the sense of [CanLift] Def. 2.1), then `j(E)` is exceptional. Not proved here. -/
+the sense of [CanLift] Def. 2.1), then `j(E)` is exceptional. Proved as `canLift27Genuine`
+(`Genuine/Final.lean`). -/
 def CanLift27Genuine : Prop :=
   ∀ (k : Type u) [Field k] [CharZero k] (E : WeierstrassCurve k) [E.IsElliptic],
     AffOrbicurve.IsArithmetic (AffOrbicurve.punctured E) → IsExceptionalJ E.j

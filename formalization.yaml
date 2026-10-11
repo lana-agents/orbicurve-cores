@@ -8,14 +8,17 @@ project:
   name: "orbicurve-cores"
   description: >-
     A Lean 4 / Mathlib formalization of Proposition 2.7 of Mochizuki's The Absolute Anabelian
-    Geometry of Canonical Curves over ℂ: for an elliptic curve E over ℂ whose j-invariant is not one
-    of the four exceptional values {0, 1728, 2¹⁴·31³/5³, 2²·73³/3⁴}, the hemi-elliptic quotient
-    (E ∖ {0})/{±1} is the ℂ-core of the once-punctured elliptic curve E ∖ {0} (genuine k-cores of
-    lana-agents/pi1). The proof formalizes Takeuchi's classification of arithmetic (1;∞)-groups,
+    Geometry of Canonical Curves: for an elliptic curve E over a field k of characteristic 0 whose
+    j-invariant is not one of the four exceptional values {0, 1728, 2¹⁴·31³/5³, 2²·73³/3⁴}, the
+    hemi-elliptic quotient (E ∖ {0})/{±1} is the k-core of the once-punctured elliptic curve
+    E ∖ {0} (genuine k-cores of lana-agents/pi1). The proof formalizes Takeuchi's classification of arithmetic (1;∞)-groups,
     the Margulis commensurator theorem for once-punctured torus groups (via commensurator
     superrigidity into PGL₂(ℂ) and PGL₂(ℚ_p)), the group-level statement (a (1;∞)-group admits no
     core iff it is one of Takeuchi's four groups), uniformization of E ∖ {0}, Belyi certificates
-    for the four model curves, and the comparison of algebraic and analytic covers (Theorem G).
+    for the four model curves, the comparison of algebraic and analytic covers (Theorem G), and
+    the transfer from ℂ to arbitrary fields of characteristic 0 (spreading out and base change).
+    It also contains an alternative proof over ℂ (elementary commensurator index, analytic
+    rigidity, Abhyankar's lemma).
   authors:
     - "Claude (Anthropic)"
     - "LANA Project"
@@ -30,7 +33,7 @@ sources:
     type: "article"
     location: "Documenta Math. Extra Volume Kato (2003), 609-640; Definition 2.1, Proposition 2.7"
     relationship: "formalizes"
-    note: "Proposition 2.7 is proved over ℂ; the statement over an arbitrary field of characteristic 0 is only stated here."
+    note: "Proposition 2.7 is proved over every field of characteristic 0 (every universe)."
     author_endorsement: "not-contacted"
   - title: "Arithmetic Fuchsian groups with signature (1;e)"
     authors: ["Kisao Takeuchi"]
@@ -50,7 +53,7 @@ sources:
 related_formalizations:
   - id: "https://github.com/lana-agents/pi1"
     relationship: "builds-on"
-    note: "Lake dependency (pinned e0266a5): affine orbicurves, finite étale morphisms and genuine k-cores."
+    note: "Lake dependency (pinned 2c1e2f0): affine orbicurves, finite étale morphisms and genuine k-cores."
   - id: "https://github.com/lana-agents/oka"
     relationship: "builds-on"
     note: "Lake dependency (pinned 75dcdc3): uniformization of E ∖ {0}, R3, finite étale algebras over holomorphic functions on ℍ."
@@ -66,15 +69,25 @@ classification:
 
 status:
   scope: >-
-    [CanLift] Proposition 2.7 over ℂ, unconditionally, with the group-theoretic, analytic and
-    algebraic steps it needs (Takeuchi classification, Margulis commensurator theorem for
-    once-punctured torus groups, uniformization, Belyi certificates, Theorem G). The statement
-    over an arbitrary field of characteristic 0 (CanLift27Genuine) is only stated here; the
-    passage from ℂ to arbitrary fields is done in pi1/iut.
+    [CanLift] Proposition 2.7 over ℂ and over every field of characteristic 0, unconditionally,
+    with the group-theoretic, analytic and algebraic steps it needs (Takeuchi classification,
+    Margulis commensurator theorem for once-punctured torus groups, uniformization, Belyi
+    certificates, Theorem G, transfer to arbitrary fields). Also an alternative proof over ℂ
+    (Alt.canLift27C) and Abhyankar's lemma for curves over ℂ.
   sorry_count: 0
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
   main_results:
+    - declaration: "OrbicurveCores.canLift27Genuine"
+      file: "OrbicurveCores/Genuine/Final.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "OrbicurveCores.canLift27"
+      file: "OrbicurveCores/Genuine/Final.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
     - declaration: "OrbicurveCores.U2.canLift27C"
       file: "OrbicurveCores/U2/Assembly.lean"
       sorry_count: 0
@@ -105,6 +118,21 @@ status:
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
       literature_dependencies: []
+    - declaration: "OrbicurveCores.Alt.canLift27C"
+      file: "OrbicurveCores/Genuine/AltU2.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "OrbicurveCores.commIndexFour"
+      file: "OrbicurveCores/Genuine/TranslationCase.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "OrbicurveCores.Abhyankar.abhyankar"
+      file: "OrbicurveCores/ForMathlib/Abhyankar/Steps.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
 
 automation:
   methods:
@@ -122,10 +150,9 @@ automation:
 
 fidelity:
   divergences: >-
-    Proposition 2.7 is proved over ℂ (CanLift27C: for E/ℂ with j(E) not exceptional, the
-    hemi-elliptic quotient is the ℂ-core of E ∖ {0}, in the sense of pi1's AffOrbicurve.IsCoreOf);
-    the [EstIUT] Prop. 2.1 form over an arbitrary field of characteristic 0 (CanLift27Genuine) is
-    only stated and reduced to pi1's AffOrbicurve.CanLift27. The Margulis commensurator theorem is
+    Proposition 2.7 is proved in pi1's form (AffOrbicurve.CanLift27: for j(E) not exceptional, the
+    hemi-elliptic quotient is the k-core of E ∖ {0}, in the sense of pi1's AffOrbicurve.IsCoreOf)
+    over every field of characteristic 0, and in the [EstIUT] Prop. 2.1 form (CanLift27Genuine). The Margulis commensurator theorem is
     proved only for once-punctured torus groups. The four exceptional j-values are checked against
     Sijsling's models and agree with pi1's AffOrbicurve.excJ.
 
@@ -134,12 +161,10 @@ review:
   reviewers: ["Claude (Anthropic)"]
   notes: >-
     The formalization has only been reviewed by Claude; it has not been reviewed by a human.
-    All results are machine-checked by the Lean kernel. The axioms listed under status were not
-    re-checked with `#print axioms` for this file: no built, idle clone of this revision (with pi1
-    at e0266a5) was available. The evidence is `git grep` (no sorry, no axiom declaration, no
-    native_decide in any .lean file) and the README's record of `#print axioms` for these results
-    against the build of the identical Lean sources pinned in iut (61616dc), which gives only
-    propext, Classical.choice and Quot.sound.
+    All results are machine-checked by the Lean kernel. `#print axioms` for every result listed
+    under main_results, against a build of this repository (pi1 at 2c1e2f0, oka at 75dcdc3),
+    gives only propext, Classical.choice and Quot.sound; `git grep` finds no sorry, no axiom
+    declaration and no native_decide in any .lean file.
 
 alignment:
   namespace: "OrbicurveCores"
@@ -153,8 +178,8 @@ alignment:
       module: "OrbicurveCores/Classification.lean"
       status: "proved"
     - source: "Mochizuki, Canonical curves, Proposition 2.7 (any field of characteristic 0)"
-      lean: "OrbicurveCores.CanLift27Genuine"
-      module: "OrbicurveCores/Reconcile.lean"
-      status: "stated"
+      lean: "OrbicurveCores.canLift27Genuine"
+      module: "OrbicurveCores/Genuine/Final.lean"
+      status: "proved"
 
 acknowledgements: "Built on Mathlib (Apache-2.0)."

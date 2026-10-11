@@ -14,18 +14,25 @@ The four exceptional values `{0, 1728, 2¹⁴·31³/5³, 2²·73³/3⁴}` are `O
 
 ## Status (`main`)
 
-**[CanLift] Prop. 2.7 over `ℂ` is proved, unconditionally**, with the genuine `k`-cores of
-`lana-agents/pi1` ([CanLift] Def. 2.1):
+**[CanLift] Prop. 2.7 is proved, unconditionally, over every field of characteristic `0`**,
+with the genuine `k`-cores of `lana-agents/pi1` ([CanLift] Def. 2.1):
 
 * `OrbicurveCores.U2.canLift27C : OrbicurveCores.CanLift27C` (`U2/Assembly.lean`): for an elliptic
   curve `E / ℂ` whose `j` is not exceptional, the hemi-elliptic quotient `(E ∖ {0}) / {±1}`
-  (`AffOrbicurve.hemi E`) is the `ℂ`-core of `E ∖ {0}` (`AffOrbicurve.IsCoreOf`).
+  (`AffOrbicurve.hemi E`) is the `ℂ`-core of `E ∖ {0}` (`AffOrbicurve.IsCoreOf`);
+* `OrbicurveCores.canLift27 : AffOrbicurve.CanLift27.{u}` and
+  `OrbicurveCores.canLift27Genuine : OrbicurveCores.CanLift27Genuine.{u}` (`Genuine/Final.lean`):
+  the same over every field `k : Type u` of characteristic `0`, in every universe, and the
+  [EstIUT] Prop. 2.1 form (a `k`-arithmetic `E ∖ {0}` has exceptional `j`). They come from
+  `U2.canLift27C` by the transfer `hemiCoreTransfer` (`Genuine/Transfer/`).
 
 Evidence: no `sorry` in any `.lean` file (`git grep`), no `axiom` declarations or
 `native_decide`, and `#print axioms` (against the build at this revision inside `iut`) reports
 only `propext`, `Classical.choice`, `Quot.sound` for `U2.canLift27C`,
 `canLift27_group_unconditional`, `M2.margulisDenseOneInfty`, `s1NonExceptional`, `uniformization`
-and `isArithmeticSL_iff_isTakeuchiConj`. This includes the `oka` and `pi1` dependencies.
+and `isArithmeticSL_iff_isTakeuchiConj`. This includes the `oka` and `pi1` dependencies. The same
+holds (checked in this repository's build) for `canLift27Genuine`, `canLift27`, `hemiCoreTransfer`,
+`Alt.canLift27C`, `Alt.canLift27Genuine`, `commIndexFour` and `Abhyankar.abhyankar`.
 
 The proof, in the blueprint's labels (see `Blueprint.md` for sources and the lemma DAG):
 
@@ -54,17 +61,41 @@ The proof, in the blueprint's labels (see `Blueprint.md` for sources and the lem
   closure of the cover, automorphisms lying in the commensurator (`U2.mobius_mem_commensurator`,
   `U2.fixes_xP`) and oka's R3 (`U2.r3`). Uniqueness of the map to the hemi-elliptic curve:
   `U2.hemi_poly_unique` (fibre count + Riemann–Hurwitz).
+* **Transfer to arbitrary fields** (`Genuine/Transfer/`, [CanLift] Prop. 2.3 and the Lefschetz
+  principle). `hemiCoreTransfer : CanLift27C → AffOrbicurve.CanLift27.{u}`: the data of a
+  violation over `k` (finitely many elements of coordinate rings) are spread out to a subfield
+  `k₀ ⊆ ℂ` with `k₀ : Type`; base change to `ℂ` splits into components that are affine
+  orbicurves (DVR criterion, reduced fibres, ramification indices); the core property over `ℂ` is
+  pulled back along `k₀ → ℂ` and `k₀ → k` (`isCoreOf_hemi_of`: descent of `x` plus rigidity).
+  pi1's `AffOrbicurve.canLift27_of_complex` (Lefschetz principle via countable algebraically
+  closed subfields) proves the same for fields in `Type` (`CanLift27.{0}`); `iut` uses that.
 
-**Not proved here.** The statement over an arbitrary field of characteristic `0`,
-`OrbicurveCores.CanLift27Genuine` (`Reconcile.lean`, the [EstIUT] Prop. 2.1 form), is only stated;
-`canLift27Genuine_of_canLift27` derives it from pi1's `AffOrbicurve.CanLift27`. The passage from
-`ℂ` to arbitrary fields (Lefschetz principle) is `AffOrbicurve.canLift27_of_complex` in newer
-`lana-agents/pi1` (not the revision pinned here); `iut` combines the two (see below).
+**Alternative proofs and generic lemmas** (developed independently on the branch `wp-canlift27`
+and ported here; see `Blueprint.md` §2.6):
+
+* **R3 by elementary group theory**: `commIndexFour : CommIndexFour` (`Genuine/Involution.lean`,
+  `Genuine/CuspStructure.lean`, `Genuine/CommIndex.lean`, `Genuine/TranslationCase.lean`): a
+  once-punctured torus group admitting a core has index `4` in its commensurator. Sharp Shimizu
+  lemma, absence of elliptic elements, pigeonhole and Markov-type numerics reduce the translation
+  case to Takeuchi's groups. The main proof uses oka's analytic R3 (`U2.r3`) instead.
+* **U2 by rigidity and Abhyankar's lemma**: `Alt.canLift27C : CanLift27C` (`Genuine/AltU2.lean`)
+  proves [CanLift] 2.7 over `ℂ` from `commIndexFour`, the analytic rigidity half
+  `Alt.u2Rigidity` (`Genuine/Rigid/`: lifts of the uniformisation to finite étale covers as
+  holomorphic families of points, orbifold covering criterion, deck group `= Comm(Γ)`), and the
+  descent half `Alt.u2Descent` (`Genuine.hemiDescends_of`, `Abhyankar.compositumSeparates`). It
+  does not use `U2.r3`, oka's `le_pmDeck_or` or `U2.theoremG`. `Alt.canLift27Genuine` is
+  `CanLift27Genuine` along this route.
+* **Abhyankar's lemma** (`ForMathlib/Abhyankar/`, generic commutative algebra): for a Dedekind
+  domain `B` of finite type over `ℂ` with fraction field `K` and finite `K ⊆ F₁, F₂ ⊆ K̄`, if all
+  primes of `F₁` and `F₂` over `y` have the same ramification index, then `F₁ ⊔ F₂` is unramified
+  over `F₁` at the primes over `y` (`Abhyankar.abhyankar`); with ramification in towers and
+  composita, Kummer steps, and fibres of unramified extensions (`Abhyankar.card_fib`,
+  `Abhyankar.exists_separating`).
 
 ## Dependencies
 
 * Mathlib `v4.32.0`;
-* `lana-agents/pi1` (pinned `e0266a5`): affine orbicurves, finite étale morphisms and genuine
+* `lana-agents/pi1` (pinned `2c1e2f0`): affine orbicurves, finite étale morphisms and genuine
   `k`-cores (`AffOrbicurve.IsCoreOf`, `AffOrbicurve.IsArithmetic`, `punctured`, `hemi`, `excJ`);
 * `lana-agents/oka` (pinned `75dcdc3`, branch `wp-u2`): uniformisation of `E ∖ {0}` (U1), R3 and
   finite étale algebras over holomorphic functions on `ℍ`. `oka` pins `lana-agents/heights` at
