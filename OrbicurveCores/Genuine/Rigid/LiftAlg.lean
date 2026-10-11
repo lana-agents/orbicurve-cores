@@ -27,6 +27,38 @@ open scoped Topology
 
 namespace OrbicurveCores.Rigid
 
+section Gens
+
+variable {S : Type*} [CommRing S] [Algebra ℂ S] [Algebra.FiniteType ℂ S]
+
+variable (S) in
+/-- A finite set of generators of `S`. -/
+noncomputable def gens : Finset S := (Algebra.FiniteType.out (R := ℂ) (A := S)).choose
+
+lemma adjoin_gens : Algebra.adjoin ℂ (gens S : Set S) = ⊤ :=
+  (Algebra.FiniteType.out (R := ℂ) (A := S)).choose_spec
+
+/-- The values of a point on the generators. -/
+def vals (χ : S →ₐ[ℂ] ℂ) : gens S → ℂ := fun i ↦ χ i
+
+lemma vals_injective : Function.Injective (vals (S := S)) := fun _ _ h ↦
+  AlgHom.ext_of_adjoin_eq_top adjoin_gens fun x hx ↦ congrFun h ⟨x, hx⟩
+
+/-- Every element of `S` is a polynomial in the generators, so its values at points are continuous
+functions of the values on the generators. -/
+lemma exists_mvPolynomial (θ : S) :
+    ∃ Pθ : MvPolynomial (gens S) ℂ, ∀ χ : S →ₐ[ℂ] ℂ, χ θ = MvPolynomial.eval (vals χ) Pθ := by
+  have hθ : θ ∈ (MvPolynomial.aeval (R := ℂ) ((↑) : gens S → S)).range := by
+    rw [MvPolynomial.aeval_range, Subtype.range_coe_subtype, Finset.setOf_mem, adjoin_gens]
+    trivial
+  obtain ⟨Pθ, rfl⟩ := hθ
+  refine ⟨Pθ, fun χ ↦ ?_⟩
+  change χ (MvPolynomial.aeval Subtype.val Pθ) = _
+  rw [MvPolynomial.comp_aeval_apply]
+  rfl
+
+end Gens
+
 section
 
 variable {R S : Type*} [CommRing R] [CommRing S] [Algebra ℂ R] [Algebra ℂ S] [Algebra R S]
@@ -241,6 +273,186 @@ theorem exists_local_branches (hunr : ∀ q : Ideal S, q.IsMaximal → q.ramific
       exact (norm_add_le _ _).trans (by rw [norm_neg])
     simp only at this
     linarith
+/-! ### The covering of pairs `(z, point over ev z)` -/
+
+variable (S) in
+/-- The total space: pairs `(z, values of a point over ev z)`, `z ∈ U`. -/
+def total (U : Set ℂ) (ev : ℂ → (R →ₐ[ℂ] ℂ)) : Set (ℂ × (gens S → ℂ)) :=
+  {e | e.1 ∈ U ∧ ∃ χ ∈ Fib S (ev e.1), vals χ = e.2}
+
+/-- The projection of the total space. -/
+def proj (e : total S U ev) : ℂ := e.1.1
+
+omit [IsDedekindDomain R] [IsDedekindDomain S] [Algebra.IsIntegral R S] [Module.Finite R S]
+  [FaithfulSMul R S] in
+lemma continuous_proj : Continuous (proj (S := S) (U := U) (ev := ev)) :=
+  continuous_fst.comp continuous_subtype_val
+
+omit [IsDedekindDomain R] [IsDedekindDomain S] [Algebra.IsIntegral R S] [Module.Finite R S]
+  [FaithfulSMul R S] in
+lemma continuousOn_vals_section {V : Set ℂ} {b : ℂ → (S →ₐ[ℂ] ℂ)}
+    (hb : ∀ a, DifferentiableOn ℂ (fun z ↦ b z a) V) :
+    ContinuousOn (fun z ↦ ((z, vals (b z)) : ℂ × (gens S → ℂ))) V :=
+  continuousOn_id.prodMk (continuousOn_pi.mpr fun i ↦ (hb i).continuousOn)
+
+/-- Local injectivity of the projection. -/
+lemma exists_injOn_proj (hunr : ∀ q : Ideal S, q.IsMaximal → q.ramificationIdx R = 1)
+    (hU : IsOpen U) (hev : ∀ r, DifferentiableOn ℂ (fun z ↦ ev z r) U) (e : total S U ev) :
+    ∃ W ∈ 𝓝 e, Set.InjOn (proj (S := S) (U := U) (ev := ev)) W := by
+  obtain ⟨hz₁, ψ₁, hψ₁, hv⟩ := e.2
+  obtain ⟨θ, ε, hε, V, hVU, hVo, -, hz₁V, b, hb0, hbF, -, hbex, hsep⟩ :=
+    exists_local_branches hunr hU hev hz₁
+  obtain ⟨Θ, hΘ, hPθ⟩ : ∃ Θ : (gens S → ℂ) → ℂ, Continuous Θ ∧
+      ∀ χ : S →ₐ[ℂ] ℂ, χ θ = Θ (vals χ) := by
+    obtain ⟨Pθ, hPθ⟩ := exists_mvPolynomial θ
+    exact ⟨_, MvPolynomial.continuous_eval Pθ, hPθ⟩
+  let W : Set (total S U ev) :=
+    {e' | e'.1.1 ∈ V} ∩ {e' | ‖Θ e'.1.2 - ψ₁ θ‖ < ε}
+  have hWo : IsOpen W := by
+    refine (hVo.preimage continuous_proj).inter (isOpen_lt ?_ continuous_const)
+    exact ((hΘ.comp (continuous_snd.comp continuous_subtype_val)).sub continuous_const).norm
+  have heW : e ∈ W := ⟨hz₁V, by
+    change ‖Θ e.1.2 - ψ₁ θ‖ < ε
+    rw [← hv, ← hPθ, sub_self, norm_zero]; exact hε⟩
+  refine ⟨W, hWo.mem_nhds heW, fun e' he' e'' he'' h ↦ ?_⟩
+  obtain ⟨-, ψ', hψ', hv'⟩ := e'.2
+  obtain ⟨-, ψ'', hψ'', hv''⟩ := e''.2
+  change e'.1.1 = e''.1.1 at h
+  have key : ∀ (e₂ : total S U ev) (ψ : S →ₐ[ℂ] ℂ), e₂ ∈ W → ψ ∈ Fib S (ev e₂.1.1) →
+      vals ψ = e₂.1.2 → ψ = b ψ₁ e₂.1.1 := by
+    intro e₂ ψ he₂ hψ hv₂
+    obtain ⟨χ, hχ, rfl⟩ := hbex _ he₂.1 ψ hψ
+    have h1 := (hbF χ hχ _ he₂.1).2
+    have h2 : ‖b χ e₂.1.1 θ - ψ₁ θ‖ < ε := by
+      have := he₂.2
+      change ‖Θ e₂.1.2 - ψ₁ θ‖ < ε at this
+      rwa [← hv₂, ← hPθ] at this
+    rw [hsep χ hχ ψ₁ hψ₁ _ h1 h2]
+  apply Subtype.ext
+  refine Prod.ext h ?_
+  rw [← hv', ← hv'', key e' ψ' he' hψ' hv', key e'' ψ'' he'' (h ▸ hψ'') hv'', h]
+
+/-- **The pairs `(z, point over ev z)` form a covering of `U`.** -/
+theorem isCoveringMapOn_proj (hunr : ∀ q : Ideal S, q.IsMaximal → q.ramificationIdx R = 1)
+    (hU : IsOpen U) (hev : ∀ r, DifferentiableOn ℂ (fun z ↦ ev z r) U) :
+    IsCoveringMapOn (proj (S := S) (U := U) (ev := ev)) U := by
+  have hpre : proj (S := S) (U := U) (ev := ev) ⁻¹' U = univ :=
+    eq_univ_of_forall fun e ↦ e.2.1
+  refine Uniformization.isCoveringMapOn_of_sections (by rw [hpre]; exact isOpen_univ)
+    continuous_proj.continuousOn (fun e _ ↦ exists_injOn_proj hunr hU hev e) fun x hx ↦ ?_
+  obtain ⟨θ, ε, hε, V, hVU, hVo, hVc, hxV, b, hb0, hbF, hbd, hbex, hsep⟩ :=
+    exists_local_branches hunr hU hev hx
+  refine ⟨V, hVo, hxV, hVU, hVc, fun e he ↦ ?_⟩
+  obtain ⟨-, ψ, hψ, hv⟩ := e.2
+  obtain ⟨χ, hχ, rfl⟩ := hbex _ he ψ hψ
+  classical
+  refine ⟨fun z ↦ if hz : z ∈ V then ⟨(z, vals (b χ z)), hVU hz, b χ z, (hbF χ hχ z hz).1, rfl⟩
+    else e, ?_, fun z hz ↦ by simp [proj, hz], ?_⟩
+  · rw [continuousOn_iff_continuous_restrict]
+    have : V.restrict (fun z ↦ if hz : z ∈ V then (⟨(z, vals (b χ z)), hVU hz, b χ z,
+        (hbF χ hχ z hz).1, rfl⟩ : total S U ev) else e) =
+        fun z : V ↦ ⟨(z.1, vals (b χ z.1)), hVU z.2, b χ z.1, (hbF χ hχ z.1 z.2).1, rfl⟩ :=
+      funext fun z ↦ dif_pos z.2
+    rw [this]
+    exact ((continuousOn_vals_section (hbd χ hχ)).restrict).subtype_mk _
+  · have he' : (e : ℂ × (gens S → ℂ)).1 ∈ V := he
+    simp only [proj]
+    rw [dif_pos he']
+    exact Subtype.ext (Prod.ext rfl hv)
+
+open Classical in
+/-- The section of the total space given by a family of points `τ` over `U`. -/
+noncomputable def sec (τ : ℂ → (S →ₐ[ℂ] ℂ)) (hτ : ∀ z ∈ U, τ z ∈ Fib S (ev z)) (e₀ : total S U ev)
+    (z : ℂ) : total S U ev :=
+  if hz : z ∈ U then ⟨(z, vals (τ z)), hz, τ z, hτ z hz, rfl⟩ else e₀
+
+omit [IsDedekindDomain R] [IsDedekindDomain S] [Algebra.IsIntegral R S] [Module.Finite R S]
+  [FaithfulSMul R S] in
+lemma sec_of_mem {τ : ℂ → (S →ₐ[ℂ] ℂ)} {hτ : ∀ z ∈ U, τ z ∈ Fib S (ev z)} {e₀ : total S U ev}
+    {z : ℂ} (hz : z ∈ U) : (sec τ hτ e₀ z).1 = (z, vals (τ z)) := by
+  simp [sec, hz]
+
+omit [IsDedekindDomain R] [IsDedekindDomain S] [Algebra.IsIntegral R S] [Module.Finite R S]
+  [FaithfulSMul R S] in
+lemma continuousOn_sec {τ : ℂ → (S →ₐ[ℂ] ℂ)} {hτ : ∀ z ∈ U, τ z ∈ Fib S (ev z)}
+    {e₀ : total S U ev} {V : Set ℂ} (hVU : V ⊆ U)
+    (hc : ∀ a, ContinuousOn (fun z ↦ τ z a) V) : ContinuousOn (sec τ hτ e₀) V := by
+  rw [continuousOn_iff_continuous_restrict]
+  have : V.restrict (sec τ hτ e₀) = fun z : V ↦ ⟨(z.1, vals (τ z.1)), hVU z.2, τ z.1,
+      hτ z.1 (hVU z.2), rfl⟩ := funext fun z ↦ Subtype.ext (sec_of_mem (hVU z.2))
+  rw [this]
+  refine Continuous.subtype_mk ?_ _
+  have h2 : ContinuousOn (fun z ↦ vals (τ z)) V := continuousOn_pi.mpr fun i ↦ hc i
+  exact (continuousOn_id.prodMk h2).restrict
+
+/-- **Uniqueness of lifts.** -/
+theorem eqOn_of_lifts (hunr : ∀ q : Ideal S, q.IsMaximal → q.ramificationIdx R = 1)
+    (hU : IsOpen U) (hUc : IsPreconnected U) (hev : ∀ r, DifferentiableOn ℂ (fun z ↦ ev z r) U)
+    {τ τ' : ℂ → (S →ₐ[ℂ] ℂ)} (hτ : ∀ z ∈ U, τ z ∈ Fib S (ev z))
+    (hτ' : ∀ z ∈ U, τ' z ∈ Fib S (ev z)) (hc : ∀ a, ContinuousOn (fun z ↦ τ z a) U)
+    (hc' : ∀ a, ContinuousOn (fun z ↦ τ' z a) U) {z₀ : ℂ} (hz₀ : z₀ ∈ U) (h0 : τ z₀ = τ' z₀) :
+    ∀ z ∈ U, τ z = τ' z := by
+  set e₀ : total S U ev := ⟨(z₀, vals (τ z₀)), hz₀, τ z₀, hτ z₀ hz₀, rfl⟩
+  have h := Uniformization.eqOn_of_sections (f := proj (S := S) (U := U) (ev := ev)) hUc
+    (continuousOn_sec (hτ := hτ) (e₀ := e₀) subset_rfl hc)
+    (continuousOn_sec (hτ := hτ') (e₀ := e₀) subset_rfl hc')
+    (fun z hz ↦ by simp [proj, sec, hz]) (fun z hz ↦ by simp [proj, sec, hz])
+    (fun z _ ↦ exists_injOn_proj hunr hU hev _) hz₀
+    (Subtype.ext (by rw [sec_of_mem hz₀, sec_of_mem hz₀, h0]))
+  intro z hz
+  have := congrArg (fun e : total S U ev ↦ e.1.2) (h hz)
+  simp only [sec_of_mem hz] at this
+  exact vals_injective this
+
+/-- **Lifting.** A holomorphic family of points of `R` over a convex open `U` lifts, through any
+point over `ev z₀`, to a holomorphic family of points of `S`. -/
+theorem exists_lift (hunr : ∀ q : Ideal S, q.IsMaximal → q.ramificationIdx R = 1)
+    (hU : IsOpen U) (hconv : Convex ℝ U) (hev : ∀ r, DifferentiableOn ℂ (fun z ↦ ev z r) U)
+    {z₀ : ℂ} (hz₀ : z₀ ∈ U) {ψ₀ : S →ₐ[ℂ] ℂ} (hψ₀ : ψ₀ ∈ Fib S (ev z₀)) :
+    ∃ τ : ℂ → (S →ₐ[ℂ] ℂ), (∀ z ∈ U, τ z ∈ Fib S (ev z)) ∧ τ z₀ = ψ₀ ∧
+      ∀ a, DifferentiableOn ℂ (fun z ↦ τ z a) U := by
+  have hcov := isCoveringMapOn_proj hunr hU hev
+  set e₀ : total S U ev := ⟨(z₀, vals ψ₀), hz₀, ψ₀, hψ₀, rfl⟩
+  obtain ⟨σ, hσc, hσ, hσ0⟩ := hcov.exists_lift_of_convex hconv (g := fun z ↦ z)
+    continuousOn_id (fun _ h ↦ h) hz₀ (e₀ := e₀) rfl
+  choose pt hpt hptv using fun e : total S U ev ↦ e.2.2
+  set τ : ℂ → (S →ₐ[ℂ] ℂ) := fun z ↦ pt (σ z)
+  have hτF : ∀ z ∈ U, τ z ∈ Fib S (ev z) := fun z hz ↦ by
+    have := hpt (σ z)
+    rwa [show (σ z).1.1 = z from hσ z hz] at this
+  have hστ : ∀ z ∈ U, σ z = sec τ hτF e₀ z := fun z hz ↦ by
+    apply Subtype.ext
+    rw [sec_of_mem hz]
+    exact Prod.ext (hσ z hz) (hptv (σ z)).symm
+  refine ⟨τ, hτF, vals_injective (by rw [hptv, hσ0]), fun a z₁ hz₁ ↦ ?_⟩
+  obtain ⟨θ, ε, hε, V, hVU, hVo, hVc, hz₁V, b, hb0, hbF, hbd, hbex, hsep⟩ :=
+    exists_local_branches hunr hU hev hz₁
+  set χ := τ z₁
+  have hχ : χ ∈ Fib S (ev z₁) := hτF z₁ hz₁
+  classical
+  set β : ℂ → (S →ₐ[ℂ] ℂ) := fun z ↦ if z ∈ V then b χ z else τ z
+  have hβF : ∀ z ∈ U, β z ∈ Fib S (ev z) := fun z hz ↦ by
+    by_cases hzV : z ∈ V
+    · simp only [β, if_pos hzV]; exact (hbF χ hχ z hzV).1
+    · simp only [β, if_neg hzV]; exact hτF z hz
+  have hβV : ∀ z ∈ V, β z = b χ z := fun z hz ↦ if_pos hz
+  have hβc : ∀ a, ContinuousOn (fun z ↦ β z a) V := fun a ↦
+    (hbd χ hχ a).continuousOn.congr fun z hz ↦ by rw [hβV z hz]
+  have h := Uniformization.eqOn_of_sections (f := proj (S := S) (U := U) (ev := ev)) hVc
+    (s₁ := σ) (s₂ := sec β hβF e₀) (hσc.mono hVU) (continuousOn_sec hVU hβc)
+    (fun z hz ↦ hσ z (hVU hz)) (fun z hz ↦ by simp [proj, sec, hVU hz])
+    (fun z _ ↦ exists_injOn_proj hunr hU hev _) hz₁V (by
+      rw [hστ z₁ hz₁]
+      apply Subtype.ext
+      rw [sec_of_mem hz₁, sec_of_mem hz₁, hβV z₁ hz₁V, hb0 χ hχ])
+  have heq : (fun z ↦ τ z a) =ᶠ[𝓝 z₁] fun z ↦ b χ z a := by
+    filter_upwards [hVo.mem_nhds hz₁V] with z hz
+    have h1 := congrArg (fun e : total S U ev ↦ e.1.2) ((hστ z (hVU hz)).symm.trans (h hz))
+    simp only [sec_of_mem (hVU hz)] at h1
+    rw [vals_injective h1, hβV z hz]
+  exact (((hbd χ hχ a).differentiableAt (hVo.mem_nhds hz₁V)).congr_of_eventuallyEq
+    heq).differentiableWithinAt
+
 end
 
 end OrbicurveCores.Rigid
