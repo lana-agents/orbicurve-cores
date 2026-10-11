@@ -383,8 +383,8 @@ from U1, S1, the group-level theorem and three precise interfaces. The `k`-core 
 |---|---|---|
 | F' | `canLift27Genuine_of : CommIndexFour → HemiCoreComplex → HemiCoreTransfer → CanLift27Genuine` (also `canLift27_of`: pi1's `CanLift27`) | **[done]** `Genuine/Assembly.lean` |
 | R3 | `CommIndexFour`: a once-punctured torus group with a core has index `4` in its commensurator (`Comm(Γ) = ⟨Γ, ι⟩`, `ι² = -1`) | reduced to R3d `TranslationCase` (`Genuine/CommIndex.lean`, `commIndexFour_of_translationCase`); R3a–R3c done |
-| F'' | `canLift27Genuine_of_remaining : TranslationCase → U2Descent → U2Rigidity → HemiCoreTransfer → CanLift27Genuine` | **[done]** `Genuine/Final.lean` |
-| U2 | `HemiCoreComplex`: over `ℂ`, if `(A, B)` uniformises `E ∖ 0` and `[Comm(Γ) : Γ] = 4`, then `hemi E` is the `ℂ`-core of `punctured E` | **[stated]**; reduced to `U2Descent` and `U2Rigidity` (`hemiCoreComplex_of`); `U2Descent` reduced to `U2Rigidity` and `CompositumSeparates ℂ` (U2b, `u2Descent_of`) |
+| F'' | `canLift27Genuine_of_remaining : TranslationCase → U2Descent → U2Rigidity → HemiCoreTransfer → CanLift27Genuine`; with U2b and `u2Rigidity`: `canLift27Genuine_of_remaining'' : TranslationCase → CompositumSeparates ℂ → HemiCoreTransfer → CanLift27Genuine` | **[done]** `Genuine/Final.lean` |
+| U2 | `HemiCoreComplex`: over `ℂ`, if `(A, B)` uniformises `E ∖ 0` and `[Comm(Γ) : Γ] = 4`, then `hemi E` is the `ℂ`-core of `punctured E` | `U2Rigidity` **[done]** (`u2Rigidity`, `Genuine/Rigid/`); `U2Descent` reduced to `U2Rigidity` and `CompositumSeparates ℂ` (U2b, `u2Descent_of`), so `HemiCoreComplex` follows from `CompositumSeparates ℂ` (`hemiCoreComplex_of_compositumSeparates`) |
 | T | `HemiCoreTransfer`: the complex case of pi1's `CanLift27` implies it over every field of characteristic `0` | **[stated]** |
 
 **R3** (group level). Write `Δ = Comm(Γ)`, of finite index, hence discrete.
@@ -439,34 +439,38 @@ from U1, S1, the group-level theorem and three precise interfaces. The `k`-core 
   at `y`, Eisenstein) makes `Z` unramified (`(t^{1/m}/ϖ)^m` is a unit, Kummer), composita of
   unramified extensions are unramified (tensor products of étale algebras), and ramification
   indices are multiplicative.
-* U2-rigidity (analytic, over `ℂ`). Notation: `π : ℍ → E(ℂ) ∖ 0` from U1, `Γ = ⟨A, B⟩`,
+* U2-rigidity **[done]** (`Genuine/Rigid/*.lean`, `u2Rigidity`; analytic, over `ℂ`). Notation: `π : ℍ → E(ℂ) ∖ 0` from U1, `Γ = ⟨A, B⟩`,
   `u = x ∘ π`, `A_X` the coordinate ring of `X`. The route avoids building `Z(ℂ)` as a Riemann
   surface: an algebraic cover is seen only through ring maps `τ : A_Z → 𝒪(ℍ)` ("lifts of `π`").
-  * U2c1. `A_X = ℂ[x, y]/(W)`: the Weierstrass coordinate ring is integrally closed (trace and
+  * U2c1. **[done]** (`Rigid/CoordRing.lean`, `Rigid/Eval.lean`: `coordEquiv`) `A_X = ℂ[x, y]/(W)`: the Weierstrass coordinate ring is integrally closed (trace and
     norm in `k(E)/k(x)`; `4x³ + b₂x² + 2b₄x + b₆` is squarefree).
-  * U2c2. `σ_X : A_X → 𝒪(ℍ)`, `x ↦ π₁`, `y ↦ π₂`: a `Γ`-invariant injective `ℂ`-algebra map.
-  * U2c3. Fibres: over every point `v` of `X`, a finite étale `Z → X` has exactly
+  * U2c2. **[done]** (`Rigid/Eval.lean`: `sigmaX`) `σ_X : A_X → 𝒪(ℍ)`, `x ↦ π₁`, `y ↦ π₂`: a `Γ`-invariant injective `ℂ`-algebra map.
+  * U2c3. **[done]** (`Rigid/Fibre.lean`: `card_fib`, `exists_separating`, `minpoly_of_separating`,
+    `derivative_mul_mem_adjoin`; the conductor element is `P'(θ)` since the different is trivial) Fibres: over every point `v` of `X`, a finite étale `Z → X` has exactly
     `n = rank_{A_X} A_Z` points (`Σ e f = n`, `e = f = 1`); a `θ ∈ A_Z` separating them (CRT)
     has minimal polynomial `P` of degree `n` with `P mod v` separable, and (Nakayama) some
     `c ∈ A_X`, `c(v) ≠ 0`, has `c A_Z ⊆ A_X[θ]`.
-  * U2c4. Lifting: near every `z₀ ∈ ℍ` the simple roots of `P^π` give `n` holomorphic branch maps
+  * U2c4. **[done]** (`Rigid/Roots.lean`, `Rigid/LiftAlg.lean`: `exists_local_branches`,
+    `isCoveringMapOn_proj`, `exists_lift`, `eqOn_of_lifts`) Lifting: near every `z₀ ∈ ℍ` the simple roots of `P^π` give `n` holomorphic branch maps
     `A_Z → 𝒪(V)`; the pairs `(z, point of Z over π z)` form a covering of `ℍ`
     (oka's `isCoveringMapOn_of_sections`), so `σ_X` lifts to `τ : A_Z → 𝒪(ℍ)`; there are finitely
     many lifts, so `Γ_τ = Stab_Γ(τ)` has finite index.
-  * U2c5. Orders: for a lift `τ`, the analytic order of `τ(b)` at `z` is the order of `b` at the
+  * U2c5. **[done]** (`Rigid/Order.lean`: `hasLocalForm_of_mem_pow`, `ramificationIdx_eq_of_mem_pow`)
+    Orders: for a lift `τ`, the analytic order of `τ(b)` at `z` is the order of `b` at the
     point `ker(ev_z ∘ τ)` (`p^*(x - x₀)` or `p^*(y - y₀)` is a uniformiser since `π' ≠ 0`). Hence
     for finite étale `φ : Z → H`, `F = τ(φ^* x)` has local normal form of order `m_H(F z)` at
     every `z` (as does `u`, the case `Z = X`).
-  * U2c6. `π` is locally injective, `Γ` acts freely (mod `±1`), and a set on which `π` is bounded
+  * U2c6. **[done]** (`Rigid/Basic.lean`, `Rigid/Proper.lean`) `π` is locally injective, `Γ` acts freely (mod `±1`), and a set on which `π` is bounded
     lies in `Γ · C` for a compact `C` (implicit function theorem on the Weierstrass equation).
-  * U2c7. Orbifold covering criterion: a holomorphic `Γ'`-invariant `F` (`Γ' ≤ Γ`) with local
+  * U2c7. **[done]** (`Rigid/OrbCover.lean`: `UnifProps.isOrbCover_of`) Orbifold covering criterion: a holomorphic `Γ'`-invariant `F` (`Γ' ≤ Γ`) with local
     normal forms of order `e(F z)` which is proper modulo `Γ'` is an `IsOrbCover` of `ℂ`. Applies to
     `u` (`Γ`) and to `F` (`Γ_τ`; properness from integrality of `A_Z` over `ℂ[φ^* x]`).
-  * U2c8. The deck group `D = {δ : u ∘ δ = u}`: orbifold lifting with prescribed value (S1) and
+  * U2c8. **[done]** (`Rigid/Lift.lean`, `Rigid/Deck.lean`) The deck group `D = {δ : u ∘ δ = u}`: orbifold lifting with prescribed value (S1) and
     uniqueness at generic points show `D` is countable, the fibres of `u` are `D`-orbits,
     `[D : Γ] < ∞` and `D ∋ g₀` with `π ∘ g₀ = [-1] ∘ π`; with `-1 ∉ Γ` this gives `[D : Γ] ≥ 4`,
     `D ≤ Comm(Γ)`, so `D = Comm(Γ)` when `[Comm(Γ) : Γ] = 4`.
-  * U2c9. Assembly (`U2Rigidity`): lift `F` through `u` and `u` through `F` with matching
+  * U2c9. **[done]** (`Rigid/Deck.lean`: `UnifProps.eq_u_of`; `Rigid/Main.lean`: `hemiRigid_of_unif`,
+    `u2Rigidity`) Assembly (`U2Rigidity`): lift `F` through `u` and `u` through `F` with matching
     prescribed values: `g` is Möbius (S1's `exists_SL2R_eq_of_leftInverse`), `g Γ_τ g⁻¹ ≤ D` of
     finite index, so `g ∈ Comm(Γ) = D` and `F = u ∘ g = u`; `τ` is injective, so
     `φ^* x = p^* x`.
