@@ -15,6 +15,7 @@ import OrbicurveCores.Fuchsian.FordCover
 import OrbicurveCores.Fuchsian.OneInftyLattice
 import OrbicurveCores.Fuchsian.PingPong
 import OrbicurveCores.Genuine.Assembly
+import OrbicurveCores.Genuine.CommIndex
 import OrbicurveCores.Genuine.CuspStructure
 import OrbicurveCores.Genuine.Hemi
 import OrbicurveCores.Genuine.Involution
