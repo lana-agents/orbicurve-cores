@@ -113,7 +113,8 @@ theorem comp_ramificationIdx (hf : Function.Injective f) (hfin : f.toRingHom.Fin
     (letI := (compMap K f 𝔓).toRingHom.toAlgebra;
       w.ramificationIdx ((K ⊗[k] A) ⧸ 𝔓.comap (bcMap K f))) =
       if (w.comap (Ideal.Quotient.mk 𝔓)).comap ιB = ⊥ then 1 else
-        (letI := f.toRingHom.toAlgebra; ((w.comap (Ideal.Quotient.mk 𝔓)).comap ιB).ramificationIdx A) := by
+        (letI := f.toRingHom.toAlgebra;
+          ((w.comap (Ideal.Quotient.mk 𝔓)).comap ιB).ramificationIdx A) := by
   letI := (compMap K f 𝔓).toRingHom.toAlgebra
   set C := (K ⊗[k] B) ⧸ 𝔓
   set D := (K ⊗[k] A) ⧸ 𝔓.comap (bcMap K f)
