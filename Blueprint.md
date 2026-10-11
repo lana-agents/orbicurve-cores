@@ -382,14 +382,17 @@ from U1, S1, the group-level theorem and three precise interfaces. The `k`-core 
 | # | Statement (Lean) | Status |
 |---|---|---|
 | F' | `canLift27Genuine_of : CommIndexFour → HemiCoreComplex → HemiCoreTransfer → CanLift27Genuine` (also `canLift27_of`: pi1's `CanLift27`) | **[done]** `Genuine/Assembly.lean` |
-| R3 | `CommIndexFour`: a once-punctured torus group with a core has index `4` in its commensurator (`Comm(Γ) = ⟨Γ, ι⟩`, `ι² = -1`) | **[stated]** |
+| R3 | `CommIndexFour`: a once-punctured torus group with a core has index `4` in its commensurator (`Comm(Γ) = ⟨Γ, ι⟩`, `ι² = -1`) | **[stated]**; R3a done |
 | U2 | `HemiCoreComplex`: over `ℂ`, if `(A, B)` uniformises `E ∖ 0` and `[Comm(Γ) : Γ] = 4`, then `hemi E` is the `ℂ`-core of `punctured E` | **[stated]** |
 | T | `HemiCoreTransfer`: the complex case of pi1's `CanLift27` implies it over every field of characteristic `0` | **[stated]** |
 
 **R3** (group level). Write `Δ = Comm(Γ)`, of finite index, hence discrete.
 
-* R3a. A lift `ι ∈ SL(2, ℝ)` of the elliptic involution: `ι A ι⁻¹ = A⁻¹`, `ι B ι⁻¹ = B⁻¹` up to
-  the Fricke normal form, `ι² = -1`. So `ι ∈ Δ ∖ ±Γ` and `4 ∣ [Δ : Γ]`.
+* R3a. **[done]** (`Genuine/Involution.lean`) In Fricke normal form, `ι = [[0, -1/z], [z, 0]]`
+  satisfies `ι² = -1`, `ι A₀ ι⁻¹ = A₀⁻¹`, `ι B₀ ι⁻¹ = B₀⁻¹` and `A₀ B₀ ι = -u₁`. Since `-1 ∉ Γ`
+  (ping-pong), the hemi-elliptic group `Γ⁺ = ±Γ ∪ ±Γι` (`nHemi`) satisfies `Γ⁺ ≤ Comm(Γ)`
+  (`nHemi_le_commensurator`), `[Γ⁺ : Γ] = 4` (`relIndex_nHemi`) and `u₁ ∈ Γ⁺`
+  (`uU_one_mem_nHemi`). So R3 is equivalent to `Comm(Γ) ≤ Γ⁺`.
 * R3b. Stabiliser of the cusp: `Δ_∞ ⊆ {±u_t}` (a dilation `δ` would give
   `δ⁻ⁿ u₄ δⁿ → 1`), and `Δ = Γ · Δ_∞` (one cusp orbit: every parabolic fixed point of `Γ` is in
   `Γ ∞`). So `Δ̄_∞ = ⟨u_{1/m}⟩` with `[Δ : Γ] = 4m`.
