@@ -1,0 +1,141 @@
+/-
+Copyright (c) 2026 The orbicurve-cores contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The orbicurve-cores contributors
+-/
+import OrbicurveCores.Genuine.Abhyankar.Unramified
+import OrbicurveCores.Genuine.HomComp
+import Mathlib.FieldTheory.IsAlgClosed.AlgebraicClosure
+import Pi1.Orbicurve.IntegralClosure
+
+/-!
+# U2f (part): towers of integral closures inside an algebraic closure
+
+Let `B` be a Dedekind domain of finite type over `ℂ` with fraction field `K`, and `Ω` an algebraic
+closure of `K`. For a finite intermediate field `K ⊆ F ⊆ Ω`, `IC F` is the integral closure of
+`B` in `F` (a Dedekind domain of finite type over `ℂ` with fraction field `F`); for `F ≤ F'`,
+`icMap : IC F → IC F'` is the inclusion.
+
+* `ramIdx`: the ramification index of a maximal ideal of `IC F'` over `IC F`;
+* `ramIdx_trans`: ramification indices are multiplicative in towers.
+-/
+
+open Polynomial
+
+namespace OrbicurveCores.Abhyankar
+
+noncomputable section
+
+variable (B : Type) [CommRing B] [IsDedekindDomain B] [Algebra ℂ B]
+
+local notation "K" => FractionRing B
+local notation "Ω" => AlgebraicClosure (FractionRing B)
+
+instance charZero_B : CharZero B := charZero_of_injective_algebraMap (algebraMap ℂ B).injective
+
+instance isSeparable_intermediateField (F : IntermediateField K Ω) : Algebra.IsSeparable K F := by
+  haveI : CharZero K := charZero_of_injective_algebraMap (IsFractionRing.injective B K)
+  exact Algebra.IsSeparable.of_integral _ _
+
+/-- The integral closure of `B` in `F`. -/
+abbrev IC (F : IntermediateField K Ω) := integralClosure B F
+
+variable {B}
+
+instance isDedekindDomain_IC (F : IntermediateField K Ω) [FiniteDimensional K F] :
+    IsDedekindDomain (IC B F) :=
+  integralClosure.isDedekindDomain B K F
+
+instance isFractionRing_IC (F : IntermediateField K Ω) [FiniteDimensional K F] :
+    IsFractionRing (IC B F) F :=
+  integralClosure.isFractionRing_of_finite_extension K F
+
+instance algebraComplex_IC (F : IntermediateField K Ω) : Algebra ℂ (IC B F) :=
+  ((algebraMap B (IC B F)).comp (algebraMap ℂ B)).toAlgebra
+
+instance isScalarTower_IC (F : IntermediateField K Ω) : IsScalarTower ℂ B (IC B F) :=
+  IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+
+instance finiteType_IC [Algebra.FiniteType ℂ B] (F : IntermediateField K Ω)
+    [FiniteDimensional K F] :
+    Algebra.FiniteType ℂ (IC B F) := by
+  haveI : Module.Finite B (IC B F) := AffOrbicurve.integralClosure_finite B K F
+  exact Algebra.FiniteType.trans (S := B) inferInstance inferInstance
+
+instance finite_IC (F : IntermediateField K Ω) [FiniteDimensional K F] :
+    Module.Finite B (IC B F) := AffOrbicurve.integralClosure_finite B K F
+
+/-- The inclusion `IC F → IC F'` for `F ≤ F'`. -/
+def icMap {F F' : IntermediateField K Ω} (h : F ≤ F') : IC B F →ₐ[B] IC B F' where
+  toFun x := ⟨IntermediateField.inclusion h x.1,
+    x.2.map ((IntermediateField.inclusion h).restrictScalars B)⟩
+  map_one' := rfl
+  map_mul' _ _ := rfl
+  map_zero' := rfl
+  map_add' _ _ := rfl
+  commutes' _ := rfl
+
+omit [Algebra ℂ B] in
+@[simp] lemma coe_icMap {F F' : IntermediateField K Ω} (h : F ≤ F') (x : IC B F) :
+    ((icMap h x : F') : Ω) = ((x : F) : Ω) := rfl
+
+omit [Algebra ℂ B] in
+lemma icMap_injective {F F' : IntermediateField K Ω} (h : F ≤ F') :
+    Function.Injective (icMap (B := B) h) := fun x y hxy ↦ by
+  have := congrArg (fun z : IC B F' ↦ ((z : F') : Ω)) hxy
+  exact Subtype.ext (Subtype.ext this)
+
+omit [Algebra ℂ B] in
+lemma icMap_comp {F F' F'' : IntermediateField K Ω} (h : F ≤ F') (h' : F' ≤ F'') :
+    (icMap (B := B) h').comp (icMap h) = icMap (h.trans h') := rfl
+
+/-- The ramification index of a prime of `IC F'` over `IC F`. -/
+def ramIC {F F' : IntermediateField K Ω} (h : F ≤ F') (P : Ideal (IC B F')) : ℕ :=
+  letI := (icMap (B := B) h).toRingHom.toAlgebra
+  P.ramificationIdx (IC B F)
+
+/-- Ramification indices are multiplicative along injective maps of Dedekind domains. -/
+lemma ramificationIdx_comp' {R S T : Type*} [CommRing R] [CommRing S] [CommRing T]
+    [IsDedekindDomain S] [IsDomain T] (f : R →+* S) (g : S →+* T)
+    (hg : Function.Injective g) (P : Ideal T) :
+    (letI := (g.comp f).toAlgebra; P.ramificationIdx R) =
+      (letI := f.toAlgebra; (P.comap g).ramificationIdx R) *
+        (letI := g.toAlgebra; P.ramificationIdx S) := by
+  letI : Algebra R S := f.toAlgebra
+  letI : Algebra S T := g.toAlgebra
+  letI : Algebra R T := (g.comp f).toAlgebra
+  haveI : IsScalarTower R S T := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+  haveI : Module.IsTorsionFree S T := (Module.isTorsionFree_iff_algebraMap_injective).mpr hg
+  haveI : P.LiesOver (P.comap g) := ⟨rfl⟩
+  exact Ideal.ramificationIdx_tower (R := R) (S := S) (T := T) (P.comap g) P
+
+/-- The ramification index does not depend on how the algebra structure is presented. -/
+lemma ramificationIdx_congr {R S : Type*} [CommRing R] [CommRing S] {i₁ i₂ : Algebra R S}
+    (h : @algebraMap R S _ _ i₁ = @algebraMap R S _ _ i₂) (P : Ideal S) :
+    (letI := i₁; P.ramificationIdx R) = (letI := i₂; P.ramificationIdx R) := by
+  have : i₁ = i₂ := Algebra.algebra_ext _ _ fun r ↦ congrFun (congrArg DFunLike.coe h) r
+  rw [this]
+
+/-- `e(P | B) = e(P ∩ IC F | B) · e(P | IC F)`. -/
+lemma ramificationIdx_B_eq {F F' : IntermediateField K Ω} [FiniteDimensional K F]
+    [FiniteDimensional K F'] (h : F ≤ F') (P : Ideal (IC B F')) :
+    P.ramificationIdx B = (P.comap (icMap h)).ramificationIdx B * ramIC h P := by
+  have := ramificationIdx_comp' (algebraMap B (IC B F)) (icMap (B := B) h).toRingHom
+    (icMap_injective h) P
+  rw [ramificationIdx_congr (i₁ := (((icMap (B := B) h).toRingHom).comp
+    (algebraMap B (IC B F))).toAlgebra) (i₂ := inferInstance) (by ext; rfl) P,
+    ramificationIdx_congr (i₁ := (algebraMap B (IC B F)).toAlgebra) (i₂ := inferInstance)
+      (by ext; rfl)] at this
+  exact this
+
+/-- `e(P | IC F) = e(P ∩ IC F' | IC F) · e(P | IC F')`. -/
+lemma ramIC_trans {F F' F'' : IntermediateField K Ω} [FiniteDimensional K F']
+    (h : F ≤ F') (h' : F' ≤ F'') (P : Ideal (IC B F'')) :
+    ramIC (h.trans h') P = ramIC h (P.comap (icMap h')) * ramIC h' P := by
+  have := ramificationIdx_comp' (icMap (B := B) h).toRingHom (icMap (B := B) h').toRingHom
+    (icMap_injective h') P
+  exact this
+
+end
+
+end OrbicurveCores.Abhyankar
