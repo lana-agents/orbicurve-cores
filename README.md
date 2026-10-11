@@ -37,17 +37,18 @@ See `Blueprint.md` for the full plan, sources and status table. In short:
     (M1, `commensurator_dense`).
 * **Proved assembly** (`Genuine/Assembly.lean`, `canLift27Genuine_of`): `CanLift27Genuine` follows
   from U1 (`lana-agents/oka`, pinned), S1 (`S1.not_takeuchi_of_nonExceptional`), the group-level
-  theorem, and three stated interfaces (Blueprint §2.6):
+  theorem, and three stated interfaces (Blueprint §2.6; R3 is now proved):
   * R3 `CommIndexFour`: a once-punctured torus group with a core has index 4 in its
-    commensurator (`Comm(Γ) = ⟨Γ, ι⟩`); proved (`commIndexFour_of_translationCase`) except for
-    R3d `TranslationCase`: `u_{1/m} ∈ Comm(Γ)` with `m ≥ 2` gives no core;
+    commensurator (`Comm(Γ) = ⟨Γ, ι⟩`); **proved** (`commIndexFour`,
+    `Genuine/TranslationCase.lean`, including R3d `translationCase`);
   * U2 `HemiCoreComplex`: over `ℂ`, `(E ∖ 0)/±1` is then the core of `E ∖ 0` (algebraic ↔
-    analytic comparison of cores); the algebra is done (`Genuine/HemiCore.lean`,
-    `isCoreOf_hemi_of`), leaving its analytic halves `U2Descent` and `U2Rigidity`;
+    analytic comparison of cores); **proved** (`hemiCoreComplex`): the algebra
+    (`Genuine/HemiCore.lean`), `U2Rigidity` (`u2Rigidity`, `Genuine/Rigid/`) and `U2Descent`
+    (`u2Descent`, via Abhyankar's lemma `Abhyankar.compositumSeparates`, `Genuine/Abhyankar/`);
   * T `HemiCoreTransfer`: [CanLift] Prop. 2.3 and the Lefschetz principle, from `ℂ` to any field
     of characteristic 0.
-* **Missing**: `TranslationCase`, `U2Descent`, `U2Rigidity`, `HemiCoreTransfer`
-  (`Genuine/Final.lean`, `canLift27Genuine_of_remaining`; Blueprint §2.6 lists the milestones).
+* **Missing**: only `HemiCoreTransfer` (`Genuine/Final.lean`,
+  `canLift27Genuine_of_transfer : HemiCoreTransfer → CanLift27Genuine`; Blueprint §2.6).
 
 ## Dependencies
 
