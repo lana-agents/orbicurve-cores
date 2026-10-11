@@ -206,6 +206,29 @@ lemma theta_kappa (c : E₀'.toAffine.CoordinateRing) :
     algebraMap _ _ (kappa (E₀'.baseChange k') _)
   rw [algebraMap_kappa, algebraMap_kappa, fmap_algebraMap]
 
+/-- Ring maps out of `k[E ∖ 0]` into a domain, injective, agreeing on the Weierstrass coordinate
+ring, agree. -/
+lemma eq_of_eq_kappa {D : Type*} [CommRing D] [IsDomain D] (f₁ f₂ : puncturedRing E₀' →+* D)
+    (hf₁ : Function.Injective f₁) (h : ∀ c, f₁ (kappa E₀' c) = f₂ (kappa E₀' c))
+    (y : puncturedRing E₀') : f₁ y = f₂ y := by
+  obtain ⟨c, d, hd, hcd⟩ := IsFractionRing.div_surjective
+    (A := E₀'.toAffine.CoordinateRing) (y : E₀'.toAffine.FunctionField)
+  have hκ := kappa_eq_mul E₀' hd hcd
+  have hd0 : f₁ (kappa E₀' d) ≠ 0 := by
+    intro h0
+    have h1 : kappa E₀' d = 0 := hf₁ (h0.trans (map_zero f₁).symm)
+    have h2 := congrArg (fun z : puncturedRing E₀' ↦ (z : E₀'.toAffine.FunctionField)) h1
+    simp only [ZeroMemClass.coe_zero] at h2
+    change algebraMap _ _ (kappa E₀' d) = 0 at h2
+    rw [algebraMap_kappa] at h2
+    exact nonZeroDivisors.ne_zero hd
+      ((IsFractionRing.injective _ E₀'.toAffine.FunctionField) (h2.trans (map_zero _).symm))
+  apply mul_left_cancel₀ hd0
+  have e1 := congrArg f₁ hκ
+  have e2 := congrArg f₂ hκ
+  rw [map_mul] at e1 e2
+  rw [← e1, h c, e2, h d]
+
 end Theta
 
 section Punctured
@@ -317,6 +340,120 @@ lemma mem_range_theta (a : puncturedRing E₀) :
   change rhoM Z e _ = _ * rhoM Z e _
   rw [rhoM_psi₀, rhoM_psi₀, ← theta_kappa, ← theta_kappa, hκ, map_mul, mul_comm]
   exact map_mul p.f _ _
+
+/-- The model of `p`, as a ring map: `ρ⁻¹ ∘ p ∘ θ`. -/
+noncomputable def gPunctR : puncturedRing E₀ →+* A₀ :=
+  (RingEquiv.ofBijective (rhoM Z e).rangeRestrict
+      ⟨fun _ _ h ↦ modelMap_injective e.toRingEquiv (congrArg Subtype.val h),
+        RingHom.rangeRestrict_surjective _⟩).symm.toRingHom.comp
+    ((p.f.toRingHom.comp (theta (k' := k) E₀)).codRestrict _
+      (mem_range_theta E₀ e p x₀ y₀ hx₀ hy₀))
+
+omit [E₀.IsElliptic] [CharZero k₀] [Algebra.FiniteType k₀ A₀] in
+lemma rhoM_gPunctR (a : puncturedRing E₀) :
+    rhoM Z e (gPunctR E₀ e p x₀ y₀ hx₀ hy₀ a) = p.f (theta (k' := k) E₀ a) := by
+  set G := RingEquiv.ofBijective (rhoM Z e).rangeRestrict
+      ⟨fun _ _ h ↦ modelMap_injective e.toRingEquiv (congrArg Subtype.val h),
+        RingHom.rangeRestrict_surjective _⟩
+  have h := G.apply_symm_apply ⟨p.f (theta (k' := k) E₀ a), mem_range_theta E₀ e p x₀ y₀ hx₀ hy₀ a⟩
+  exact congrArg Subtype.val h
+
+omit [CharZero k₀] [CharZero k] [Algebra.FiniteType k₀ A₀] in
+/-- `ρ ∘ (k₀ → A₀) = (k → A_Z) ∘ (k₀ → k)`. -/
+lemma rhoM_algebraMap (c : k₀) :
+    rhoM Z e (algebraMap k₀ A₀ c) = algebraMap k Z.A (algebraMap k₀ k c) := by
+  rw [rhoM_apply, Algebra.algebraMap_eq_smul_one, ← TensorProduct.smul_tmul]
+  have h1 : ((c • (1 : k)) ⊗ₜ[k₀] (1 : A₀)) =
+      algebraMap k (k ⊗[k₀] A₀) (algebraMap k₀ k c) := by
+    rw [Algebra.algebraMap_eq_smul_one c]; rfl
+  rw [h1, AlgEquiv.commutes]
+
+omit [CharZero k₀] [CharZero k] [E₀.IsElliptic] in
+lemma theta_algebraMap (c : k₀) :
+    theta (k' := k) E₀ (algebraMap k₀ (puncturedRing E₀) c) =
+      algebraMap k (puncturedRing (E₀.baseChange k)) (algebraMap k₀ k c) := by
+  apply Subtype.ext
+  rw [theta_coe]
+  change fmap (k' := k) E₀ (algebraMap k₀ E₀.toAffine.FunctionField c) =
+    algebraMap k (E₀.baseChange k).toAffine.FunctionField (algebraMap k₀ k c)
+  rw [IsScalarTower.algebraMap_apply k₀ k₀[X] E₀.toAffine.FunctionField, fmap_algebraMap_poly,
+    Polynomial.algebraMap_apply, Algebra.algebraMap_self, RingHom.id_apply, Polynomial.map_C]
+  change algebraMap k[X] _ (algebraMap k k[X] _) = _
+  rw [← IsScalarTower.algebraMap_apply]
+
+omit [E₀.IsElliptic] in
+lemma theta_hemiMap (g : k₀[X]) :
+    theta (k' := k) E₀ (Genuine.hemiMap E₀ g) =
+      Genuine.hemiMap (E₀.baseChange k) (g.map (algebraMap k₀ k)) := by
+  apply Subtype.ext
+  rw [theta_coe]
+  exact fmap_algebraMap_poly E₀ g
+
+/-- **The model of `p : Z → E_k ∖ 0`**, as a `k₀`-algebra map. -/
+noncomputable def gPunct : (punctured E₀).A →ₐ[k₀] (modelOrbicurve Z e hZ).A :=
+  AlgHom.mk (gPunctR E₀ e p x₀ y₀ hx₀ hy₀) fun c ↦ modelMap_injective e.toRingEquiv (by
+    rw [← (Genuine.hemiMap E₀).commutes c]
+    change rhoM Z e (gPunctR E₀ e p x₀ y₀ hx₀ hy₀ (Genuine.hemiMap E₀ (algebraMap k₀ k₀[X] c))) =
+      rhoM Z e (algebraMap k₀ A₀ c)
+    rw [rhoM_gPunctR]
+    refine (congrArg p.f (theta_hemiMap E₀ (algebraMap k₀ k₀[X] c))).trans ?_
+    rw [rhoM_algebraMap, Polynomial.algebraMap_apply, Algebra.algebraMap_self, RingHom.id_apply,
+      Polynomial.map_C]
+    exact (congrArg p.f ((Genuine.hemiMap (E₀.baseChange k)).commutes (algebraMap k₀ k c))).trans
+      (p.f.commutes _))
+
+omit [E₀.IsElliptic] in
+lemma rhoM_gPunct (a : puncturedRing E₀) :
+    rhoM Z e (gPunct E₀ e hZ p x₀ y₀ hx₀ hy₀ a) = p.f (theta (k' := k) E₀ a) :=
+  rhoM_gPunctR E₀ e p x₀ y₀ hx₀ hy₀ a
+
+omit [E₀.IsElliptic] in
+lemma gPunct_injective : Function.Injective (gPunct E₀ e hZ p x₀ y₀ hx₀ hy₀) := by
+  intro a b h
+  have := congrArg (rhoM Z e) h
+  rw [rhoM_gPunct, rhoM_gPunct] at this
+  exact theta_injective E₀ (p.injective this)
+
+omit [E₀.IsElliptic] in
+include e hZ p x₀ y₀ hx₀ hy₀ in
+lemma isDomain_tensor_punctured : IsDomain (k ⊗[k₀] (punctured E₀).A) := by
+  haveI : IsDomain (k ⊗[k₀] (modelOrbicurve Z e hZ).A) := isDomain_tensor_model Z e
+  exact Function.Injective.isDomain (bcMap k (gPunct E₀ e hZ p x₀ y₀ hx₀ hy₀)).toRingHom
+    (bcMap_injective _ (gPunct_injective E₀ e hZ p x₀ y₀ hx₀ hy₀))
+
+omit [E₀.IsElliptic] in
+include e hZ p x₀ y₀ hx₀ hy₀ in
+lemma bot_mem_minimalPrimes_punctured :
+    (⊥ : Ideal (k ⊗[k₀] (punctured E₀).A)) ∈ minimalPrimes (k ⊗[k₀] (punctured E₀).A) :=
+  @bot_mem_minimalPrimes_of_isDomain _ _ (isDomain_tensor_punctured E₀ e hZ p x₀ y₀ hx₀ hy₀)
+
+omit [E₀.IsElliptic] in
+lemma comap_bcMap_gPunct :
+    (⊥ : Ideal (k ⊗[k₀] (modelOrbicurve Z e hZ).A)).comap
+      (bcMap k (gPunct E₀ e hZ p x₀ y₀ hx₀ hy₀)) = ⊥ := by
+  ext x
+  simp only [Ideal.mem_comap, Ideal.mem_bot]
+  exact ⟨fun h ↦ bcMap_injective _ (gPunct_injective E₀ e hZ p x₀ y₀ hx₀ hy₀)
+    (h.trans (map_zero _).symm), fun h ↦ by rw [h, map_zero]⟩
+
+omit [E₀.IsElliptic] in
+lemma gPunct_x : gPunct E₀ e hZ p x₀ y₀ hx₀ hy₀ (Genuine.hemiMap E₀ X) = x₀ := by
+  apply modelMap_injective e.toRingEquiv
+  change rhoM Z e _ = rhoM Z e x₀
+  rw [rhoM_gPunct, hx₀]
+  refine congrArg p.f ((theta_hemiMap E₀ X).trans ?_)
+  rw [Polynomial.map_X]
+
+omit [E₀.IsElliptic] in
+lemma gPunct_y : gPunct E₀ e hZ p x₀ y₀ hx₀ hy₀ (yA E₀) = y₀ := by
+  apply modelMap_injective e.toRingEquiv
+  change rhoM Z e _ = rhoM Z e y₀
+  rw [rhoM_gPunct, hy₀]
+  refine congrArg p.f ((theta_kappa E₀ _).trans ?_)
+  change kappa _ (WeierstrassCurve.Affine.CoordinateRing.map E₀ _
+    (WeierstrassCurve.Affine.CoordinateRing.mk E₀ X)) = _
+  rw [WeierstrassCurve.Affine.CoordinateRing.map_mk, Polynomial.map_X]
+  rfl
 
 end Punctured
 

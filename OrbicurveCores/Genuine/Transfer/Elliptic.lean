@@ -266,6 +266,13 @@ lemma alphaX_algebraMap (g : K[X]) :
   rw [algebraMap_alphaX]
   exact psiHat_algebraMap_poly E₀ ρ hρ g
 
+lemma alphaX_kappa (c : (E₀.baseChange K).toAffine.CoordinateRing) :
+    alphaX E₀ ρ hρ hsurj (kappa (E₀.baseChange K) c) = psi E₀ ρ c := by
+  apply IsFractionRing.injective P (FractionRing P)
+  rw [algebraMap_alphaX]
+  change psiHat E₀ ρ hρ (algebraMap _ _ (kappa (E₀.baseChange K) c)) = _
+  rw [algebraMap_kappa, psiHat_algebraMap]
+
 omit [CharZero k₀] [E₀.IsElliptic] in
 lemma kappa_eq_mul {a : puncturedRing E₀} {c d : E₀.toAffine.CoordinateRing}
     (hd : d ∈ nonZeroDivisors _)
