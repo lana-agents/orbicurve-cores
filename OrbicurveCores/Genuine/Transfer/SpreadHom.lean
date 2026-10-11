@@ -130,75 +130,193 @@ lemma rhoM_modelHemi_X : rhoM Z e ((modelHemi E₀ e hZ φ f₀ hf₀).f X) = φ
 
 end Hemi
 
-section Punctured
+section Theta
 
-/-- The map of Weierstrass coordinate rings `k₀[E₀] → k[E_k]`. -/
+variable {k₀' k' : Type*} [Field k₀'] [Field k'] [Algebra k₀' k'] (E₀' : WeierstrassCurve k₀')
+
+/-- The map of Weierstrass coordinate rings `k₀'[E₀'] → k[E_k]`. -/
 noncomputable abbrev coordMap :
-    E₀.toAffine.CoordinateRing →+* (E₀.baseChange k).toAffine.CoordinateRing :=
-  WeierstrassCurve.Affine.CoordinateRing.map E₀ (algebraMap k₀ k)
+    E₀'.toAffine.CoordinateRing →+* (E₀'.baseChange k').toAffine.CoordinateRing :=
+  WeierstrassCurve.Affine.CoordinateRing.map E₀' (algebraMap k₀' k')
 
-omit [CharZero k₀] [CharZero k] [E₀.IsElliptic] in
-lemma coordMap_injective : Function.Injective (coordMap (k := k) E₀) :=
-  WeierstrassCurve.Affine.CoordinateRing.map_injective (algebraMap k₀ k).injective
+lemma coordMap_injective : Function.Injective (coordMap (k' := k') E₀') :=
+  WeierstrassCurve.Affine.CoordinateRing.map_injective (algebraMap k₀' k').injective
 
-/-- The map of function fields `k₀(E₀) → k(E_k)`. -/
+/-- The map of function fields `k₀'(E₀') → k(E_k)`. -/
 noncomputable def fmap :
-    E₀.toAffine.FunctionField →+* (E₀.baseChange k).toAffine.FunctionField :=
-  IsFractionRing.map (coordMap_injective (k := k) E₀)
+    E₀'.toAffine.FunctionField →+* (E₀'.baseChange k').toAffine.FunctionField :=
+  IsFractionRing.map (coordMap_injective (k' := k') E₀')
 
-omit [CharZero k₀] [CharZero k] [E₀.IsElliptic] in
-lemma fmap_algebraMap (c : E₀.toAffine.CoordinateRing) :
-    fmap (k := k) E₀ (algebraMap _ _ c) = algebraMap _ _ (coordMap (k := k) E₀ c) := by
+lemma fmap_algebraMap (c : E₀'.toAffine.CoordinateRing) :
+    fmap (k' := k') E₀' (algebraMap _ _ c) = algebraMap _ _ (coordMap (k' := k') E₀' c) := by
   unfold fmap IsFractionRing.map
   exact IsLocalization.map_eq _ c
 
-omit [CharZero k₀] [CharZero k] [E₀.IsElliptic] in
-lemma fmap_algebraMap_poly (g : k₀[X]) :
-    fmap (k := k) E₀ (algebraMap k₀[X] _ g) =
-      algebraMap k[X] _ (g.map (algebraMap k₀ k)) := by
-  rw [IsScalarTower.algebraMap_apply k₀[X] E₀.toAffine.CoordinateRing,
-    fmap_algebraMap, IsScalarTower.algebraMap_apply k[X]
-      (E₀.baseChange k).toAffine.CoordinateRing]
+lemma fmap_algebraMap_poly (g : k₀'[X]) :
+    fmap (k' := k') E₀' (algebraMap k₀'[X] _ g) =
+      algebraMap k'[X] _ (g.map (algebraMap k₀' k')) := by
+  rw [IsScalarTower.algebraMap_apply k₀'[X] E₀'.toAffine.CoordinateRing,
+    fmap_algebraMap, IsScalarTower.algebraMap_apply k'[X]
+      (E₀'.baseChange k').toAffine.CoordinateRing]
   congr 1
-  change WeierstrassCurve.Affine.CoordinateRing.map E₀ _ (AdjoinRoot.of _ g) = AdjoinRoot.of _ _
+  change WeierstrassCurve.Affine.CoordinateRing.map E₀' _ (AdjoinRoot.of _ g) = AdjoinRoot.of _ _
   rw [← AdjoinRoot.mk_C]
-  change WeierstrassCurve.Affine.CoordinateRing.map E₀ _
-    (WeierstrassCurve.Affine.CoordinateRing.mk E₀ (C g)) = _
+  change WeierstrassCurve.Affine.CoordinateRing.map E₀' _
+    (WeierstrassCurve.Affine.CoordinateRing.mk E₀' (C g)) = _
   rw [WeierstrassCurve.Affine.CoordinateRing.map_mk, Polynomial.map_C]
   rfl
 
-omit [CharZero k₀] [CharZero k] [E₀.IsElliptic] in
-lemma isIntegral_fmap (a : puncturedRing E₀) :
-    IsIntegral k[X] (fmap (k := k) E₀ (a : E₀.toAffine.FunctionField)) := by
+lemma isIntegral_fmap (a : puncturedRing E₀') :
+    IsIntegral k'[X] (fmap (k' := k') E₀' (a : E₀'.toAffine.FunctionField)) := by
   obtain ⟨p, hp, hpa⟩ := a.2
-  refine ⟨p.map (Polynomial.mapRingHom (algebraMap k₀ k)), hp.map _, ?_⟩
+  refine ⟨p.map (Polynomial.mapRingHom (algebraMap k₀' k')), hp.map _, ?_⟩
   rw [Polynomial.eval₂_map, Polynomial.eval₂_eq_sum_range]
   rw [Polynomial.eval₂_eq_sum_range] at hpa
-  have := congrArg (fmap (k := k) E₀) hpa
+  have := congrArg (fmap (k' := k') E₀') hpa
   rw [map_sum, map_zero] at this
   rw [← this]
   refine Finset.sum_congr rfl fun i _ ↦ ?_
   rw [map_mul, map_pow, RingHom.comp_apply, fmap_algebraMap_poly]
   rfl
 
-/-- The map `k₀[E₀ ∖ 0] → k[E_k ∖ 0]`. -/
-noncomputable def theta : puncturedRing E₀ →+* puncturedRing (E₀.baseChange k) :=
-  ((fmap (k := k) E₀).comp (integralClosure k₀[X] E₀.toAffine.FunctionField).val.toRingHom
-    ).codRestrict (integralClosure k[X] (E₀.baseChange k).toAffine.FunctionField).toSubring
-      fun a ↦ isIntegral_fmap E₀ a
+/-- The map `k₀'[E₀' ∖ 0] → k[E_k ∖ 0]`. -/
+noncomputable def theta : puncturedRing E₀' →+* puncturedRing (E₀'.baseChange k') where
+  toFun a := ⟨fmap (k' := k') E₀' a, isIntegral_fmap E₀' a⟩
+  map_one' := Subtype.ext (RingHom.map_one _)
+  map_mul' a b := Subtype.ext (RingHom.map_mul (fmap (k' := k') E₀') a b)
+  map_zero' := Subtype.ext (RingHom.map_zero _)
+  map_add' a b := Subtype.ext (RingHom.map_add (fmap (k' := k') E₀') a b)
 
-omit [CharZero k₀] [CharZero k] [E₀.IsElliptic] in
-lemma theta_coe (a : puncturedRing E₀) :
-    ((theta (k := k) E₀ a : puncturedRing (E₀.baseChange k)) :
-      (E₀.baseChange k).toAffine.FunctionField) = fmap E₀ (a : E₀.toAffine.FunctionField) := rfl
+lemma theta_coe (a : puncturedRing E₀') :
+    ((theta (k' := k') E₀' a : puncturedRing (E₀'.baseChange k')) :
+      (E₀'.baseChange k').toAffine.FunctionField) = fmap E₀' (a : E₀'.toAffine.FunctionField) := rfl
 
-omit [CharZero k₀] [CharZero k] [E₀.IsElliptic] in
-lemma theta_injective : Function.Injective (theta (k := k) E₀) := by
+lemma theta_injective : Function.Injective (theta (k' := k') E₀') := by
   intro a b h
-  have := congrArg (fun z : puncturedRing (E₀.baseChange k) ↦
-    (z : (E₀.baseChange k).toAffine.FunctionField)) h
+  have := congrArg (fun z : puncturedRing (E₀'.baseChange k') ↦
+    (z : (E₀'.baseChange k').toAffine.FunctionField)) h
   simp only [theta_coe] at this
-  exact Subtype.ext ((fmap (k := k) E₀).injective this)
+  exact Subtype.ext ((fmap (k' := k') E₀').injective this)
+
+lemma theta_kappa (c : E₀'.toAffine.CoordinateRing) :
+    theta (k' := k') E₀' (kappa E₀' c) = kappa (E₀'.baseChange k') (coordMap (k' := k') E₀' c) := by
+  apply Subtype.ext
+  rw [theta_coe]
+  change fmap (k' := k') E₀' (algebraMap _ _ (kappa E₀' c)) =
+    algebraMap _ _ (kappa (E₀'.baseChange k') _)
+  rw [algebraMap_kappa, algebraMap_kappa, fmap_algebraMap]
+
+end Theta
+
+section Punctured
+variable (p : Hom Z (punctured (E₀.baseChange k))) (x₀ y₀ : A₀)
+  (hx₀ : rhoM Z e x₀ = p.f (Genuine.hemiMap (E₀.baseChange k) X))
+  (hy₀ : rhoM Z e y₀ = p.f (yA (E₀.baseChange k)))
+
+include hx₀ in
+omit [E₀.IsElliptic] [CharZero k₀] [Algebra.FiniteType k₀ A₀] in
+lemma rhoM_aeval_x (g : k₀[X]) :
+    rhoM Z e (Polynomial.aeval x₀ g) =
+      p.f (algebraMap k[X] (puncturedRing (E₀.baseChange k)) (g.map (algebraMap k₀ k))) := by
+  induction g using Polynomial.induction_on with
+  | C c =>
+    rw [Polynomial.aeval_C, Polynomial.map_C, rhoM_apply, Algebra.algebraMap_eq_smul_one,
+      ← TensorProduct.smul_tmul]
+    have h1 : ((c • (1 : k)) ⊗ₜ[k₀] (1 : A₀)) =
+        algebraMap k (k ⊗[k₀] A₀) (algebraMap k₀ k c) := by
+      rw [Algebra.algebraMap_eq_smul_one c]; rfl
+    rw [h1, AlgEquiv.commutes]
+    exact (p.f.commutes (algebraMap k₀ k c)).symm
+  | add f g hf hg =>
+    rw [map_add, map_add, hf, hg, Polynomial.map_add, map_add]
+    exact (map_add p.f _ _).symm
+  | monomial n c h =>
+    rw [pow_succ, ← mul_assoc, map_mul, map_mul, h, Polynomial.aeval_X, hx₀,
+      Polynomial.map_mul (p := C c * X ^ n), Polynomial.map_X, map_mul]
+    exact (map_mul p.f _ _).symm
+
+include hx₀ hy₀ in
+omit [E₀.IsElliptic] [CharZero k₀] [Algebra.FiniteType k₀ A₀] in
+lemma rhoM_eval₂ (q : k₀[X][X]) :
+    rhoM Z e (q.eval₂ (Polynomial.aeval x₀ : k₀[X] →ₐ[k₀] A₀).toRingHom y₀) =
+      p.f ((q.map (Polynomial.mapRingHom (algebraMap k₀ k))).eval₂
+        (algebraMap k[X] (puncturedRing (E₀.baseChange k))) (yA (E₀.baseChange k))) := by
+  induction q using Polynomial.induction_on with
+  | C g =>
+    rw [Polynomial.eval₂_C, Polynomial.map_C, Polynomial.eval₂_C]
+    exact rhoM_aeval_x E₀ e p x₀ hx₀ g
+  | add f g hf hg =>
+    rw [Polynomial.eval₂_add, map_add, hf, hg, Polynomial.map_add, Polynomial.eval₂_add]
+    exact (map_add p.f _ _).symm
+  | monomial n g h =>
+    rw [pow_succ, ← mul_assoc, Polynomial.eval₂_mul, map_mul, h, Polynomial.eval₂_X, hy₀,
+      Polynomial.map_mul (p := C g * X ^ n), Polynomial.map_X, Polynomial.eval₂_mul,
+      Polynomial.eval₂_X]
+    exact (map_mul p.f _ _).symm
+
+include hx₀ hy₀ in
+omit [E₀.IsElliptic] [CharZero k₀] [Algebra.FiniteType k₀ A₀] in
+lemma eval₂_x₀_y₀ :
+    E₀.toAffine.polynomial.eval₂ (Polynomial.aeval x₀ : k₀[X] →ₐ[k₀] A₀).toRingHom y₀ = 0 := by
+  have hinj := modelMap_injective e.toRingEquiv
+  apply hinj
+  change rhoM Z e _ = rhoM Z e 0
+  rw [rhoM_eval₂ E₀ e p x₀ y₀ hx₀ hy₀, map_zero]
+  have hW : E₀.toAffine.polynomial.map (Polynomial.mapRingHom (algebraMap k₀ k)) =
+      (E₀.baseChange k).toAffine.polynomial :=
+    (WeierstrassCurve.Affine.map_polynomial (W := E₀) (f := algebraMap k₀ k)).symm
+  rw [hW]
+  have h0 := eval₂_yA (E₀.baseChange k)
+  convert map_zero p.f using 2
+  exact h0
+
+/-- `k₀[E₀] → A₀`, `x ↦ x₀`, `y ↦ y₀`. -/
+noncomputable def psi₀ : E₀.toAffine.CoordinateRing →+* A₀ :=
+  AdjoinRoot.lift (Polynomial.aeval x₀ : k₀[X] →ₐ[k₀] A₀).toRingHom y₀
+    (eval₂_x₀_y₀ E₀ e p x₀ y₀ hx₀ hy₀)
+
+omit [E₀.IsElliptic] [CharZero k₀] [Algebra.FiniteType k₀ A₀] in
+lemma rhoM_psi₀ (c : E₀.toAffine.CoordinateRing) :
+    rhoM Z e (psi₀ E₀ e p x₀ y₀ hx₀ hy₀ c) =
+      p.f (kappa (E₀.baseChange k) (coordMap (k' := k) E₀ c)) := by
+  induction c using AdjoinRoot.induction_on with
+  | ih q =>
+    rw [psi₀, AdjoinRoot.lift_mk, rhoM_eval₂ E₀ e p x₀ y₀ hx₀ hy₀]
+    congr 1
+    change _ = kappa (E₀.baseChange k) (WeierstrassCurve.Affine.CoordinateRing.map E₀ _
+      (WeierstrassCurve.Affine.CoordinateRing.mk E₀ q))
+    rw [WeierstrassCurve.Affine.CoordinateRing.map_mk]
+    change _ = kappa (E₀.baseChange k) (AdjoinRoot.mk _ _)
+    rw [← AdjoinRoot.aeval_eq, ← Polynomial.aeval_algHom_apply]
+    rfl
+
+omit [E₀.IsElliptic] [CharZero k₀] [Algebra.FiniteType k₀ A₀] in
+include hx₀ hy₀ in
+/-- **The values of `p ∘ θ` are defined over `k₀`.** -/
+lemma mem_range_theta (a : puncturedRing E₀) :
+    p.f (theta (k' := k) E₀ a) ∈ (rhoM Z e).range := by
+  obtain ⟨c, d, hd, hcd⟩ := IsFractionRing.div_surjective
+    (A := E₀.toAffine.CoordinateRing) (a : E₀.toAffine.FunctionField)
+  have hκ := kappa_eq_mul E₀ hd hcd
+  have hd0 : d ≠ 0 := nonZeroDivisors.ne_zero hd
+  have hw : psi₀ E₀ e p x₀ y₀ hx₀ hy₀ d ≠ 0 := by
+    intro h0
+    have := rhoM_psi₀ E₀ e p x₀ y₀ hx₀ hy₀ d
+    rw [h0, map_zero] at this
+    have h1 : kappa (E₀.baseChange k) (coordMap (k' := k) E₀ d) = 0 :=
+      p.injective (this.symm.trans (map_zero p.f).symm)
+    have h2 := congrArg (fun z : puncturedRing (E₀.baseChange k) ↦
+      (z : (E₀.baseChange k).toAffine.FunctionField)) h1
+    simp only [ZeroMemClass.coe_zero] at h2
+    change algebraMap _ _ (kappa (E₀.baseChange k) _) = 0 at h2
+    rw [algebraMap_kappa] at h2
+    have h3 : coordMap (k' := k) E₀ d = 0 :=
+      (IsFractionRing.injective _ _) (h2.trans (map_zero _).symm)
+    exact hd0 (coordMap_injective E₀ (h3.trans (map_zero _).symm))
+  refine mem_range_of_mul_mem_range e.toRingEquiv hw ⟨psi₀ E₀ e p x₀ y₀ hx₀ hy₀ c, ?_⟩
+  change rhoM Z e _ = _ * rhoM Z e _
+  rw [rhoM_psi₀, rhoM_psi₀, ← theta_kappa, ← theta_kappa, hκ, map_mul, mul_comm]
+  exact map_mul p.f _ _
 
 end Punctured
 
