@@ -183,7 +183,7 @@ lemma conj_uU_lowerLeft (h : SL(2, ℝ)) (t : ℝ) :
 
 /-- The point `i n` of the upper half plane. -/
 noncomputable def iN (n : ℕ) (hn : 0 < n) : ℍ :=
-  ⟨(n : ℂ) * Complex.I, by simp; exact_mod_cast hn⟩
+  ⟨(n : ℂ) * Complex.I, by simpa using hn⟩
 
 include hx hy in
 /-- **One cusp.** If `g uU t g⁻¹ ∈ Γ₀` for some `t ≠ 0`, then some `γ g` (`γ ∈ Γ₀`) fixes `∞`. -/

@@ -382,7 +382,8 @@ from U1, S1, the group-level theorem and three precise interfaces. The `k`-core 
 | # | Statement (Lean) | Status |
 |---|---|---|
 | F' | `canLift27Genuine_of : CommIndexFour → HemiCoreComplex → HemiCoreTransfer → CanLift27Genuine` (also `canLift27_of`: pi1's `CanLift27`) | **[done]** `Genuine/Assembly.lean` |
-| R3 | `CommIndexFour`: a once-punctured torus group with a core has index `4` in its commensurator (`Comm(Γ) = ⟨Γ, ι⟩`, `ι² = -1`) | **[stated]**; R3a done |
+| R3 | `CommIndexFour`: a once-punctured torus group with a core has index `4` in its commensurator (`Comm(Γ) = ⟨Γ, ι⟩`, `ι² = -1`) | reduced to R3d `TranslationCase` (`Genuine/CommIndex.lean`, `commIndexFour_of_translationCase`); R3a–R3c done |
+| F'' | `canLift27Genuine_of_remaining : TranslationCase → U2Descent → U2Rigidity → HemiCoreTransfer → CanLift27Genuine` | **[done]** `Genuine/Final.lean` |
 | U2 | `HemiCoreComplex`: over `ℂ`, if `(A, B)` uniformises `E ∖ 0` and `[Comm(Γ) : Γ] = 4`, then `hemi E` is the `ℂ`-core of `punctured E` | **[stated]**; reduced to `U2Descent` and `U2Rigidity` (`hemiCoreComplex_of`) |
 | T | `HemiCoreTransfer`: the complex case of pi1's `CanLift27` implies it over every field of characteristic `0` | **[stated]** |
 
@@ -393,14 +394,19 @@ from U1, S1, the group-level theorem and three precise interfaces. The `k`-core 
   (ping-pong), the hemi-elliptic group `Γ⁺ = ±Γ ∪ ±Γι` (`nHemi`) satisfies `Γ⁺ ≤ Comm(Γ)`
   (`nHemi_le_commensurator`), `[Γ⁺ : Γ] = 4` (`relIndex_nHemi`) and `u₁ ∈ Γ⁺`
   (`uU_one_mem_nHemi`). So R3 is equivalent to `Comm(Γ) ≤ Γ⁺`.
-* R3b. Stabiliser of the cusp: `Δ_∞ ⊆ {±u_t}` (a dilation `δ` would give
-  `δ⁻ⁿ u₄ δⁿ → 1`), and `Δ = Γ · Δ_∞` (one cusp orbit: every parabolic fixed point of `Γ` is in
-  `Γ ∞`). So `Δ̄_∞ = ⟨u_{1/m}⟩` with `[Δ : Γ] = 4m`.
-* R3c. Ford region: for a discrete `Δ ∋ u_w` the region `{|Re z| < w/2, Im z > 1/c_min}` injects
-  into `Δ \ ℍ`, Shimizu (`|c| ≥ 1/w`) and covolume `2π/(2m)` give `m ≤ 3`.
-* R3d. `m ∈ {2, 3}`: `Δ` is the triangle group `(2,4,∞)`, resp. `(2,3,∞)`, hence arithmetic
-  (Ford domain area analysis, or Gauss–Bonnet for the signature of `Δ`). So `AdmitsCore` forces
-  `m = 1`.
+* R3b. **[done]** (`Genuine/CuspStructure.lean`) weak Shimizu (`exists_lowerLeft_bound`),
+  one cusp (`exists_mem_lowerLeft_eq_zero`: via the strip cover, if `g u_t g⁻¹ ∈ Γ` then some
+  `γ g` fixes `∞`), upper-triangular elements are `±u_s`.
+* R3c. **[done]** (`Genuine/CommIndex.lean`) `{s | u_s ∈ Comm(Γ)} = (1/m)ℤ`; for `m = 1`,
+  `Comm(Γ) = Γ · {±u_k} = Γ⁺` (`relIndex_commensurator_normal_or`); transport to arbitrary
+  `(A, B)` through Nielsen moves, signs and `GL(2, ℝ)`-conjugation. Hence
+  `commIndexFour_of_translationCase : TranslationCase → CommIndexFour`.
+* R3d. **[stated]** `TranslationCase`: `u_{1/m} ∈ Comm(Γ)` with `m ≥ 2` forces arithmeticity.
+  Plan: exact covolume `2π` (the ping-pong quadrilateral is a fundamental domain) and the
+  Shimizu region `{|Re z| < 1/(2m), Im z > 1/m}` of area `1` give `2m ≤ 2π`, so `m ≤ 3`;
+  `m = 3` is the extremal covolume `π/3`, whose Ford domain forces `S ∈ Δ` (so `Δ ⊇ PSL(2, ℤ)`);
+  `m = 2` (covolume `π/2`, `Δ = (2,4,∞)`) needs the normality of `Γ⁺` in `Δ` and a trace
+  computation, or Gauss–Bonnet for signatures.
 
 **U2** (over `ℂ`; `X = punctured E`, `H = hemi E`, `π : ℍ → X(ℂ)` from U1).
 

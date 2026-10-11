@@ -17,6 +17,7 @@ import OrbicurveCores.Fuchsian.PingPong
 import OrbicurveCores.Genuine.Assembly
 import OrbicurveCores.Genuine.CommIndex
 import OrbicurveCores.Genuine.CuspStructure
+import OrbicurveCores.Genuine.Final
 import OrbicurveCores.Genuine.Hemi
 import OrbicurveCores.Genuine.HemiCore
 import OrbicurveCores.Genuine.HomComp
