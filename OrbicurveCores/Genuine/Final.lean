@@ -5,6 +5,7 @@ Authors: LANA Project
 -/
 import OrbicurveCores.U2.Assembly
 import OrbicurveCores.Genuine.Transfer.SpreadDescent
+import OrbicurveCores.Genuine.AltU2
 
 /-!
 # [CanLift] Prop. 2.7 over every field of characteristic `0`, in every universe
@@ -21,6 +22,9 @@ along `k₀ → k` for `k` in an arbitrary universe) carries it to every field o
 
 pi1's Lefschetz principle `AffOrbicurve.canLift27_of_complex` gives the same conclusion for
 fields in `Type` (`CanLift27.{0}`); the transfer here also covers fields in higher universes.
+
+`Alt.canLift27Genuine` is the same statement obtained from the alternative proof over `ℂ`
+(`Alt.canLift27C`, `Genuine/AltU2.lean`).
 -/
 
 universe u
@@ -36,5 +40,9 @@ theorem canLift27 : AffOrbicurve.CanLift27.{u} :=
 over a field of characteristic `0`, if `E ∖ {0}` has no `k`-core then `j(E)` is exceptional. -/
 theorem canLift27Genuine : CanLift27Genuine.{u} :=
   canLift27Genuine_of_canLift27 canLift27
+
+/-- `CanLift27Genuine` along the alternative route over `ℂ` (`Alt.canLift27C`). -/
+theorem Alt.canLift27Genuine : CanLift27Genuine.{u} :=
+  canLift27Genuine_of_canLift27 (hemiCoreTransfer Alt.canLift27C)
 
 end OrbicurveCores

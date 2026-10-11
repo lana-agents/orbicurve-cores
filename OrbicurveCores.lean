@@ -28,6 +28,8 @@ import OrbicurveCores.Fuchsian.DenseSubgroup
 import OrbicurveCores.Fuchsian.FordCover
 import OrbicurveCores.Fuchsian.OneInftyLattice
 import OrbicurveCores.Fuchsian.PingPong
+import OrbicurveCores.Genuine.AltStatements
+import OrbicurveCores.Genuine.AltU2
 import OrbicurveCores.Genuine.CommIndex
 import OrbicurveCores.Genuine.CuspStructure
 import OrbicurveCores.Genuine.Descent
@@ -36,6 +38,17 @@ import OrbicurveCores.Genuine.Hemi
 import OrbicurveCores.Genuine.HemiCore
 import OrbicurveCores.Genuine.HomComp
 import OrbicurveCores.Genuine.Involution
+import OrbicurveCores.Genuine.Rigid.Basic
+import OrbicurveCores.Genuine.Rigid.CoordRing
+import OrbicurveCores.Genuine.Rigid.Deck
+import OrbicurveCores.Genuine.Rigid.Eval
+import OrbicurveCores.Genuine.Rigid.Lift
+import OrbicurveCores.Genuine.Rigid.LiftAlg
+import OrbicurveCores.Genuine.Rigid.Main
+import OrbicurveCores.Genuine.Rigid.OrbCover
+import OrbicurveCores.Genuine.Rigid.Order
+import OrbicurveCores.Genuine.Rigid.Proper
+import OrbicurveCores.Genuine.Rigid.Roots
 import OrbicurveCores.Genuine.Separates
 import OrbicurveCores.Genuine.Transfer.BaseChange
 import OrbicurveCores.Genuine.Transfer.CompRamification
