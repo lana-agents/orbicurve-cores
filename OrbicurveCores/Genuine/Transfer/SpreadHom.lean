@@ -229,6 +229,22 @@ lemma eq_of_eq_kappa {D : Type*} [CommRing D] [IsDomain D] (f₁ f₂ : puncture
   rw [map_mul] at e1 e2
   rw [← e1, h c, e2, h d]
 
+/-- Ring maps out of `k[E ∖ 0]` into a domain, injective, agreeing on `k[x]` and on `y`,
+agree. -/
+lemma eq_of_eq_xy {D : Type*} [CommRing D] [IsDomain D] (f₁ f₂ : puncturedRing E₀' →+* D)
+    (hf₁ : Function.Injective f₁)
+    (hR : ∀ r : k₀'[X], f₁ (algebraMap k₀'[X] _ r) = f₂ (algebraMap k₀'[X] _ r))
+    (hY : f₁ (yA E₀') = f₂ (yA E₀')) (y : puncturedRing E₀') : f₁ y = f₂ y := by
+  refine eq_of_eq_kappa E₀' f₁ f₂ hf₁ (fun c ↦ ?_) y
+  induction c using AdjoinRoot.induction_on with
+  | ih q =>
+    rw [← AdjoinRoot.aeval_eq, ← Polynomial.aeval_algHom_apply]
+    change f₁ (Polynomial.aeval (yA E₀') q) = f₂ (Polynomial.aeval (yA E₀') q)
+    rw [Polynomial.aeval_def, Polynomial.hom_eval₂, Polynomial.hom_eval₂]
+    refine Polynomial.eval₂_congr (RingHom.ext fun r ↦ ?_) hY rfl
+    rw [RingHom.comp_apply, RingHom.comp_apply]
+    exact hR r
+
 end Theta
 
 section Punctured
@@ -454,6 +470,73 @@ lemma gPunct_y : gPunct E₀ e hZ p x₀ y₀ hx₀ hy₀ (yA E₀) = y₀ := by
     (WeierstrassCurve.Affine.CoordinateRing.mk E₀ X)) = _
   rw [WeierstrassCurve.Affine.CoordinateRing.map_mk, Polynomial.map_X]
   rfl
+
+lemma hsq_punct (h𝔭le : (⊥ : Ideal (k ⊗[k₀] (punctured E₀).A)) ≤
+      (⊥ : Ideal (k ⊗[k₀] (modelOrbicurve Z e hZ).A)).comap
+        (bcMap k (gPunct E₀ e hZ p x₀ y₀ hx₀ hy₀)))
+    (y : (punctured (E₀.baseChange k)).A) :
+    (iotaModel Z e hZ).f (p.f y) =
+      Ideal.quotientMapₐ ⊥ (bcMap k (gPunct E₀ e hZ p x₀ y₀ hx₀ hy₀)) h𝔭le
+        ((iotaX E₀ ⊥ (bot_mem_minimalPrimes_punctured E₀ e hZ p x₀ y₀ hx₀ hy₀)).f y) := by
+  set g := gPunct E₀ e hZ p x₀ y₀ hx₀ hy₀
+  have h𝔭 := bot_mem_minimalPrimes_punctured E₀ e hZ p x₀ y₀ hx₀ hy₀
+  let D := (bcComp k (modelOrbicurve Z e hZ) ⊥ (bot_mem_minimalPrimes_model Z e hZ)).A
+  let f₁ : puncturedRing (E₀.baseChange k) →+* D :=
+    (alphaModel Z e hZ).toRingHom.comp p.f.toRingHom
+  let f₂ : puncturedRing (E₀.baseChange k) →+* D :=
+    (Ideal.quotientMapₐ ⊥ (bcMap k g) h𝔭le).toRingHom.comp (alphaXK E₀ ⊥ h𝔭).toRingHom
+  have hf₁ : Function.Injective f₁ := (alphaModel_bijective Z e hZ).1.comp p.injective
+  -- the two maps agree on `k[x]`
+  have hR : ∀ q : k[X], f₁ (algebraMap k[X] _ q) = f₂ (algebraMap k[X] _ q) := by
+    intro q
+    induction q using Polynomial.induction_on with
+    | C a =>
+      rw [← Polynomial.algebraMap_eq, ← IsScalarTower.algebraMap_apply]
+      exact ((alphaModel Z e hZ).comp p.f).commutes a |>.trans
+        (((Ideal.quotientMapₐ ⊥ (bcMap k g) h𝔭le).comp (alphaXK E₀ ⊥ h𝔭)).commutes a).symm
+    | add f₃ f₄ h₃ h₄ => rw [map_add, map_add, map_add, h₃, h₄]
+    | monomial n a h =>
+      have e1 : algebraMap k[X] (puncturedRing (E₀.baseChange k)) (C a * X ^ n * X) =
+          algebraMap k[X] _ (C a * X ^ n) * algebraMap k[X] _ X := map_mul _ _ _
+      rw [pow_succ, ← mul_assoc, e1, map_mul f₁, map_mul f₂, h]
+      congr 1
+      change alphaModel Z e hZ (p.f (Genuine.hemiMap _ X)) =
+        Ideal.quotientMapₐ ⊥ (bcMap k g) h𝔭le (alphaXR E₀ ⊥ h𝔭 (algebraMap k[X] _ X))
+      rw [← hx₀, alphaModel_rhoM, alphaXR, alphaX_algebraMap, psiPoly, Polynomial.aeval_X]
+      change _ = Ideal.Quotient.mk _ (bcMap k g ((1 : k) ⊗ₜ[k₀] xA E₀))
+      rw [bcMap_tmul]
+      congr 2
+      exact (gPunct_x E₀ e hZ p x₀ y₀ hx₀ hy₀).symm
+  -- and on `y`
+  have hY : f₁ (yA (E₀.baseChange k)) = f₂ (yA (E₀.baseChange k)) := by
+    change alphaModel Z e hZ (p.f (yA _)) =
+      Ideal.quotientMapₐ ⊥ (bcMap k g) h𝔭le (alphaXR E₀ ⊥ h𝔭 (kappa _ (AdjoinRoot.root _)))
+    rw [← hy₀, alphaModel_rhoM, alphaXR, alphaX_kappa]
+    change _ = Ideal.quotientMapₐ ⊥ (bcMap k g) h𝔭le (AdjoinRoot.lift _ _ _ (AdjoinRoot.root _))
+    rw [AdjoinRoot.lift_root]
+    change _ = Ideal.Quotient.mk _ (bcMap k g ((1 : k) ⊗ₜ[k₀] yA E₀))
+    rw [bcMap_tmul]
+    congr 2
+    exact (gPunct_y E₀ e hZ p x₀ y₀ hx₀ hy₀).symm
+  change f₁ y = f₂ y
+  exact eq_of_eq_xy (E₀.baseChange k) f₁ f₂ hf₁ hR hY y
+
+/-- **The model of `p : Z → E_k ∖ 0`.** -/
+noncomputable def modelPunctured : Hom (modelOrbicurve Z e hZ) (punctured E₀) :=
+  haveI : IsDomain (k ⊗[k₀] (modelOrbicurve Z e hZ).A) := isDomain_tensor_model Z e
+  homOfModels' p (gPunct E₀ e hZ p x₀ y₀ hx₀ hy₀) ⊥
+    (bot_mem_minimalPrimes_punctured E₀ e hZ p x₀ y₀ hx₀ hy₀)
+    (comap_bcMap_gPunct E₀ e hZ p x₀ y₀ hx₀ hy₀) (iotaModel Z e hZ)
+    (iotaX E₀ ⊥ (bot_mem_minimalPrimes_punctured E₀ e hZ p x₀ y₀ hx₀ hy₀))
+    (alphaModel_bijective Z e hZ)
+    (alphaXK_bijective E₀ ⊥ (bot_mem_minimalPrimes_punctured E₀ e hZ p x₀ y₀ hx₀ hy₀))
+    (hsq_punct E₀ e hZ p x₀ y₀ hx₀ hy₀ _) (gPunct_injective E₀ e hZ p x₀ y₀ hx₀ hy₀)
+    (lie_model e)
+
+lemma rhoM_modelPunctured_x :
+    rhoM Z e ((modelPunctured E₀ e hZ p x₀ y₀ hx₀ hy₀).f (Genuine.hemiMap E₀ X)) =
+      p.f (Genuine.hemiMap (E₀.baseChange k) X) := by
+  rw [modelPunctured, homOfModels'_f, gPunct_x, hx₀]
 
 end Punctured
 
