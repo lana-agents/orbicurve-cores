@@ -95,7 +95,7 @@ lemma psiPoly_eq :
     psiPoly E₀ ρ = ρ.comp ((bcMap K (hemiMapPoly E₀)).comp (polyEquivTensor' k₀ K).toAlgHom) := by
   refine Polynomial.algHom_ext ?_
   simp only [psiPoly, Polynomial.aeval_X, AlgHom.comp_apply]
-  show _ = ρ (bcMap K _ (polyEquivTensor k₀ K X))
+  change _ = ρ (bcMap K _ (polyEquivTensor k₀ K X))
   rw [polyEquivTensor_apply, eval₂_X, bcMap_tmul]
   rfl
 

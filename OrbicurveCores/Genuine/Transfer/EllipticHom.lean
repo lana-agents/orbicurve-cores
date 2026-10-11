@@ -119,7 +119,7 @@ lemma alphaH_bijective : Function.Bijective (alphaH E₀ 𝔮 h𝔮) := by
 lemma alpha_comm (heq : 𝔭.comap (bcMap K (Genuine.hemiHom E₀).f) = 𝔮) :
     (alphaXK E₀ 𝔭 h𝔭).comp (Genuine.hemiMap (E₀.baseChange K)) =
       (bcHom' (Genuine.hemiHom E₀) 𝔭 h𝔭 𝔮 h𝔮 heq).f.comp (alphaH E₀ 𝔮 h𝔮) := by
-  show ((alphaXK E₀ 𝔭 h𝔭).comp (Genuine.hemiMap (E₀.baseChange K)) :
+  change ((alphaXK E₀ 𝔭 h𝔭).comp (Genuine.hemiMap (E₀.baseChange K)) :
       K[X] →ₐ[K] (bcComp K (punctured E₀) 𝔭 h𝔭).A) =
     ((bcHom' (Genuine.hemiHom E₀) 𝔭 h𝔭 𝔮 h𝔮 heq).f.comp (alphaH E₀ 𝔮 h𝔮) :
       K[X] →ₐ[K] (bcComp K (punctured E₀) 𝔭 h𝔭).A)
