@@ -382,8 +382,9 @@ from U1, S1, the group-level theorem and three precise interfaces. The `k`-core 
 | # | Statement (Lean) | Status |
 |---|---|---|
 | F' | `canLift27Genuine_of : CommIndexFour → HemiCoreComplex → HemiCoreTransfer → CanLift27Genuine` (also `canLift27_of`: pi1's `CanLift27`) | **[done]** `Genuine/Assembly.lean` |
-| R3 | `CommIndexFour`: a once-punctured torus group with a core has index `4` in its commensurator (`Comm(Γ) = ⟨Γ, ι⟩`, `ι² = -1`) | reduced to R3d `TranslationCase` (`Genuine/CommIndex.lean`, `commIndexFour_of_translationCase`); R3a–R3c done |
+| R3 | `CommIndexFour`: a once-punctured torus group with a core has index `4` in its commensurator (`Comm(Γ) = ⟨Γ, ι⟩`, `ι² = -1`) | **[done]** `commIndexFour` (`Genuine/TranslationCase.lean`), from R3a–R3c and R3d `translationCase` |
 | F'' | `canLift27Genuine_of_remaining : TranslationCase → U2Descent → U2Rigidity → HemiCoreTransfer → CanLift27Genuine` | **[done]** `Genuine/Final.lean` |
+| F''' | `canLift27Genuine_of_U2_transfer : U2Descent → U2Rigidity → HemiCoreTransfer → CanLift27Genuine` | **[done]** `Genuine/Final.lean` |
 | U2 | `HemiCoreComplex`: over `ℂ`, if `(A, B)` uniformises `E ∖ 0` and `[Comm(Γ) : Γ] = 4`, then `hemi E` is the `ℂ`-core of `punctured E` | **[stated]**; reduced to `U2Descent` and `U2Rigidity` (`hemiCoreComplex_of`) |
 | T | `HemiCoreTransfer`: the complex case of pi1's `CanLift27` implies it over every field of characteristic `0` | **[stated]** |
 
@@ -401,12 +402,22 @@ from U1, S1, the group-level theorem and three precise interfaces. The `k`-core 
   `Comm(Γ) = Γ · {±u_k} = Γ⁺` (`relIndex_commensurator_normal_or`); transport to arbitrary
   `(A, B)` through Nielsen moves, signs and `GL(2, ℝ)`-conjugation. Hence
   `commIndexFour_of_translationCase : TranslationCase → CommIndexFour`.
-* R3d. **[stated]** `TranslationCase`: `u_{1/m} ∈ Comm(Γ)` with `m ≥ 2` forces arithmeticity.
-  Plan: exact covolume `2π` (the ping-pong quadrilateral is a fundamental domain) and the
-  Shimizu region `{|Re z| < 1/(2m), Im z > 1/m}` of area `1` give `2m ≤ 2π`, so `m ≤ 3`;
-  `m = 3` is the extremal covolume `π/3`, whose Ford domain forces `S ∈ Δ` (so `Δ ⊇ PSL(2, ℤ)`);
-  `m = 2` (covolume `π/2`, `Δ = (2,4,∞)`) needs the normality of `Γ⁺` in `Δ` and a trace
-  computation, or Gauss–Bonnet for signatures.
+* R3d. **[done]** (`Genuine/TranslationCase.lean`, `translationCase`) `TranslationCase`:
+  `u_{1/m} ∈ Comm(Γ)` with `m ≥ 2` is impossible for a group with a core. Elementary proof (no
+  hyperbolic area): `Δ = Comm(Γ)` is discrete (finite index over `Γ`); with transl `Δ = (1/m) ℤ`:
+  * sharp Shimizu (`one_le_abs_shimizu`: weak Shimizu plus the iteration `g ↦ g u_s g⁻¹`, which
+    squares `c s`) applied to the involutions `ι, A₀ι, B₀ι ∈ Γ⁺` (lower-left entries `z, y, x`,
+    trace `0`) gives `x, y, z ≥ m`; since `min(x, y, z) < 4` (`markov_min_lt_four`), `m ≤ 3`;
+  * `Γ` has no elliptic elements (fixed point + proper discontinuity give finite order, and `Γ` is
+    free), so elements of `Γ⁺` with `|tr| < 2` have trace `0` (`tr_eq_zero_of_mem_nHemi`);
+  * `Δ = Γ · {±u_{k/m}}` (R3c), so every `δ ∈ Δ` has `δ^j ∈ Γ⁺` with `1 ≤ j ≤ m`
+    (`exists_pow_mem_nHemi`);
+  * for `w ∈ {x, y, z}` with `w < 2m`, `δ = e_w u_{1/m}` has trace `w/m ∈ (0, 2)` and
+    `tr δ^j ∈ {0} ∪ {|τ| ≥ 2}` (`tr_pow_cases`): `m = 2` gives `w² = 8`, `m = 3` gives
+    `w ∈ {3, 3√2, 3√3}`;
+  * hence the trace triple is `(2√2, 2√2, 4)` or `(3, 3, 3)` up to order (`markov_case_two`,
+    `markov_case_three`), a Takeuchi group (`not_admitsCore_of_sq`, via a Nielsen pair and
+    `exists_conj_of_takeuchiSq`), which has no core. About 600 lines.
 
 **U2** (over `ℂ`; `X = punctured E`, `H = hemi E`, `π : ℍ → X(ℂ)` from U1).
 
