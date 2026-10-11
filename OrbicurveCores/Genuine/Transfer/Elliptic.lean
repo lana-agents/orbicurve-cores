@@ -171,4 +171,176 @@ lemma isIntegral_P (hsurj : Function.Surjective ρ) :
     rw [this, map_mul, AlgHom.commutes, IsScalarTower.algebraMap_apply K K[X] P]
     · exact isIntegral_algebraMap.mul (h1 a)
 
+/-- `psi` restricted to `k₀[x, y]/(W)` is `1 ⊗ κ`. -/
+lemma psi_map (c : E₀.toAffine.CoordinateRing) :
+    psi E₀ ρ (WeierstrassCurve.Affine.CoordinateRing.map E₀ (algebraMap k₀ K) c) =
+      ρ ((1 : K) ⊗ₜ[k₀] kappa E₀ c) := by
+  have h : (psi E₀ ρ).comp (WeierstrassCurve.Affine.CoordinateRing.map E₀ (algebraMap k₀ K)) =
+      ρ.toRingHom.comp ((Algebra.TensorProduct.includeRight :
+        puncturedRing E₀ →ₐ[k₀] K ⊗[k₀] puncturedRing E₀).toRingHom.comp
+          (kappa E₀).toRingHom) := by
+    refine AdjoinRoot.ringHom_ext (RingHom.ext fun g ↦ ?_) ?_
+    · simp only [RingHom.comp_apply]
+      rw [← AdjoinRoot.mk_C]
+      change psi E₀ ρ (WeierstrassCurve.Affine.CoordinateRing.map E₀ (algebraMap k₀ K)
+        (WeierstrassCurve.Affine.CoordinateRing.mk E₀ (C g))) = _
+      rw [WeierstrassCurve.Affine.CoordinateRing.map_mk, Polynomial.map_C]
+      change psi E₀ ρ (AdjoinRoot.of _ (g.map (algebraMap k₀ K))) = _
+      rw [psi_of]
+      have := congrArg (fun φ ↦ φ g) (psiPoly_comp_map E₀ ρ)
+      simp only [RingHom.comp_apply, Polynomial.coe_mapRingHom] at this
+      refine this.trans ?_
+      congr 2
+      change _ = kappa E₀ (algebraMap k₀[X] _ g)
+      rw [AlgHom.commutes]
+    · simp only [RingHom.comp_apply]
+      rw [← AdjoinRoot.mk_X]
+      change psi E₀ ρ (WeierstrassCurve.Affine.CoordinateRing.map E₀ (algebraMap k₀ K)
+        (WeierstrassCurve.Affine.CoordinateRing.mk E₀ X)) = _
+      rw [WeierstrassCurve.Affine.CoordinateRing.map_mk, Polynomial.map_X]
+      exact AdjoinRoot.lift_root _
+  exact congrArg (fun φ ↦ φ c) h
+
+section Alpha
+
+variable [CharZero k₀] [E₀.IsElliptic] [IsDomain P]
+  (hρ : RingHom.ker ρ ∈ minimalPrimes (K ⊗[k₀] puncturedRing E₀))
+
+local notation "FK" => WeierstrassCurve.Affine.FunctionField
+  (WeierstrassCurve.toAffine (WeierstrassCurve.baseChange E₀ K))
+local notation "SK" => puncturedRing (E₀.baseChange K)
+
+/-- `K(E_K) → Frac P`. -/
+noncomputable def psiHat : FK →+* FractionRing P :=
+  IsFractionRing.lift (A := (E₀.baseChange K).toAffine.CoordinateRing)
+    (g := (algebraMap P (FractionRing P)).comp (psi E₀ ρ))
+    ((IsFractionRing.injective P (FractionRing P)).comp (psi_injective E₀ ρ hρ))
+
+lemma psiHat_algebraMap (c : (E₀.baseChange K).toAffine.CoordinateRing) :
+    psiHat E₀ ρ hρ (algebraMap _ FK c) = algebraMap P (FractionRing P) (psi E₀ ρ c) :=
+  IsFractionRing.lift_algebraMap _ _
+
+lemma psiHat_algebraMap_poly (g : K[X]) :
+    psiHat E₀ ρ hρ (algebraMap K[X] FK g) = algebraMap P (FractionRing P) (psiPoly E₀ ρ g) := by
+  rw [IsScalarTower.algebraMap_apply K[X] (E₀.baseChange K).toAffine.CoordinateRing FK,
+    psiHat_algebraMap, ← psi_of]
+  rfl
+
+variable [IsIntegrallyClosed P] (hsurj : Function.Surjective ρ)
+
+/-- The integral closure `K[E_K ∖ 0]` maps into `P` (`P` is integrally closed and integral over
+`K[x]`). -/
+noncomputable def alphaX : SK →+* P := by
+  letI := algKP E₀ ρ
+  haveI := isIntegral_P E₀ ρ hsurj
+  letI : Algebra SK (FractionRing P) :=
+    ((psiHat E₀ ρ hρ).comp (integralClosure K[X] FK).val.toRingHom).toAlgebra
+  haveI : IsScalarTower K[X] SK (FractionRing P) := IsScalarTower.of_algebraMap_eq fun g ↦ by
+    change _ = psiHat E₀ ρ hρ (algebraMap K[X] FK g)
+    rw [psiHat_algebraMap_poly, IsScalarTower.algebraMap_apply K[X] P (FractionRing P)]
+    rfl
+  exact (IsIntegralClosure.lift K[X] P (FractionRing P) (S := SK)).toRingHom
+
+lemma algebraMap_alphaX (z : SK) :
+    algebraMap P (FractionRing P) (alphaX E₀ ρ hρ hsurj z) = psiHat E₀ ρ hρ (z : FK) := by
+  letI := algKP E₀ ρ
+  haveI := isIntegral_P E₀ ρ hsurj
+  letI : Algebra SK (FractionRing P) :=
+    ((psiHat E₀ ρ hρ).comp (integralClosure K[X] FK).val.toRingHom).toAlgebra
+  haveI : IsScalarTower K[X] SK (FractionRing P) := IsScalarTower.of_algebraMap_eq fun g ↦ by
+    change _ = psiHat E₀ ρ hρ (algebraMap K[X] FK g)
+    rw [psiHat_algebraMap_poly, IsScalarTower.algebraMap_apply K[X] P (FractionRing P)]
+    rfl
+  exact IsIntegralClosure.algebraMap_lift K[X] P (FractionRing P) z
+
+lemma alphaX_injective : Function.Injective (alphaX E₀ ρ hρ hsurj) := by
+  intro z₁ z₂ h
+  have := congrArg (algebraMap P (FractionRing P)) h
+  rw [algebraMap_alphaX, algebraMap_alphaX] at this
+  exact Subtype.ext ((psiHat E₀ ρ hρ).injective this)
+
+lemma alphaX_algebraMap (g : K[X]) :
+    alphaX E₀ ρ hρ hsurj (algebraMap K[X] SK g) = psiPoly E₀ ρ g := by
+  apply IsFractionRing.injective P (FractionRing P)
+  rw [algebraMap_alphaX]
+  exact psiHat_algebraMap_poly E₀ ρ hρ g
+
+omit [CharZero k₀] [E₀.IsElliptic] in
+lemma kappa_eq_mul {a : puncturedRing E₀} {c d : E₀.toAffine.CoordinateRing}
+    (hd : d ∈ nonZeroDivisors _)
+    (hcd : algebraMap _ E₀.toAffine.FunctionField c / algebraMap _ E₀.toAffine.FunctionField d =
+      (a : E₀.toAffine.FunctionField)) :
+    kappa E₀ c = kappa E₀ d * a := by
+  apply Subtype.ext
+  have hd0 : algebraMap _ E₀.toAffine.FunctionField d ≠ 0 :=
+    IsFractionRing.to_map_ne_zero_of_mem_nonZeroDivisors hd
+  have h1 := algebraMap_kappa E₀ c
+  have h2 := algebraMap_kappa E₀ d
+  change algebraMap (puncturedRing E₀) _ _ = algebraMap (puncturedRing E₀) _ (_ * _)
+  rw [map_mul, h1, h2]
+  rw [div_eq_iff hd0] at hcd
+  rw [hcd, mul_comm]
+  rfl
+
+/-- `alphaX` is onto: `P` is generated by the `1 ⊗ a`, and `a = c/d` with `c, d` in the
+Weierstrass coordinate ring. -/
+lemma alphaX_surjective : Function.Surjective (alphaX E₀ ρ hρ hsurj) := by
+  letI := algKP E₀ ρ
+  haveI := isIntegral_P E₀ ρ hsurj
+  have hcomm : ∀ g : K[X], psiHat E₀ ρ hρ (algebraMap K[X] FK g) =
+      algebraMap K[X] (FractionRing P) g := fun g ↦ by
+    rw [psiHat_algebraMap_poly, IsScalarTower.algebraMap_apply K[X] P (FractionRing P)]
+    rfl
+  let f : FK →ₐ[K[X]] FractionRing P := AlgHom.mk (psiHat E₀ ρ hρ) hcomm
+  have h1 : ∀ a : puncturedRing E₀, ρ ((1 : K) ⊗ₜ[k₀] a) ∈ (alphaX E₀ ρ hρ hsurj).range := by
+    intro a
+    obtain ⟨c, d, hd, hcd⟩ := IsFractionRing.div_surjective
+      (A := E₀.toAffine.CoordinateRing) (a : E₀.toAffine.FunctionField)
+    have hκ := kappa_eq_mul E₀ hd hcd
+    set cK : (E₀.baseChange K).toAffine.CoordinateRing :=
+      WeierstrassCurve.Affine.CoordinateRing.map E₀ (algebraMap k₀ K) c
+    set dK : (E₀.baseChange K).toAffine.CoordinateRing :=
+      WeierstrassCurve.Affine.CoordinateRing.map E₀ (algebraMap k₀ K) d
+    have hdK : dK ≠ 0 := by
+      intro h
+      apply nonZeroDivisors.ne_zero hd
+      exact WeierstrassCurve.Affine.CoordinateRing.map_injective (algebraMap k₀ K).injective
+        (h.trans (map_zero _).symm)
+    have hpd : algebraMap P (FractionRing P) (psi E₀ ρ dK) ≠ 0 := by
+      intro h
+      apply hdK
+      apply psi_injective E₀ ρ hρ
+      have : psi E₀ ρ dK = 0 := IsFractionRing.injective P (FractionRing P) (h.trans (map_zero _).symm)
+      rw [this, map_zero]
+    set z : FK := algebraMap _ FK cK / algebraMap _ FK dK
+    have hz : psiHat E₀ ρ hρ z = algebraMap P (FractionRing P) (ρ ((1 : K) ⊗ₜ[k₀] a)) := by
+      rw [map_div₀, psiHat_algebraMap, psiHat_algebraMap, div_eq_iff hpd, psi_map, psi_map, hκ,
+        ← map_mul, ← map_mul, Algebra.TensorProduct.tmul_mul_tmul, one_mul, mul_comm]
+    have hzint : IsIntegral K[X] z := by
+      refine (isIntegral_algHom_iff f (psiHat E₀ ρ hρ).injective).mp ?_
+      change IsIntegral K[X] (psiHat E₀ ρ hρ z)
+      rw [hz]
+      exact (Algebra.IsIntegral.isIntegral (R := K[X]) _).algebraMap
+    refine ⟨⟨z, hzint⟩, ?_⟩
+    apply IsFractionRing.injective P (FractionRing P)
+    rw [algebraMap_alphaX]
+    exact hz
+  intro x
+  obtain ⟨t, rfl⟩ := hsurj x
+  induction t with
+  | zero => exact ⟨0, by rw [map_zero, map_zero]⟩
+  | add x y hx hy =>
+    obtain ⟨a, ha⟩ := hx
+    obtain ⟨b, hb⟩ := hy
+    exact ⟨a + b, by rw [map_add, map_add, ha, hb]⟩
+  | tmul c a =>
+    obtain ⟨b, hb⟩ := h1 a
+    refine ⟨algebraMap K[X] SK (C c) * b, ?_⟩
+    rw [map_mul, hb, alphaX_algebraMap, psiPoly, Polynomial.aeval_C, ← AlgHom.commutes ρ,
+      ← map_mul, Algebra.TensorProduct.algebraMap_apply, Algebra.TensorProduct.tmul_mul_tmul,
+      mul_one, one_mul]
+    rfl
+
+end Alpha
+
 end OrbicurveCores.Transfer
