@@ -47,7 +47,8 @@ noncomputable abbrev yA : puncturedRing E₀ := kappa E₀ (AdjoinRoot.root E₀
 noncomputable abbrev hemiMapPoly : k₀[X] →ₐ[k₀] puncturedRing E₀ :=
   IsScalarTower.toAlgHom k₀ k₀[X] (puncturedRing E₀)
 
-lemma eval₂_yA : E₀.toAffine.polynomial.eval₂ (algebraMap k₀[X] (puncturedRing E₀)) (yA E₀) = 0 := by
+lemma eval₂_yA :
+    E₀.toAffine.polynomial.eval₂ (algebraMap k₀[X] (puncturedRing E₀)) (yA E₀) = 0 := by
   have := AdjoinRoot.aeval_eq (f := E₀.toAffine.polynomial) E₀.toAffine.polynomial
   rw [AdjoinRoot.mk_self] at this
   have h2 := congrArg (kappa E₀) this
@@ -310,7 +311,8 @@ lemma alphaX_surjective : Function.Surjective (alphaX E₀ ρ hρ hsurj) := by
       intro h
       apply hdK
       apply psi_injective E₀ ρ hρ
-      have : psi E₀ ρ dK = 0 := IsFractionRing.injective P (FractionRing P) (h.trans (map_zero _).symm)
+      have : psi E₀ ρ dK = 0 :=
+        IsFractionRing.injective P (FractionRing P) (h.trans (map_zero _).symm)
       rw [this, map_zero]
     set z : FK := algebraMap _ FK cK / algebraMap _ FK dK
     have hz : psiHat E₀ ρ hρ z = algebraMap P (FractionRing P) (ρ ((1 : K) ⊗ₜ[k₀] a)) := by
