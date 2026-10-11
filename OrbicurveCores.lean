@@ -22,6 +22,9 @@ import OrbicurveCores.Genuine.Hemi
 import OrbicurveCores.Genuine.HemiCore
 import OrbicurveCores.Genuine.HomComp
 import OrbicurveCores.Genuine.Involution
+import OrbicurveCores.Genuine.Transfer.DVR
+import OrbicurveCores.Genuine.Transfer.Generic
+import OrbicurveCores.Genuine.Transfer.Local
 import OrbicurveCores.GroupCanLift
 import OrbicurveCores.GroupMain
 import OrbicurveCores.JValues
