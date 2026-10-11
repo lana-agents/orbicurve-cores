@@ -6,6 +6,7 @@ Authors: The orbicurve-cores contributors
 import OrbicurveCores.Genuine.Rigid.Order
 import OrbicurveCores.Genuine.Rigid.Eval
 import OrbicurveCores.Genuine.Assembly
+import OrbicurveCores.Genuine.Descent
 
 /-!
 # U2c9: `U2Rigidity`
@@ -31,6 +32,13 @@ namespace OrbicurveCores.Rigid
 /-- The signature of `(E ∖ 0)/±1`: the stabiliser order at `x = t`. -/
 noncomputable def sigH (E : WeierstrassCurve ℂ) (t : ℂ) : ℕ :=
   (AffOrbicurve.hemi E).mult (Ideal.span {X - C t})
+
+lemma HasLocalForm.congr_eventually {f g : ℂ → ℂ} {z : ℂ} {n : ℕ} (h : HasLocalForm f z n)
+    (hfg : f =ᶠ[𝓝 z] g) : HasLocalForm g z n := by
+  obtain ⟨k, hk, hk0, hkd, hev⟩ := h
+  refine ⟨k, hk, hk0, hkd, ?_⟩
+  filter_upwards [hev, hfg] with y hy hy'
+  rw [← hy', hy, hfg.self_of_nhds]
 
 lemma hasLocalForm_of_sub_const {f : ℂ → ℂ} {z c : ℂ} {n : ℕ}
     (h : HasLocalForm (fun y ↦ f y - c) z n) : HasLocalForm f z n := by
@@ -263,4 +271,150 @@ lemma finite_sigH (E : WeierstrassCurve ℂ) [E.IsElliptic] : {t | sigH E t ≠ 
 
 end Curve
 
+/-! ### The main theorem -/
+
+open AffOrbicurve in
+/-- **U2Rigidity (analytic core)**. -/
+theorem hemiRigid_of_unif {E : WeierstrassCurve ℂ} [E.IsElliptic] {A B : SL(2, ℝ)}
+    {π : ℂ → ℂ × ℂ} (hπ : UnifProps E A B π) (hcomm : tr (A * B * A⁻¹ * B⁻¹) = -2)
+    (hA : tr A ≠ 0)
+    (hidx : (Subgroup.closure {A, B}).relIndex (commensurator (Subgroup.closure {A, B})) = 4) :
+    Genuine.HemiRigid E := by
+  intro Z p φ
+  set R := puncturedRing E
+  letI : Algebra R Z.A := p.f.toRingHom.toAlgebra
+  haveI : IsScalarTower ℂ R Z.A := IsScalarTower.of_algebraMap_eq fun c ↦ (p.f.commutes c).symm
+  haveI : Algebra.IsIntegral R Z.A := ⟨p.isIntegral⟩
+  haveI : FaithfulSMul R Z.A := (faithfulSMul_iff_algebraMap_injective _ _).mpr p.injective
+  haveI : Algebra.FiniteType R Z.A := Algebra.FiniteType.of_restrictScalars_finiteType ℂ _ _
+  haveI : Module.Finite R Z.A := Algebra.IsIntegral.finite
+  haveI : IsDedekindDomain R := (punctured E).isDedekindDomain
+  have hunr : ∀ q : Ideal Z.A, q.IsMaximal → q.ramificationIdx R = 1 := fun q hq ↦ by
+    have h := p.etale q hq
+    rw [Genuine.punctured_mult] at h
+    exact Nat.eq_one_of_mul_eq_one_right h
+  have hmultZ : ∀ w : Ideal Z.A, w.IsMaximal → Z.mult w = 1 := Genuine.mult_eq_one_of_hom E p
+  set ev := evX hπ
+  have hev : ∀ r, DifferentiableOn ℂ (fun z ↦ ev z r) upper := fun r ↦ differentiableOn_sigmaX hπ r
+  have hI : Complex.I ∈ upper := by simp [upper]
+  haveI : (RingHom.ker (ev Complex.I)).IsMaximal := ker_isMaximal _
+  obtain ⟨P, hP, hPl⟩ := Ideal.exists_maximal_ideal_liesOver_of_isIntegral (S := Z.A)
+    (RingHom.ker (ev Complex.I))
+  set ψ₀ := (fibEquiv (S := Z.A) (ev Complex.I)).symm ⟨P, hP.isPrime, hPl⟩
+  obtain ⟨τ, hτF, -, hτd⟩ := exists_lift hunr S1.isOpen_upper (convex_halfSpace_im_gt 0) hev hI
+    ψ₀.2
+  have hτc : ∀ y ∈ upper, (τ y).comp (IsScalarTower.toAlgHom ℂ R Z.A) = ev y := hτF
+  have hτR : ∀ r, ∀ y ∈ upper, τ y (p.f r) = sigmaX hπ r y := fun r y hy ↦
+    AlgHom.congr_fun (hτc y hy) r
+  have hunif : ∀ y ∈ upper, ∃ g, τ y g = 0 ∧ deriv (fun y' ↦ τ y' g) y ≠ 0 := fun y hy ↦
+    exists_uniformizer hπ (IsScalarTower.toAlgHom ℂ R Z.A) hτc hy
+  -- local normal forms of `F = τ (φ^* x)`
+  set F : ℂ → ℂ := fun y ↦ τ y (φ.f X)
+  have hF : DifferentiableOn ℂ F upper := hτd _
+  have hloc : ∀ y ∈ upper, HasLocalForm F y (sigH E (F y)) := fun y hy ↦ by
+    obtain ⟨g, hg0, hgd⟩ := hunif y hy
+    exact hasLocalForm_of_ramificationIdx hτd hy hg0 hgd φ.f φ.injective (hemi E).mult
+      fun w hw ↦ by have := φ.etale w hw; rwa [hmultZ w hw, mul_one] at this
+  -- local normal forms of `u = x ∘ π`
+  have hlocU : ∀ y ∈ upper, HasLocalForm (fun y' ↦ (π y').1) y (sigH E (π y).1) := fun y hy ↦ by
+    obtain ⟨g, hg0, hgd⟩ := exists_uniformizer hπ (AlgHom.id ℂ R) (τ := ev)
+      (fun y _ ↦ AlgHom.comp_id _) hy
+    have h := hasLocalForm_of_ramificationIdx (τ := ev) hev hy hg0 hgd (Genuine.hemiMap E)
+      (Genuine.hemiHom E).injective (hemi E).mult fun w hw ↦ by
+        have := (Genuine.hemiHom E).etale w hw
+        rwa [Genuine.punctured_mult, mul_one] at this
+    have hxy : ∀ y' ∈ upper, ev y' (Genuine.hemiMap E X) = (π y').1 := fun y' hy' ↦ by
+      rw [evX_apply, sigmaX_hemiMap, piC_of_mem hy']
+    have hn : sigH E (π y).1 =
+        (hemi E).mult (Ideal.span {X - C (ev y (Genuine.hemiMap E X))}) := by
+      unfold sigH; rw [← hxy y hy]
+    rw [hn]
+    refine HasLocalForm.congr_eventually h ?_
+    filter_upwards [S1.isOpen_upper.mem_nhds hy] with y' hy'
+    exact hxy y' hy'
+  -- the stabiliser `Γ_τ` of `τ` in `Γ`
+  set Γ := Subgroup.closure {A, B}
+  have hmobF : ∀ γ ∈ Γ, ∀ y ∈ upper, τ (mob γ y) ∈ Fib Z.A (ev y) := fun γ hγ y hy ↦ by
+    have h := hτF (mob γ y) (mob_mem γ y)
+    refine h.trans ?_
+    ext r
+    exact sigmaX_mob hπ hγ r y
+  have hmobc : ∀ γ : SL(2, ℝ), ∀ a, ContinuousOn (fun y ↦ τ (mob γ y) a) upper := fun γ a ↦
+    (hτd a).continuousOn.comp (continuousOn_mob γ) fun y _ ↦ mob_mem γ y
+  let Γτ : Subgroup SL(2, ℝ) :=
+    { carrier := {γ | γ ∈ Γ ∧ ∀ y ∈ upper, τ (mob γ y) = τ y}
+      mul_mem' := fun {a b} ha hb ↦ ⟨mul_mem ha.1 hb.1, fun y hy ↦ by
+        rw [mob_mul, ha.2 _ (mob_mem _ _), hb.2 y hy]⟩
+      one_mem' := ⟨one_mem _, fun y hy ↦ by rw [mob_one hy]⟩
+      inv_mem' := fun {a} ha ↦ ⟨inv_mem ha.1, fun y hy ↦ by
+        rw [← ha.2 _ (mob_mem _ _), mob_mob_inv _ hy]⟩ }
+  have hΓτ : Γτ ≤ Γ := fun γ hγ ↦ hγ.1
+  have hinv : ∀ γ ∈ Γτ, ∀ y ∈ upper, F (mob γ y) = F y := fun γ hγ y hy ↦ by
+    simp only [F, hγ.2 y hy]
+  -- `Γ_τ` has finite index: the lifts `τ ∘ γ⁻¹` are determined by their value at `i`
+  have hfi : Γτ.relIndex Γ ≠ 0 := by
+    haveI : Finite (Fib Z.A (ev Complex.I)) := (finite_fib (S := Z.A) _).to_subtype
+    let Φ₀ : Γ → Fib Z.A (ev Complex.I) := fun γ ↦
+      ⟨τ (mob (γ : SL(2, ℝ))⁻¹ Complex.I), hmobF _ (inv_mem γ.2) _ hI⟩
+    have hΦ₀ : ∀ γ γ' : Γ, (γ : SL(2, ℝ))⁻¹ * γ' ∈ Γτ → Φ₀ γ = Φ₀ γ' := by
+      intro γ γ' h
+      apply Subtype.ext
+      change τ (mob (γ : SL(2, ℝ))⁻¹ Complex.I) = τ (mob (γ' : SL(2, ℝ))⁻¹ Complex.I)
+      have h' := (inv_mem h).2 (mob (γ : SL(2, ℝ))⁻¹ Complex.I) (mob_mem _ _)
+      rw [← mob_mul] at h'
+      rw [← h']
+      congr 1; congr 1; group
+    let Φ : Γ ⧸ Γτ.subgroupOf Γ → Fib Z.A (ev Complex.I) :=
+      Quotient.lift Φ₀ fun γ γ' h ↦ hΦ₀ γ γ'
+        (Subgroup.mem_subgroupOf.mp (QuotientGroup.leftRel_apply.mp h))
+    have hΦ : Function.Injective Φ := by
+      intro c c'
+      induction c using QuotientGroup.induction_on with | H γ => ?_
+      induction c' using QuotientGroup.induction_on with | H γ' => ?_
+      intro h
+      have h0 : τ (mob (γ : SL(2, ℝ))⁻¹ Complex.I) = τ (mob (γ' : SL(2, ℝ))⁻¹ Complex.I) :=
+        congrArg Subtype.val h
+      have heq := eqOn_of_lifts hunr S1.isOpen_upper (convex_halfSpace_im_gt 0).isPreconnected
+        hev (hmobF _ (inv_mem γ.2)) (hmobF _ (inv_mem γ'.2)) (hmobc _) (hmobc _) hI h0
+      refine QuotientGroup.eq.mpr ⟨mul_mem (inv_mem γ.2) γ'.2, fun y hy ↦ ?_⟩
+      have := heq (mob (γ' : SL(2, ℝ)) y) (mob_mem _ _)
+      rw [mob_inv_mob _ hy] at this
+      change τ (mob ((γ : SL(2, ℝ))⁻¹ * γ') y) = τ y
+      rw [mob_mul, this]
+    haveI : Finite (Γ ⧸ Γτ.subgroupOf Γ) := Finite.of_injective Φ hΦ
+    exact Subgroup.index_ne_zero_of_finite
+  -- properness modulo `Γ_τ`
+  have hprop : ∀ Rr : ℝ, ∃ C : Set ℍ, IsCompact C ∧ ∀ z : ℍ, ‖F z‖ ≤ Rr →
+      ∃ γ ∈ Γτ, γ • z ∈ C := by
+    intro Rr
+    obtain ⟨M₁, hM₁⟩ := exists_bound_of_isIntegral (τ := τ) φ.f (φ.isIntegral (p.f (xR E))) Rr
+    obtain ⟨M₂, hM₂⟩ := exists_bound_of_isIntegral (τ := τ) φ.f (φ.isIntegral (p.f (yR E))) Rr
+    obtain ⟨C, hC, hCp⟩ := hπ.exists_isCompact (max M₁ M₂)
+    refine exists_isCompact_of_relIndex hfi hC fun z hz ↦ hCp z ?_
+    have h1 : (π z).1 = τ z (p.f (xR E)) := by
+      rw [hτR _ _ z.im_pos, sigmaX_xR, piC_of_mem z.im_pos]
+    have h2 : (π z).2 = τ z (p.f (yR E)) := by
+      rw [hτR _ _ z.im_pos, sigmaX_yR, piC_of_mem z.im_pos]
+    rw [Prod.norm_def]
+    exact max_le_max (h1 ▸ hM₁ z hz) (h2 ▸ hM₂ z hz)
+  -- `F = u`, hence `φ^* x = p^* x`
+  have hFu := hπ.eq_u_of hcomm hA hidx (sigH_pos E) (finite_sigH E) hlocU hΓτ hfi hF hinv
+    hloc hprop
+  have hd : ∀ y ∈ upper, τ y (φ.f X - p.f (Genuine.hemiMap E X)) = 0 := fun y hy ↦ by
+    rw [map_sub, sub_eq_zero]
+    change F y = _
+    rw [hFu y hy, hτR _ y hy, sigmaX_hemiMap, piC_of_mem hy]
+  obtain ⟨g, hg0, hgd⟩ := hunif Complex.I hI
+  exact sub_eq_zero.mp (eq_zero_of_forall hτd hI hg0 hgd hd)
+
 end OrbicurveCores.Rigid
+
+namespace OrbicurveCores
+
+/-- **U2, rigidity half, over `ℂ`.** -/
+theorem u2Rigidity : U2Rigidity := by
+  intro E _ A B hcomm hA hU hidx
+  obtain ⟨π, hπ⟩ := Rigid.uniformizes_iff.mp hU
+  exact Rigid.hemiRigid_of_unif hπ hcomm hA hidx
+
+end OrbicurveCores

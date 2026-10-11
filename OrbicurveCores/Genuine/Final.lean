@@ -5,6 +5,7 @@ Authors: The orbicurve-cores contributors
 -/
 import OrbicurveCores.Genuine.CommIndex
 import OrbicurveCores.Genuine.Descent
+import OrbicurveCores.Genuine.Rigid.Main
 
 /-!
 # `CanLift27Genuine` from the remaining four interfaces
@@ -21,6 +22,10 @@ By U2b (`Genuine.hemiDescends_of`), `U2Descent` follows from `U2Rigidity` and th
 statement `Genuine.CompositumSeparates ℂ` (Abhyankar's lemma), so `CanLift27Genuine` follows from
 `TranslationCase`, `U2Rigidity`, `CompositumSeparates ℂ` and `HemiCoreTransfer`
 (`canLift27Genuine_of_remaining'`).
+
+`U2Rigidity` is proved (`u2Rigidity`, `Genuine/Rigid/Main.lean`), so `CanLift27Genuine` follows
+from `TranslationCase`, `CompositumSeparates ℂ` and `HemiCoreTransfer`
+(`canLift27Genuine_of_remaining''`).
 -/
 
 universe u
@@ -41,5 +46,20 @@ transfer.** -/
 theorem canLift27Genuine_of_remaining' (hR3d : TranslationCase) (hR : U2Rigidity)
     (hC : Genuine.CompositumSeparates ℂ) (hT : HemiCoreTransfer.{u}) : CanLift27Genuine.{u} :=
   canLift27Genuine_of_remaining hR3d (u2Descent_of hR hC) hR hT
+
+/-- `U2Descent` from Abhyankar's lemma (`CompositumSeparates ℂ`), using `u2Rigidity`. -/
+theorem u2Descent_of_compositumSeparates (hC : Genuine.CompositumSeparates ℂ) : U2Descent :=
+  u2Descent_of u2Rigidity hC
+
+/-- U2 over `ℂ` (`(E ∖ 0)/±1` is the `ℂ`-core when `[Comm(Γ) : Γ] = 4`) from Abhyankar's
+lemma. -/
+theorem hemiCoreComplex_of_compositumSeparates (hC : Genuine.CompositumSeparates ℂ) :
+    HemiCoreComplex :=
+  hemiCoreComplex_of (u2Descent_of_compositumSeparates hC) u2Rigidity
+
+/-- **`CanLift27Genuine` from R3d, Abhyankar's lemma over `ℂ`, and the transfer.** -/
+theorem canLift27Genuine_of_remaining'' (hR3d : TranslationCase)
+    (hC : Genuine.CompositumSeparates ℂ) (hT : HemiCoreTransfer.{u}) : CanLift27Genuine.{u} :=
+  canLift27Genuine_of_remaining' hR3d u2Rigidity hC hT
 
 end OrbicurveCores
