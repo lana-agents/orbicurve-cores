@@ -16,7 +16,8 @@ See `Blueprint.md` for the full plan, sources and status table. In short:
   [CanLift] Prop. 2.7 over any field of characteristic 0, with the genuine `k`-cores of
   `lana-agents/pi1` ([CanLift] Def. 2.1). The four exceptional values
   `{0, 1728, 2¹⁴·31³/5³, 2²·73³/3⁴}` are `OrbicurveCores.exceptionalJ` (`JValues.lean`, checked
-  against Sijsling's models). This statement is **not proved**.
+  against Sijsling's models). This statement is **proved** (`canLift27Genuine`,
+  `Genuine/Final.lean`), from U1 (`lana-agents/oka`) and the results below.
 * **Proved (no `sorry`, standard axioms only)**, at the level of Fuchsian groups:
   * Takeuchi's classification of arithmetic `(1;∞)`-groups, necessity half
     (`takeuchi_one_infty`, `takeuchi_one_infty_conj`): Fricke identities, trace integrality in
@@ -46,9 +47,12 @@ See `Blueprint.md` for the full plan, sources and status table. In short:
     (`Genuine/HemiCore.lean`), `U2Rigidity` (`u2Rigidity`, `Genuine/Rigid/`) and `U2Descent`
     (`u2Descent`, via Abhyankar's lemma `Abhyankar.compositumSeparates`, `Genuine/Abhyankar/`);
   * T `HemiCoreTransfer`: [CanLift] Prop. 2.3 and the Lefschetz principle, from `ℂ` to any field
-    of characteristic 0.
-* **Missing**: only `HemiCoreTransfer` (`Genuine/Final.lean`,
-  `canLift27Genuine_of_transfer : HemiCoreTransfer → CanLift27Genuine`; Blueprint §2.6).
+    of characteristic 0; **proved** (`hemiCoreTransfer`, `Genuine/Transfer/`): base change of
+    affine orbicurves along field extensions (components of `K ⊗ A` are Dedekind with the same
+    ramification), descent of rigidity and descent from `K` to `k₀`, and spreading out to models
+    over subfields of `ℂ`.
+* **Proved**: `canLift27Genuine : CanLift27Genuine` (`Genuine/Final.lean`), with standard axioms
+  only.
 
 ## Dependencies
 
