@@ -145,4 +145,22 @@ noncomputable def bcHom {Z Y : AffOrbicurve k} (q : Hom Z Y) (𝔓 : Ideal (K �
 @[simp] lemma bcHom_f {Z Y : AffOrbicurve k} (q : Hom Z Y) (𝔓 : Ideal (K ⊗[k] Z.A))
     (h𝔓 : 𝔓 ∈ minimalPrimes (K ⊗[k] Z.A)) : (bcHom q 𝔓 h𝔓).f = compMap K q.f 𝔓 := rfl
 
+/-- Base change of a finite étale morphism into a prescribed component `𝔮` of the target (equal
+to the contraction of `𝔓`). -/
+noncomputable def bcHom' {Z Y : AffOrbicurve k} (q : Hom Z Y) (𝔓 : Ideal (K ⊗[k] Z.A))
+    (h𝔓 : 𝔓 ∈ minimalPrimes (K ⊗[k] Z.A)) (𝔮 : Ideal (K ⊗[k] Y.A))
+    (h𝔮 : 𝔮 ∈ minimalPrimes (K ⊗[k] Y.A)) (heq : 𝔓.comap (bcMap K q.f) = 𝔮) :
+    Hom (bcComp K Z 𝔓 h𝔓) (bcComp K Y 𝔮 h𝔮) := by
+  subst heq
+  exact bcHom q 𝔓 h𝔓
+
+lemma bcHom'_f_mk {Z Y : AffOrbicurve k} (q : Hom Z Y) (𝔓 : Ideal (K ⊗[k] Z.A))
+    (h𝔓 : 𝔓 ∈ minimalPrimes (K ⊗[k] Z.A)) (𝔮 : Ideal (K ⊗[k] Y.A))
+    (h𝔮 : 𝔮 ∈ minimalPrimes (K ⊗[k] Y.A)) (heq : 𝔓.comap (bcMap K q.f) = 𝔮)
+    (y : K ⊗[k] Y.A) :
+    (bcHom' q 𝔓 h𝔓 𝔮 h𝔮 heq).f (Ideal.Quotient.mk 𝔮 y) =
+      Ideal.Quotient.mk 𝔓 (bcMap K q.f y) := by
+  subst heq
+  rfl
+
 end OrbicurveCores.Transfer

@@ -84,68 +84,70 @@ noncomputable def iotaX : Hom (bcComp K (punctured E₀) 𝔭 h𝔭) (punctured 
 
 section Hemi
 
-local notation "𝔮" => Ideal.comap (bcMap K (AffOrbicurve.Hom.f (Genuine.hemiHom E₀))) 𝔭
-
-/-- The component of `K ⊗ k₀[x]` below `P`. -/
-noncomputable abbrev compH : AffOrbicurve K :=
-  bcComp K (hemi E₀) 𝔮 (comap_bcHom_mem (Genuine.hemiHom E₀) h𝔭)
+variable (𝔮 : Ideal (K ⊗[k₀] (hemi E₀).A)) (h𝔮 : 𝔮 ∈ minimalPrimes (K ⊗[k₀] (hemi E₀).A))
 
 omit [CharZero K] [E₀.IsElliptic] in
-include h𝔭 in
-lemma comap_hemi_eq_bot : 𝔮 = ⊥ := by
-  have hmin := comap_bcHom_mem (K := K) (Genuine.hemiHom E₀) h𝔭
+include h𝔮 in
+/-- `K ⊗ k₀[x] ≅ K[x]` is a domain: its only minimal prime is `0`. -/
+lemma eq_bot_of_mem_minimalPrimes_hemi : 𝔮 = ⊥ := by
   have : IsDomain (K ⊗[k₀] k₀[X]) :=
     (polyEquivTensor' k₀ K).symm.toMulEquiv.isDomain
   have : IsDomain (K ⊗[k₀] (hemi E₀).A) := this
-  exact le_antisymm (hmin.2 ⟨Ideal.isPrime_bot, bot_le⟩ bot_le) bot_le
+  exact le_antisymm (h𝔮.2 ⟨Ideal.isPrime_bot, bot_le⟩ bot_le) bot_le
 
 /-- `K[x] ≅ Q`. -/
-noncomputable def alphaH : (hemi (E₀.baseChange K)).A →ₐ[K] (compH E₀ 𝔭 h𝔭).A :=
+noncomputable def alphaH : (hemi (E₀.baseChange K)).A →ₐ[K] (bcComp K (hemi E₀) 𝔮 h𝔮).A :=
   (Ideal.Quotient.mkₐ K 𝔮).comp (polyEquivTensor' k₀ K).toAlgHom
 
 omit [E₀.IsElliptic] in
-lemma alphaH_X : alphaH E₀ 𝔭 h𝔭 X = Ideal.Quotient.mk 𝔮 ((1 : K) ⊗ₜ[k₀] (X : k₀[X])) := by
+lemma alphaH_X : alphaH E₀ 𝔮 h𝔮 X = Ideal.Quotient.mk 𝔮 ((1 : K) ⊗ₜ[k₀] (X : k₀[X])) := by
   change Ideal.Quotient.mk 𝔮 (polyEquivTensor k₀ K X) = _
   rw [polyEquivTensor_apply, eval₂_X]
   rfl
 
 omit [E₀.IsElliptic] in
-lemma alphaH_bijective : Function.Bijective (alphaH E₀ 𝔭 h𝔭) := by
+lemma alphaH_bijective : Function.Bijective (alphaH E₀ 𝔮 h𝔮) := by
   have hmk : Function.Bijective (Ideal.Quotient.mk 𝔮) := by
     refine ⟨?_, Ideal.Quotient.mk_surjective⟩
     rw [injective_iff_map_eq_zero]
     intro x hx
     have : x ∈ 𝔮 := Ideal.Quotient.eq_zero_iff_mem.mp hx
-    rwa [comap_hemi_eq_bot E₀ 𝔭 h𝔭, Ideal.mem_bot] at this
+    rwa [eq_bot_of_mem_minimalPrimes_hemi E₀ 𝔮 h𝔮, Ideal.mem_bot] at this
   exact hmk.comp (polyEquivTensor' k₀ K).bijective
 
 /-- The square `alphaX ∘ x = β ∘ alphaH` commutes, `β` the base change of `x : E₀ ∖ 0 → H₀`. -/
-lemma alpha_comm :
+lemma alpha_comm (heq : 𝔭.comap (bcMap K (Genuine.hemiHom E₀).f) = 𝔮) :
     (alphaXK E₀ 𝔭 h𝔭).comp (Genuine.hemiMap (E₀.baseChange K)) =
-      (bcHom (Genuine.hemiHom E₀) 𝔭 h𝔭).f.comp (alphaH E₀ 𝔭 h𝔭) := by
+      (bcHom' (Genuine.hemiHom E₀) 𝔭 h𝔭 𝔮 h𝔮 heq).f.comp (alphaH E₀ 𝔮 h𝔮) := by
   show ((alphaXK E₀ 𝔭 h𝔭).comp (Genuine.hemiMap (E₀.baseChange K)) :
       K[X] →ₐ[K] (bcComp K (punctured E₀) 𝔭 h𝔭).A) =
-    ((bcHom (Genuine.hemiHom E₀) 𝔭 h𝔭).f.comp (alphaH E₀ 𝔭 h𝔭) :
+    ((bcHom' (Genuine.hemiHom E₀) 𝔭 h𝔭 𝔮 h𝔮 heq).f.comp (alphaH E₀ 𝔮 h𝔮) :
       K[X] →ₐ[K] (bcComp K (punctured E₀) 𝔭 h𝔭).A)
   apply Polynomial.algHom_ext
   change alphaXR E₀ 𝔭 h𝔭 (algebraMap K[X] (puncturedRing (E₀.baseChange K)) X) =
-    compMap K (Genuine.hemiHom E₀).f 𝔭 (alphaH E₀ 𝔭 h𝔭 X)
-  rw [alphaH_X, compMap_mk, alphaXR, alphaX_algebraMap, psiPoly, Polynomial.aeval_X, bcMap_tmul]
+    (bcHom' (Genuine.hemiHom E₀) 𝔭 h𝔭 𝔮 h𝔮 heq).f (alphaH E₀ 𝔮 h𝔮 X)
+  rw [alphaH_X, bcHom'_f_mk, alphaXR, alphaX_algebraMap, psiPoly, Polynomial.aeval_X, bcMap_tmul]
   rfl
 
 /-- **`Q → (E_K ∖ 0)/±1`**: the comparison isomorphism, as a finite étale morphism. -/
-noncomputable def iotaH : Hom (compH E₀ 𝔭 h𝔭) (hemi (E₀.baseChange K)) where
-  f := alphaH E₀ 𝔭 h𝔭
-  injective := (alphaH_bijective E₀ 𝔭 h𝔭).1
-  isIntegral := RingHom.isIntegral_of_surjective _ (alphaH_bijective E₀ 𝔭 h𝔭).2
+noncomputable def iotaH : Hom (bcComp K (hemi E₀) 𝔮 h𝔮) (hemi (E₀.baseChange K)) where
+  f := alphaH E₀ 𝔮 h𝔮
+  injective := (alphaH_bijective E₀ 𝔮 h𝔮).1
+  isIntegral := RingHom.isIntegral_of_surjective _ (alphaH_bijective E₀ 𝔮 h𝔮).2
   etale v hv := by
     haveI := hv.isPrime
-    have h1 := ramificationIdx_eq_one_of_bijective (alphaH E₀ 𝔭 h𝔭).toRingHom
-      (alphaH_bijective E₀ 𝔭 h𝔭) v
+    have h1 := ramificationIdx_eq_one_of_bijective (alphaH E₀ 𝔮 h𝔮).toRingHom
+      (alphaH_bijective E₀ 𝔮 h𝔮) v
     rw [h1, one_mul]
-    set β := bcHom (Genuine.hemiHom E₀) 𝔭 h𝔭
+    -- a component `P` of `K ⊗ k₀[E₀ ∖ 0]`
+    obtain ⟨M, hM⟩ := Ideal.exists_maximal (K ⊗[k₀] (punctured E₀).A)
+    obtain ⟨𝔭, h𝔭, -⟩ := Ideal.exists_minimalPrimes_le (bot_le : ⊥ ≤ M)
+    have heq : 𝔭.comap (bcMap K (Genuine.hemiHom E₀).f) = 𝔮 := by
+      rw [eq_bot_of_mem_minimalPrimes_hemi E₀ 𝔮 h𝔮]
+      exact eq_bot_of_mem_minimalPrimes_hemi E₀ _ (comap_bcHom_mem (Genuine.hemiHom E₀) h𝔭)
+    set β := bcHom' (Genuine.hemiHom E₀) 𝔭 h𝔭 𝔮 h𝔮 heq
     letI := β.f.toRingHom.toAlgebra
-    haveI : Algebra.IsIntegral (compH E₀ 𝔭 h𝔭).A (bcComp K (punctured E₀) 𝔭 h𝔭).A :=
+    haveI : Algebra.IsIntegral (bcComp K (hemi E₀) 𝔮 h𝔮).A (bcComp K (punctured E₀) 𝔭 h𝔭).A :=
       ⟨β.isIntegral⟩
     obtain ⟨W, hWmax, hW⟩ := Ideal.exists_ideal_over_maximal_of_isIntegral (S :=
       (bcComp K (punctured E₀) 𝔭 h𝔭).A) v (by
@@ -155,12 +157,11 @@ noncomputable def iotaH : Hom (compH E₀ 𝔭 h𝔭) (hemi (E₀.baseChange K))
         exact v.zero_mem)
     have hβ := β.etale W hWmax
     rw [compMult_punctured, mul_one] at hβ
-    change _ = compMult K (hemi E₀) _ (W.comap β.f) at hβ
     have hWv : W.comap β.f = v := hW
     subst hWv
-    have hsq := ramificationIdx_eq_of_comm_square β.f (alphaXK E₀ 𝔭 h𝔭) (alphaH E₀ 𝔭 h𝔭)
+    have hsq := ramificationIdx_eq_of_comm_square β.f (alphaXK E₀ 𝔭 h𝔭) (alphaH E₀ 𝔮 h𝔮)
       (Genuine.hemiMap (E₀.baseChange K)) β.injective (alphaXK_bijective E₀ 𝔭 h𝔭)
-      (alphaH_bijective E₀ 𝔭 h𝔭) (alpha_comm E₀ 𝔭 h𝔭) W
+      (alphaH_bijective E₀ 𝔮 h𝔮) (alpha_comm E₀ 𝔭 h𝔭 𝔮 h𝔮 heq) W
     have hW' : (W.comap (alphaXK E₀ 𝔭 h𝔭)).IsMaximal :=
       Ideal.comap_isMaximal_of_surjective _ (alphaXK_bijective E₀ 𝔭 h𝔭).2
     have hh := (Genuine.hemiHom (E₀.baseChange K)).etale _ hW'
@@ -169,7 +170,7 @@ noncomputable def iotaH : Hom (compH E₀ 𝔭 h𝔭) (hemi (E₀.baseChange K))
     congr 1
     ext x
     simp only [Ideal.mem_comap]
-    have := congrArg (fun φ ↦ φ x) (alpha_comm E₀ 𝔭 h𝔭)
+    have := congrArg (fun φ ↦ φ x) (alpha_comm E₀ 𝔭 h𝔭 𝔮 h𝔮 heq)
     simp only [AlgHom.comp_apply] at this
     change alphaXK E₀ 𝔭 h𝔭 (Genuine.hemiMap _ x) ∈ W ↔ _
     rw [this]
