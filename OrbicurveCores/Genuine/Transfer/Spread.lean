@@ -80,13 +80,21 @@ theorem exists_model {k₀ : Type u} [Field k₀] {k : Type (max u v)} [Field k]
     (P : Algebra.Presentation k A (Fin a) (Fin b))
     (hP : P.coeffs ⊆ Set.range (algebraMap k₀ k)) :
     ∃ (A₀ : Type u) (_ : CommRing A₀) (_ : Algebra k₀ A₀) (_ : Algebra.FiniteType k₀ A₀)
-      (e : k ⊗[k₀] A₀ ≃ₐ[k] A), ∀ i, ∃ x : A₀, e ((1 : k) ⊗ₜ x) = P.val i := by
+      (e : k ⊗[k₀] A₀ ≃ₐ[k] A), (∀ i, ∃ x : A₀, e ((1 : k) ⊗ₜ x) = P.val i) ∧
+        ∀ x : A₀, ∃ f : MvPolynomial (Fin a) k₀,
+          e ((1 : k) ⊗ₜ x) = MvPolynomial.eval₂ ((algebraMap k A).comp (algebraMap k₀ k)) P.val f := by
   letI : Algebra k₀ A := ((algebraMap k A).comp (algebraMap k₀ k)).toAlgebra
   haveI : IsScalarTower k₀ k A := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
   haveI : P.HasCoeffs k₀ := ⟨hP⟩
   refine ⟨P.ModelOfHasCoeffs k₀, inferInstance, inferInstance, inferInstance,
-    P.tensorModelOfHasCoeffsEquiv k₀, fun i ↦ ⟨Ideal.Quotient.mk _ (MvPolynomial.X i), ?_⟩⟩
-  rw [Algebra.Presentation.tensorModelOfHasCoeffsEquiv_tmul, map_one, one_mul,
-    MvPolynomial.aeval_X]
+    P.tensorModelOfHasCoeffsEquiv k₀, fun i ↦ ⟨Ideal.Quotient.mk _ (MvPolynomial.X i), ?_⟩,
+    fun x ↦ ?_⟩
+  · rw [Algebra.Presentation.tensorModelOfHasCoeffsEquiv_tmul, map_one, one_mul,
+      MvPolynomial.aeval_X]
+  · obtain ⟨f, rfl⟩ := Ideal.Quotient.mk_surjective x
+    refine ⟨f, ?_⟩
+    rw [Algebra.Presentation.tensorModelOfHasCoeffsEquiv_tmul, map_one, one_mul,
+      MvPolynomial.aeval_def]
+    rfl
 
 end OrbicurveCores.Transfer
