@@ -15,6 +15,7 @@ import OrbicurveCores.Fuchsian.FordCover
 import OrbicurveCores.Fuchsian.OneInftyLattice
 import OrbicurveCores.Fuchsian.PingPong
 import OrbicurveCores.Genuine.Assembly
+import OrbicurveCores.Genuine.Hemi
 import OrbicurveCores.GroupCanLift
 import OrbicurveCores.GroupMain
 import OrbicurveCores.JValues

@@ -401,8 +401,9 @@ from U1, S1, the group-level theorem and three precise interfaces. The `k`-core 
 
 **U2** (over `ℂ`; `X = punctured E`, `H = hemi E`, `π : ℍ → X(ℂ)` from U1).
 
-* U2a. **[in progress]** `H ∈ LocBar(X)`, via `X → H` given by the `x`-coordinate
-  (`Genuine/Hemi.lean`: `hemiHom`, `locBar_hemi`); valid over any field of characteristic `0`.
+* U2a. **[done]** `H ∈ LocBar(X)`, via `X → H` given by the `x`-coordinate
+  (`Genuine/Hemi.lean`: `hemiHom`, `locBar_hemi`; `k(E)/k(x)` is Galois, so all primes over `v`
+  have ramification index `ramificationIdxIn v`); valid over any field of characteristic `0`.
 * U2b. Covers of `X`: an `AffOrbicurve` `Z` with `Z → X` has trivial multiplicities and is a
   scheme finite étale over `X`; `Z(ℂ) → X(ℂ)` is a finite covering space, so `π` lifts to
   `π_Z : ℍ → Z(ℂ)`, with deck group `Γ_Z ≤ Γ` of finite index (topological covering theory plus
