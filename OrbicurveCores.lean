@@ -26,7 +26,10 @@ import OrbicurveCores.Genuine.Transfer.BaseChange
 import OrbicurveCores.Genuine.Transfer.CompRamification
 import OrbicurveCores.Genuine.Transfer.Components
 import OrbicurveCores.Genuine.Transfer.DVR
+import OrbicurveCores.Genuine.Transfer.Elliptic
+import OrbicurveCores.Genuine.Transfer.EllipticHom
 import OrbicurveCores.Genuine.Transfer.Generic
+import OrbicurveCores.Genuine.Transfer.IsoRamification
 import OrbicurveCores.Genuine.Transfer.Local
 import OrbicurveCores.Genuine.Transfer.LocalGen
 import OrbicurveCores.Genuine.Transfer.LocalGeneric
