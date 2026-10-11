@@ -383,8 +383,8 @@ from U1, S1, the group-level theorem and three precise interfaces. The `k`-core 
 |---|---|---|
 | F' | `canLift27Genuine_of : CommIndexFour → HemiCoreComplex → HemiCoreTransfer → CanLift27Genuine` (also `canLift27_of`: pi1's `CanLift27`) | **[done]** `Genuine/Assembly.lean` |
 | R3 | `CommIndexFour`: a once-punctured torus group with a core has index `4` in its commensurator (`Comm(Γ) = ⟨Γ, ι⟩`, `ι² = -1`) | reduced to R3d `TranslationCase` (`Genuine/CommIndex.lean`, `commIndexFour_of_translationCase`); R3a–R3c done |
-| F'' | `canLift27Genuine_of_remaining : TranslationCase → U2Descent → U2Rigidity → HemiCoreTransfer → CanLift27Genuine`; with U2b and `u2Rigidity`: `canLift27Genuine_of_remaining'' : TranslationCase → CompositumSeparates ℂ → HemiCoreTransfer → CanLift27Genuine` | **[done]** `Genuine/Final.lean` |
-| U2 | `HemiCoreComplex`: over `ℂ`, if `(A, B)` uniformises `E ∖ 0` and `[Comm(Γ) : Γ] = 4`, then `hemi E` is the `ℂ`-core of `punctured E` | `U2Rigidity` **[done]** (`u2Rigidity`, `Genuine/Rigid/`); `U2Descent` reduced to `U2Rigidity` and `CompositumSeparates ℂ` (U2b, `u2Descent_of`), so `HemiCoreComplex` follows from `CompositumSeparates ℂ` (`hemiCoreComplex_of_compositumSeparates`) |
+| F'' | `canLift27Genuine_of_remaining : TranslationCase → U2Descent → U2Rigidity → HemiCoreTransfer → CanLift27Genuine`; with U2b and `u2Rigidity`: `canLift27Genuine_of_remaining'' : TranslationCase → CompositumSeparates ℂ → HemiCoreTransfer → CanLift27Genuine`; with U2f: `canLift27Genuine_of_translationCase_of_transfer : TranslationCase → HemiCoreTransfer → CanLift27Genuine` | **[done]** `Genuine/Final.lean` |
+| U2 | `HemiCoreComplex`: over `ℂ`, if `(A, B)` uniformises `E ∖ 0` and `[Comm(Γ) : Γ] = 4`, then `hemi E` is the `ℂ`-core of `punctured E` | **[done]** (`hemiCoreComplex`, `Genuine/Final.lean`): `U2Rigidity` (`u2Rigidity`, `Genuine/Rigid/`), `U2Descent` (`u2Descent`, from U2b and U2f `Abhyankar.compositumSeparates`, `Genuine/Abhyankar/`) |
 | T | `HemiCoreTransfer`: the complex case of pi1's `CanLift27` implies it over every field of characteristic `0` | **[stated]** |
 
 **R3** (group level). Write `Δ = Comm(Γ)`, of finite index, hence discrete.
@@ -430,15 +430,26 @@ from U1, S1, the group-level theorem and three precise interfaces. The `k`-core 
   finite étale `x p r₂ : W → H` gives `r₂^* a = r₁^* a`. Hence `U2Descent` follows from
   `U2Rigidity` and `CompositumSeparates ℂ`, and `CanLift27Genuine` from `TranslationCase`,
   `U2Rigidity`, `CompositumSeparates ℂ`, `HemiCoreTransfer` (`canLift27Genuine_of_remaining'`).
-* U2f. **[stated]** `CompositumSeparates k` (algebra, Abhyankar's lemma): for `q : Z → Y` finite
-  étale with `m_Z = 1` and `c ∈ A_Z ∖ q^*(A_Y)`, there are `r₁, r₂ : W → Z` finite étale with
-  `q r₁ = q r₂`, `r₁^* c ≠ r₂^* c`. Proof: `c ∉ k(Y)` (`A_Y` integrally closed); a
-  `k(Y)`-embedding `ε` of `k(Z)` into an algebraic closure moves `c`; `W` = normalisation of `A_Y`
-  in `k(Z)·ε(k(Z))`, `m_W = 1`. Étaleness of `W → Z` (both embeddings) is Abhyankar's lemma: all
-  ramification indices of `Z → Y` over `y` equal `m_Y(y)`; adjoining `t^{1/m}` (`t` a uniformiser
-  at `y`, Eisenstein) makes `Z` unramified (`(t^{1/m}/ϖ)^m` is a unit, Kummer), composita of
-  unramified extensions are unramified (tensor products of étale algebras), and ramification
-  indices are multiplicative.
+* U2f. **[done]** (`Genuine/Abhyankar/*.lean`, `Abhyankar.compositumSeparates`)
+  `CompositumSeparates ℂ` (algebra, Abhyankar's lemma): for `q : Z → Y` finite étale with
+  `m_Z = 1` and `c ∈ A_Z ∖ q^*(A_Y)`, there are `r₁, r₂ : W → Z` finite étale with `q r₁ = q r₂`,
+  `r₁^* c ≠ r₂^* c`. Write `B = A_Y`, `K = k(Y)`, `Ω = K̄`, `IC F` the integral closure of `B` in
+  a finite `K ⊆ F ⊆ Ω`.
+  * U2f1. (`Unramified.lean`) `P'(θ) ∉ 𝔓` for the minimal polynomial `P` of a generator `θ`
+    gives `e(𝔓) = 1` (different ideal); Kummer generators `θ^m = c`, `c ∉ 𝔓`, are unramified.
+  * U2f2. (`Tower.lean`) `icMap : IC F → IC F'`, `ramIC`, multiplicativity in towers
+    (`ramIC_trans`, `ramificationIdx_B_eq`), going up, U2f1 in towers.
+  * U2f3. (`Valuation.lean`) orders at primes; a uniformiser `t` of `y` has order `e(w | y)`.
+  * U2f4. (`Steps.lean`: `kummer_step`, `kummer_base`) with `s^m = t`, `F(s)/F` is unramified
+    over `y` if all `e(w | y) = m` (Kummer generator `s₀ s / ϖ`); `m ∣ e` for fields containing
+    `s`.
+  * U2f5. (`Generator.lean`, `Compositum.lean`: `ramIC_compositum`) local generators with a simple
+    root (separating element, local version of U2c3); composita of unramified extensions are
+    unramified.
+  * U2f6. (`Steps.lean`: `abhyankar`) Abhyankar's lemma: `F₁ ⊔ F₂ / F₁` unramified over `y` if all
+    ramification indices of `F₁`, `F₂` over `y` equal `m`.
+  * U2f7. (`Embed.lean`, `Separates.lean`) `A_Z ≅ IC F` for an embedding `A_Z → Ω`; `σ ∈ Gal(Ω/K)`
+    moves `c`; `W` = normalisation in `F ⊔ σ(F)`, `r₁, r₂` the two inclusions.
 * U2-rigidity **[done]** (`Genuine/Rigid/*.lean`, `u2Rigidity`; analytic, over `ℂ`). Notation: `π : ℍ → E(ℂ) ∖ 0` from U1, `Γ = ⟨A, B⟩`,
   `u = x ∘ π`, `A_X` the coordinate ring of `X`. The route avoids building `Z(ℂ)` as a Riemann
   surface: an algebraic cover is seen only through ring maps `τ : A_Z → 𝒪(ℍ)` ("lifts of `π`").
