@@ -29,11 +29,13 @@ import OrbicurveCores.Genuine.Transfer.DVR
 import OrbicurveCores.Genuine.Transfer.Descent
 import OrbicurveCores.Genuine.Transfer.Elliptic
 import OrbicurveCores.Genuine.Transfer.EllipticHom
+import OrbicurveCores.Genuine.Transfer.Embedding
 import OrbicurveCores.Genuine.Transfer.Generic
 import OrbicurveCores.Genuine.Transfer.IsoRamification
 import OrbicurveCores.Genuine.Transfer.Local
 import OrbicurveCores.Genuine.Transfer.LocalGen
 import OrbicurveCores.Genuine.Transfer.LocalGeneric
+import OrbicurveCores.Genuine.Transfer.Model
 import OrbicurveCores.Genuine.Transfer.Normalization
 import OrbicurveCores.Genuine.Transfer.Ramification
 import OrbicurveCores.GroupCanLift
