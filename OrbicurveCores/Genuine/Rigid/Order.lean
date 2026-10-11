@@ -80,6 +80,24 @@ theorem exists_mul_eq_pow_mul {w : Ideal S} [hw : w.IsMaximal] {g : S} (hg : g �
   exact (Ideal.IsPrime.mul_mem_pow w this).resolve_left
     fun h ↦ hs₁w (hw.isPrime.mem_of_pow_mem k h)
 
+/-- **Order of an element**: a nonzero `b ∈ w` lies in `w^k ∖ w^(k+1)` for some `k ≥ 1`
+(Krull's intersection theorem). -/
+theorem exists_order {w : Ideal S} [hw : w.IsMaximal] {b : S} (hb0 : b ≠ 0) (hb : b ∈ w) :
+    ∃ k, k ≠ 0 ∧ b ∈ w ^ k ∧ b ∉ w ^ (k + 1) := by
+  classical
+  have hex : ∃ j, b ∉ w ^ j := by
+    by_contra h
+    push Not at h
+    have : b ∈ ⨅ j : ℕ, w ^ j := Submodule.mem_iInf _ |>.mpr h
+    rw [Ideal.iInf_pow_eq_bot_of_isDomain w hw.ne_top] at this
+    exact hb0 this
+  set m := Nat.find hex
+  have hm : b ∉ w ^ m := Nat.find_spec hex
+  have hm0 : m ≠ 0 := fun h ↦ hm (by rw [h, pow_zero, Ideal.one_eq_top]; trivial)
+  have hm1 : m ≠ 1 := fun h ↦ hm (by rw [h, pow_one]; exact hb)
+  refine ⟨m - 1, by omega, ?_, by rwa [Nat.sub_add_cancel (by omega)]⟩
+  exact not_not.mp (Nat.find_min hex (by omega : m - 1 < m))
+
 end Algebra
 
 section Analytic
