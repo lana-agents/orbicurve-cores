@@ -136,6 +136,98 @@ lemma ramIC_trans {F F' F'' : IntermediateField K Ω} [FiniteDimensional K F']
     (icMap_injective h') P
   exact this
 
+/-- The algebra structure of `F'` over `F` for `F ≤ F'`. -/
+abbrev inclAlg {F F' : IntermediateField K Ω} (h : F ≤ F') : Algebra F F' :=
+  (IntermediateField.inclusion h).toRingHom.toAlgebra
+
+omit [Algebra ℂ B] in
+/-- **Generation.** If `F' ⊆ F(θ)` inside `Ω`, then `F' = F[θ]`. -/
+lemma adjoin_eq_top_of_le {F F' : IntermediateField K Ω} (h : F ≤ F') (θ : F')
+    (hle : F' ≤ (IntermediateField.adjoin F {(θ : Ω)}).restrictScalars K) :
+    letI := inclAlg h; Algebra.adjoin F {θ} = ⊤ := by
+  letI := inclAlg h
+  let ι : F' →ₐ[F] Ω :=
+    { toRingHom := F'.val.toRingHom
+      commutes' := fun _ ↦ rfl }
+  have hι : Function.Injective ι := Subtype.val_injective
+  have halg : IsAlgebraic F (θ : Ω) :=
+    (Algebra.IsAlgebraic.isAlgebraic (R := K) (θ : Ω)).tower_top F
+  refine eq_top_iff.mpr fun x _ ↦ ?_
+  have hx : (x : Ω) ∈ IntermediateField.adjoin F {(θ : Ω)} := hle x.2
+  rw [← IntermediateField.mem_toSubalgebra,
+    IntermediateField.adjoin_simple_toSubalgebra_of_isAlgebraic halg] at hx
+  have hmap : (Algebra.adjoin F {θ}).map ι = Algebra.adjoin F {(θ : Ω)} := by
+    rw [AlgHom.map_adjoin, Set.image_singleton]; rfl
+  rw [← hmap] at hx
+  obtain ⟨y, hy, hyx⟩ := hx
+  rwa [hι hyx] at hy
+
+set_option synthInstance.maxHeartbeats 200000 in
+/-- **Unramifiedness in a tower from the derivative of a minimal polynomial.** -/
+theorem ramIC_eq_one_of_aeval_derivative {F F' : IntermediateField K Ω} [FiniteDimensional K F]
+    [FiniteDimensional K F'] (h : F ≤ F') {θ : IC B F'}
+    (hgen : F' ≤ (IntermediateField.adjoin F {((θ : F') : Ω)}).restrictScalars K)
+    {P : Ideal (IC B F')} [P.IsMaximal]
+    (hP : letI := (icMap (B := B) h).toRingHom.toAlgebra
+      aeval θ (derivative (minpoly (IC B F) θ)) ∉ P) : ramIC h P = 1 := by
+  letI i₁ : Algebra (IC B F) (IC B F') := (icMap (B := B) h).toRingHom.toAlgebra
+  letI : SMul (IC B F) (IC B F') := i₁.toSMul
+  letI : Module (IC B F) (IC B F') := i₁.toModule
+  letI i₂ : Algebra F F' := inclAlg h
+  letI : SMul F F' := i₂.toSMul
+  letI : Module F F' := i₂.toModule
+  letI i₃ : Algebra (IC B F) F' := ((algebraMap F F').comp (algebraMap (IC B F) F)).toAlgebra
+  letI : SMul (IC B F) F' := i₃.toSMul
+  haveI : IsScalarTower (IC B F) F F' := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+  haveI : IsScalarTower (IC B F) (IC B F') F' := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+  haveI : IsScalarTower B (IC B F) (IC B F') :=
+    IsScalarTower.of_algebraMap_eq fun b ↦ ((icMap (B := B) h).commutes b).symm
+  haveI : IsScalarTower K F F' :=
+    IsScalarTower.of_algebraMap_eq fun x ↦ ((IntermediateField.inclusion h).commutes x).symm
+  haveI : FaithfulSMul (IC B F) (IC B F') :=
+    (faithfulSMul_iff_algebraMap_injective _ _).mpr (icMap_injective h)
+  haveI : Algebra.IsIntegral (IC B F) (IC B F') :=
+    ⟨fun x ↦ (Algebra.IsIntegral.isIntegral (R := B) x).tower_top⟩
+  haveI : Module.Finite (IC B F) (IC B F') := Module.Finite.of_restrictScalars_finite B _ _
+  haveI : FiniteDimensional F F' := FiniteDimensional.right K F F'
+  have hgen' : Algebra.adjoin F {algebraMap (IC B F') F' θ} = ⊤ := adjoin_eq_top_of_le h _ hgen
+  haveI : CharZero (IC B F) :=
+    charZero_of_injective_algebraMap (algebraMap ℂ (IC B F)).injective
+  exact Abhyankar.ramificationIdx_eq_one_of_aeval_derivative (KR := F) (KS := F') hgen' hP
+
+
+set_option synthInstance.maxHeartbeats 200000 in
+/-- **Kummer generators in a tower are unramified.** -/
+theorem ramIC_eq_one_of_pow_eq {F F' : IntermediateField K Ω} [FiniteDimensional K F]
+    [FiniteDimensional K F'] (h : F ≤ F') {θ : IC B F'}
+    (hgen : F' ≤ (IntermediateField.adjoin F {((θ : F') : Ω)}).restrictScalars K)
+    {m : ℕ} (hm : m ≠ 0) {c : IC B F} (hθ : θ ^ m = icMap h c) {P : Ideal (IC B F')}
+    [P.IsMaximal] (hc : icMap h c ∉ P) : ramIC h P = 1 := by
+  letI i₁ : Algebra (IC B F) (IC B F') := (icMap (B := B) h).toRingHom.toAlgebra
+  letI : SMul (IC B F) (IC B F') := i₁.toSMul
+  letI : Module (IC B F) (IC B F') := i₁.toModule
+  letI i₂ : Algebra F F' := inclAlg h
+  letI : SMul F F' := i₂.toSMul
+  letI : Module F F' := i₂.toModule
+  letI i₃ : Algebra (IC B F) F' := ((algebraMap F F').comp (algebraMap (IC B F) F)).toAlgebra
+  letI : SMul (IC B F) F' := i₃.toSMul
+  haveI : IsScalarTower (IC B F) F F' := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+  haveI : IsScalarTower (IC B F) (IC B F') F' := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+  haveI : IsScalarTower B (IC B F) (IC B F') :=
+    IsScalarTower.of_algebraMap_eq fun b ↦ ((icMap (B := B) h).commutes b).symm
+  haveI : IsScalarTower K F F' :=
+    IsScalarTower.of_algebraMap_eq fun x ↦ ((IntermediateField.inclusion h).commutes x).symm
+  haveI : FaithfulSMul (IC B F) (IC B F') :=
+    (faithfulSMul_iff_algebraMap_injective _ _).mpr (icMap_injective h)
+  haveI : Algebra.IsIntegral (IC B F) (IC B F') :=
+    ⟨fun x ↦ (Algebra.IsIntegral.isIntegral (R := B) x).tower_top⟩
+  haveI : Module.Finite (IC B F) (IC B F') := Module.Finite.of_restrictScalars_finite B _ _
+  haveI : FiniteDimensional F F' := FiniteDimensional.right K F F'
+  have hgen' : Algebra.adjoin F {algebraMap (IC B F') F' θ} = ⊤ := adjoin_eq_top_of_le h _ hgen
+  haveI : CharZero (IC B F) :=
+    charZero_of_injective_algebraMap (algebraMap ℂ (IC B F)).injective
+  exact Abhyankar.ramificationIdx_eq_one_of_pow_eq (KR := F) (KS := F') hgen' hm hθ hc
+
 end
 
 end OrbicurveCores.Abhyankar
