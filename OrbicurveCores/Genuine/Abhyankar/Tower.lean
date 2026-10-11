@@ -65,6 +65,30 @@ instance finiteType_IC [Algebra.FiniteType ℂ B] (F : IntermediateField K Ω)
 instance finite_IC (F : IntermediateField K Ω) [FiniteDimensional K F] :
     Module.Finite B (IC B F) := AffOrbicurve.integralClosure_finite B K F
 
+omit [Algebra ℂ B] in
+lemma algebraMap_IC_injective (F : IntermediateField K Ω) :
+    Function.Injective (algebraMap B (IC B F)) := by
+  intro a b hab
+  have h : algebraMap B Ω a = algebraMap B Ω b :=
+    congrArg (fun x : IC B F ↦ ((x : F) : Ω)) hab
+  rw [IsScalarTower.algebraMap_apply B K Ω, IsScalarTower.algebraMap_apply B K Ω] at h
+  exact IsFractionRing.injective B K ((algebraMap K Ω).injective h)
+
+instance isTorsionFree_IC (F : IntermediateField K Ω) : Module.IsTorsionFree B (IC B F) :=
+  (Module.isTorsionFree_iff_algebraMap_injective).mpr (algebraMap_IC_injective F)
+
+/-- `IC F → Ω`. -/
+def icVal (F : IntermediateField K Ω) : IC B F →+* Ω :=
+  (IntermediateField.val F).toRingHom.comp (Subalgebra.val (IC B F)).toRingHom
+
+omit [Algebra ℂ B] in
+lemma icVal_injective (F : IntermediateField K Ω) : Function.Injective (icVal (B := B) F) :=
+  fun _ _ h ↦ Subtype.ext (Subtype.ext h)
+
+omit [Algebra ℂ B] in
+@[simp] lemma icVal_algebraMap (F : IntermediateField K Ω) (b : B) :
+    icVal F (algebraMap B (IC B F) b) = algebraMap B Ω b := rfl
+
 /-- The inclusion `IC F → IC F'` for `F ≤ F'`. -/
 def icMap {F F' : IntermediateField K Ω} (h : F ≤ F') : IC B F →ₐ[B] IC B F' where
   toFun x := ⟨IntermediateField.inclusion h x.1,
@@ -84,6 +108,10 @@ lemma icMap_injective {F F' : IntermediateField K Ω} (h : F ≤ F') :
     Function.Injective (icMap (B := B) h) := fun x y hxy ↦ by
   have := congrArg (fun z : IC B F' ↦ ((z : F') : Ω)) hxy
   exact Subtype.ext (Subtype.ext this)
+
+omit [Algebra ℂ B] in
+@[simp] lemma icVal_icMap {F F' : IntermediateField K Ω} (h : F ≤ F') (x : IC B F) :
+    icVal F' (icMap h x) = icVal F x := rfl
 
 omit [Algebra ℂ B] in
 lemma icMap_comp {F F' F'' : IntermediateField K Ω} (h : F ≤ F') (h' : F' ≤ F'') :
@@ -227,6 +255,47 @@ theorem ramIC_eq_one_of_pow_eq {F F' : IntermediateField K Ω} [FiniteDimensiona
   haveI : CharZero (IC B F) :=
     charZero_of_injective_algebraMap (algebraMap ℂ (IC B F)).injective
   exact Abhyankar.ramificationIdx_eq_one_of_pow_eq (KR := F) (KS := F') hgen' hm hθ hc
+
+omit [Algebra ℂ B] in
+set_option synthInstance.maxHeartbeats 200000 in
+lemma isIntegral_icMap {F F' : IntermediateField K Ω} (h : F ≤ F') :
+    (icMap (B := B) h).toRingHom.IsIntegral := by
+  letI i₁ : Algebra (IC B F) (IC B F') := (icMap (B := B) h).toRingHom.toAlgebra
+  letI : SMul (IC B F) (IC B F') := i₁.toSMul
+  haveI : IsScalarTower B (IC B F) (IC B F') :=
+    IsScalarTower.of_algebraMap_eq fun b ↦ ((icMap (B := B) h).commutes b).symm
+  exact fun x ↦ (Algebra.IsIntegral.isIntegral (R := B) x).tower_top
+
+omit [Algebra ℂ B] in
+set_option synthInstance.maxHeartbeats 200000 in
+/-- The contraction of a maximal ideal along `icMap` is maximal. -/
+lemma isMaximal_comap_icMap {F F' : IntermediateField K Ω} (h : F ≤ F') (Q : Ideal (IC B F'))
+    [Q.IsMaximal] : (Q.comap (icMap (B := B) h)).IsMaximal := by
+  letI i₁ : Algebra (IC B F) (IC B F') := (icMap (B := B) h).toRingHom.toAlgebra
+  letI : SMul (IC B F) (IC B F') := i₁.toSMul
+  haveI : Algebra.IsIntegral (IC B F) (IC B F') := ⟨isIntegral_icMap h⟩
+  exact Ideal.isMaximal_comap_of_isIntegral_of_isMaximal (R := IC B F) Q
+
+omit [Algebra ℂ B] in
+lemma under_comap_icMap {F F' : IntermediateField K Ω} (h : F ≤ F') (Q : Ideal (IC B F')) :
+    (Q.comap (icMap (B := B) h)).under B = Q.under B := by
+  ext b
+  simp only [Ideal.under, Ideal.mem_comap]
+  rw [← (icMap (B := B) h).commutes b]
+
+omit [Algebra ℂ B] in
+set_option synthInstance.maxHeartbeats 200000 in
+/-- Going up along `icMap`. -/
+lemma exists_comap_icMap_eq {F F' : IntermediateField K Ω} (h : F ≤ F') (w : Ideal (IC B F))
+    [w.IsMaximal] : ∃ Q : Ideal (IC B F'), Q.IsMaximal ∧ Q.comap (icMap (B := B) h) = w := by
+  letI i₁ : Algebra (IC B F) (IC B F') := (icMap (B := B) h).toRingHom.toAlgebra
+  letI : SMul (IC B F) (IC B F') := i₁.toSMul
+  haveI : Algebra.IsIntegral (IC B F) (IC B F') := ⟨isIntegral_icMap h⟩
+  obtain ⟨Q, hQ, hQw⟩ := Ideal.exists_ideal_over_maximal_of_isIntegral (S := IC B F') w (by
+    rw [(RingHom.injective_iff_ker_eq_bot (algebraMap (IC B F) (IC B F'))).mp
+      (icMap_injective h)]
+    exact bot_le)
+  exact ⟨Q, hQ, hQw⟩
 
 end
 
