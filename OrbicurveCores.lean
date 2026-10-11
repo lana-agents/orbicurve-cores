@@ -41,6 +41,7 @@ import OrbicurveCores.Genuine.Transfer.ModelOrbicurve
 import OrbicurveCores.Genuine.Transfer.Normalization
 import OrbicurveCores.Genuine.Transfer.Ramification
 import OrbicurveCores.Genuine.Transfer.Spread
+import OrbicurveCores.Genuine.Transfer.SpreadHom
 import OrbicurveCores.GroupCanLift
 import OrbicurveCores.GroupMain
 import OrbicurveCores.JValues
