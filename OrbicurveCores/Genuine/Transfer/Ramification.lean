@@ -169,13 +169,15 @@ include hf hfin in
 /-- **Closed points** (T2d): local uniformizers `π` of `A` and `ϖ` of `B` generate
 `V = W ∩ (K ⊗ A)` and `W` locally, and `f(π) = u ϖ ^ e(w | v)` with `u` a unit at `W`. -/
 theorem closed_data [CharZero k] [IsDedekindDomain A] [IsDedekindDomain B]
-    [Algebra.FiniteType k A] [Algebra.FiniteType k B] (W : Ideal (K ⊗[k] B)) [W.IsMaximal] (hw : W.comap ιB ≠ ⊥) :
+    [Algebra.FiniteType k A] [Algebra.FiniteType k B] (W : Ideal (K ⊗[k] B)) [W.IsMaximal]
+    (hw : W.comap ιB ≠ ⊥) :
     ∃ (π : A) (ϖ : B), (1 : K) ⊗ₜ[k] π ∈ W.comap (bcMap K f) ∧
       (∀ x ∈ W.comap (bcMap K f), ∃ s ∉ W.comap (bcMap K f), ∃ y,
         s * x = ((1 : K) ⊗ₜ[k] π) * y) ∧
       (1 : K) ⊗ₜ[k] ϖ ∈ W ∧ (∀ x ∈ W, ∃ s ∉ W, ∃ y, s * x = ((1 : K) ⊗ₜ[k] ϖ) * y) ∧
       ∃ s ∉ W, ∃ b ∉ W, s * ((1 : K) ⊗ₜ[k] f π) =
-        b * ((1 : K) ⊗ₜ[k] ϖ) ^ (letI := f.toRingHom.toAlgebra; (W.comap ιB).ramificationIdx A) := by
+        b * ((1 : K) ⊗ₜ[k] ϖ) ^
+          (letI := f.toRingHom.toAlgebra; (W.comap ιB).ramificationIdx A) := by
   set w := W.comap ιB with hwdef
   set V := W.comap (bcMap K f) with hVdef
   have hV : V.IsMaximal := isMaximal_comap_bcMap f hfin W
